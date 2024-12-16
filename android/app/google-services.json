@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "683024343520",
+    "project_id": "keyra-93667",
+    "storage_bucket": "keyra-93667.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683024343520:android:75f549c3744c8df16acb85",
+        "android_client_info": {
+          "package_name": "com.keyra.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "683024343520-4u8fgl4eiq2n3knc7m3r5ctujc8c1pe9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.keyra.app",
+            "certificate_hash": "6942d7baee81391c27aa102af01408df57674f11"
+          }
+        },
+        {
+          "client_id": "683024343520-e0lnpk8qsbk2duat13m5md5figaonv44.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.keyra.app",
+            "certificate_hash": "eefbeb4dda8000402ac8b94abaa009ece6bdd360"
+          }
+        },
+        {
+          "client_id": "683024343520-5frvus96mrnucr0lt4bn55epuanv1l52.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkfZqYt2_tss0_kjJf5yVH-QbRrZX-HYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "683024343520-5frvus96mrnucr0lt4bn55epuanv1l52.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "683024343520-jv2vupllo4np10cs3r20o91r1ira7p31.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.keyra.keyraRepo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
