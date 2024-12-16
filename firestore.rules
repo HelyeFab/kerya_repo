@@ -25,6 +25,11 @@ service cloud.firestore {
       }
     }
 
+    // Allow read access to saved_words collection for authenticated users
+    match /saved_words/{wordId} {
+      allow read: if isAuthenticated();
+    }
+
     // Allow read/write access to books collection during development
     match /books/{document=**} {
       allow read, write: if true;  // TODO: Restrict this before production

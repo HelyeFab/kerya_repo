@@ -9,6 +9,11 @@ import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:Keyra/features/auth/data/repositories/firebase_auth_repository.dart';
 import 'package:Keyra/core/theme/app_theme.dart';
 import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
+import 'package:Keyra/features/home/presentation/pages/home_page.dart';
+import 'package:Keyra/features/library/presentation/pages/library_page.dart';
+import 'package:Keyra/features/create/presentation/pages/create_page.dart';
+import 'package:Keyra/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:Keyra/features/profile/presentation/pages/profile_page.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -96,6 +101,13 @@ class MyApp extends StatelessWidget {
             );
           },
         ),
+        routes: {
+          '/home': (context) => const HomePage(),
+          '/library': (context) => const LibraryPage(),
+          '/create': (context) => const CreatePage(),
+          '/dashboard': (context) => const DashboardPage(),
+          '/profile': (context) => const ProfilePage(),
+        },
       ),
     );
   }

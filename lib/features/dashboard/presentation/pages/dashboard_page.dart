@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../data/repositories/user_stats_repository.dart';
+import 'saved_words_page.dart'; // Import the new page
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -94,11 +95,19 @@ class DashboardContent extends StatelessWidget {
           Icons.local_fire_department,
           Colors.orange,
         ),
-        _buildStatCard(
-          'Saved Words',
-          savedWords.toString(),
-          Icons.bookmark,
-          Colors.purple,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SavedWordsPage()),
+            );
+          },
+          child: _buildStatCard(
+            'Saved Words',
+            savedWords.toString(),
+            Icons.bookmark,
+            Colors.purple,
+          ),
         ),
       ],
     );
