@@ -161,152 +161,104 @@ class DictionaryService {
   }
 
   Future<Map<String, dynamic>?> getDefinition(String word, BookLanguage language) async {
-    // Check if word is in Japanese
-    if (language.code == 'ja') {
-      if (!_isInitialized) {
-        try {
-          await initialize();
-        } catch (e) {
-          debugPrint('Failed to initialize JMDict: $e');
-          return null;
-        }
-      }
-
-      try {
-        final results = _jmDict.search(keyword: word, limit: 1);
-        if (results?.isNotEmpty ?? false) {
-          final entry = results!.first;
-          
-          // Create a structured definition response
-          final Map<String, dynamic> definition = {
-            'translatedWord': entry.kanjiElements?.firstOrNull?.element ?? word,
-            'meanings': <Map<String, dynamic>>[],
-          };
-
-          if (entry.senseElements.isNotEmpty) {
-            final meanings = entry.senseElements.map((sense) {
-              final glossaryTexts = sense.glossaries.map((g) => g.text).toList();
-              return {
-                'partOfSpeech': '', // JMDict doesn't provide part of speech
-                'definitions': [
-                  {
-                    'definition': glossaryTexts.join(', '),
-                    'example': null,
-                    'synonyms': <String>[],
-                  }
-                ],
-              };
-            }).toList();
-
-            definition['meanings'] = meanings;
-            return definition;
-          }
-        }
-        return null;
-      } catch (e) {
-        debugPrint('Error getting JMDict definition for word: $word - $e');
-        return null;
-      }
-    } else {
-      try {
-        String wordToLookup = word;
-        String originalLanguage = language.code;
+    try {
+      String wordToLookup = word;
+      String originalLanguage = language.code;
+      
+      // If not English, translate to English first
+      if (language.code != 'en') {
+        debugPrint('Translating word: $word from ${language.code} to English');
         
-        // If not English, translate to English first
-        if (language.code != 'en') {
-          debugPrint('Translating word: $word from ${language.code} to English');
-          
-          final translationResponse = await _dio.post(
-            'https://translation.googleapis.com/language/translate/v2',
-            queryParameters: {
-              'key': ApiKeys.googleApiKey,
-            },
-            data: {
-              'q': word,
-              'source': language.code,
-              'target': 'en',
-              'format': 'text',
-            },
-          );
-
-          if (translationResponse.statusCode == 200 && 
-              translationResponse.data != null &&
-              translationResponse.data['data'] != null &&
-              translationResponse.data['data']['translations'] != null &&
-              translationResponse.data['data']['translations'].isNotEmpty) {
-            
-            wordToLookup = translationResponse.data['data']['translations'][0]['translatedText'];
-            debugPrint('Translated word: $wordToLookup');
-          } else {
-            debugPrint('Translation failed, using original word');
-          }
-        }
-
-        // Get dictionary entry
-        debugPrint('Getting dictionary entry for: $wordToLookup');
-        final dictionaryResponse = await _dio.get(
-          'https://api.dictionaryapi.dev/api/v2/entries/en/${Uri.encodeComponent(wordToLookup)}',
+        final translationResponse = await _dio.post(
+          'https://translation.googleapis.com/language/translate/v2',
+          queryParameters: {
+            'key': ApiKeys.googleApiKey,
+          },
+          data: {
+            'q': word,
+            'source': language.code,
+            'target': 'en',
+            'format': 'text',
+          },
         );
 
-        debugPrint('Dictionary API response status: ${dictionaryResponse.statusCode}');
-        debugPrint('Dictionary API response data: ${dictionaryResponse.data}');
-
-        if (dictionaryResponse.statusCode == 200 && 
-            dictionaryResponse.data is List && 
-            dictionaryResponse.data.isNotEmpty) {
+        if (translationResponse.statusCode == 200 && 
+            translationResponse.data != null &&
+            translationResponse.data['data'] != null &&
+            translationResponse.data['data']['translations'] != null &&
+            translationResponse.data['data']['translations'].isNotEmpty) {
           
-          final data = dictionaryResponse.data[0];
-          final meanings = data['meanings'] ?? [];
-          
-          // Create a structured definition response
-          final Map<String, dynamic> definition = {
-            'translatedWord': word,
-            'meanings': <Map<String, dynamic>>[],
-          };
+          wordToLookup = translationResponse.data['data']['translations'][0]['translatedText'];
+          debugPrint('Translated word: $wordToLookup');
+        } else {
+          debugPrint('Translation failed, using original word');
+        }
+      }
 
-          // Process each meaning and translate examples if needed
-          for (var meaning in meanings) {
-            final definitions = meaning['definitions'] ?? [];
-            final List<Map<String, dynamic>> processedDefinitions = [];
+      // Get dictionary entry
+      debugPrint('Getting dictionary entry for: $wordToLookup');
+      final dictionaryResponse = await _dio.get(
+        'https://api.dictionaryapi.dev/api/v2/entries/en/${Uri.encodeComponent(wordToLookup)}',
+      );
 
-            for (var def in definitions) {
-              final example = def['example'];
-              String? translatedExample;
+      debugPrint('Dictionary API response status: ${dictionaryResponse.statusCode}');
+      debugPrint('Dictionary API response data: ${dictionaryResponse.data}');
 
-              // If we have an example and we're not in English mode, translate it
-              if (example != null && originalLanguage != 'en') {
-                translatedExample = await _translateText(example, originalLanguage);
-              }
+      if (dictionaryResponse.statusCode == 200 && 
+          dictionaryResponse.data is List && 
+          dictionaryResponse.data.isNotEmpty) {
+        
+        final data = dictionaryResponse.data[0];
+        final meanings = data['meanings'] ?? [];
+        
+        // Create a structured definition response
+        final Map<String, dynamic> definition = {
+          'translatedWord': word,
+          'meanings': <Map<String, dynamic>>[],
+        };
 
-              processedDefinitions.add({
-                'definition': def['definition'] ?? '',
-                'example': example,
-                'translatedExample': translatedExample,
-                'synonyms': def['synonyms'] ?? <String>[],
-              });
+        // Process each meaning and translate examples if needed
+        for (var meaning in meanings) {
+          final definitions = meaning['definitions'] ?? [];
+          final List<Map<String, dynamic>> processedDefinitions = [];
+
+          for (var def in definitions) {
+            final example = def['example'];
+            String? translatedExample;
+
+            // If we have an example and we're not in English mode, translate it
+            if (example != null && originalLanguage != 'en') {
+              translatedExample = await _translateText(example, originalLanguage);
             }
 
-            definition['meanings'].add({
-              'partOfSpeech': meaning['partOfSpeech'] ?? '',
-              'definitions': processedDefinitions,
+            processedDefinitions.add({
+              'definition': def['definition'] ?? '',
+              'example': example,
+              'translatedExample': translatedExample,
+              'synonyms': def['synonyms'] ?? <String>[],
             });
           }
-          
-          debugPrint('Returning definition: $definition');
-          return definition;
+
+          definition['meanings'].add({
+            'partOfSpeech': meaning['partOfSpeech'] ?? '',
+            'definitions': processedDefinitions,
+          });
         }
-      } on DioException catch (e) {
-        debugPrint('DioError getting dictionary entry for word: $word');
-        debugPrint('Error response: ${e.response?.data}');
-        debugPrint('Error message: ${e.message}');
-        if (e.response?.statusCode == 403) {
-          throw DictionaryException('Dictionary API access denied. Please check your API key configuration.');
-        }
-      } catch (e) {
-        debugPrint('Error getting dictionary entry for word: $word - $e');
+        
+        debugPrint('Returning definition: $definition');
+        return definition;
       }
-      return null;
+    } on DioException catch (e) {
+      debugPrint('DioError getting dictionary entry for word: $word');
+      debugPrint('Error response: ${e.response?.data}');
+      debugPrint('Error message: ${e.message}');
+      if (e.response?.statusCode == 403) {
+        throw DictionaryException('Dictionary API access denied. Please check your API key configuration.');
+      }
+    } catch (e) {
+      debugPrint('Error getting dictionary entry for word: $word - $e');
     }
+    return null;
   }
 
   void _addToReadingCache(String word, String reading) {

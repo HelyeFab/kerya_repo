@@ -331,6 +331,28 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
   }
 
   Widget _buildWordTitle() {
+    if (widget.language.code == 'ja' && _furigana != null) {
+      return RubyText(
+        [
+          RubyTextData(
+            _furigana!['text'] ?? widget.word,
+            ruby: _furigana!['reading'] ?? widget.word,
+          ),
+        ],
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    } else {
+      return Text(
+        widget.word,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
