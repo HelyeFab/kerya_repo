@@ -233,7 +233,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
   }
 
   Widget _buildJapaneseText(BuildContext context, String text) {
-    return FutureBuilder<List<(String, String?)>>(
+    return FutureBuilder<List<WordReading>>(
       future: widget.dictionaryService.tokenizeWithReadings(text),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -290,12 +290,12 @@ class _BookReaderPageState extends State<BookReaderPage> {
         final wordsWithReadings = snapshot.data!;
         final List<InlineSpan> textSpans = [];
         
-        for (var (word, reading) in wordsWithReadings) {
-          if (word.trim().isEmpty) continue;
+        for (var wordReading in wordsWithReadings) {
+          if (wordReading.word.trim().isEmpty) continue;
           
           // Skip punctuation
-          if (RegExp(r'[。、！？「」『』（）]').hasMatch(word)) {
-            textSpans.add(TextSpan(text: word));
+          if (RegExp(r'[。、！？「」『』（）]').hasMatch(wordReading.word)) {
+            textSpans.add(TextSpan(text: wordReading.word));
             continue;
           }
           
@@ -307,15 +307,15 @@ class _BookReaderPageState extends State<BookReaderPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 1),
                 child: GestureDetector(
                   onTap: () {
-                    debugPrint('Tapped Japanese word: $word');
+                    debugPrint('Tapped Japanese word: ${wordReading.word}');
                     WordDefinitionModal.show(
                       context,
-                      word,
+                      wordReading.word,
                       widget.language,
                     );
                   },
                   child: RubyText(
-                    [RubyTextData(word, ruby: reading)],
+                    [RubyTextData(wordReading.word, ruby: wordReading.reading)],
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontSize: 18.0 * _textScale,
                     ),

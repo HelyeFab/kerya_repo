@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
+import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
-import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:uuid/uuid.dart';
-import 'package:ruby_text/ruby_text.dart';
 
 class WordDefinitionModal extends StatefulWidget {
   final String word;
@@ -21,11 +20,26 @@ class WordDefinitionModal extends StatefulWidget {
     String word,
     BookLanguage language,
   ) {
+    final height = MediaQuery.of(context).size.height * 0.6; // Fixed height at 60% of screen
+    
     return showModalBottomSheet(
       context: context,
-      builder: (_) => WordDefinitionModal(
-        word: word,
-        language: language,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SizedBox(
+        height: height,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: WordDefinitionModal(
+            word: word,
+            language: language,
+          ),
+        ),
       ),
     );
   }
@@ -41,99 +55,34 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isSaved = false;
-  bool _isSpeaking = false;
   String? _error;
   String? _savedWordId;
-  Map<String, String>? _furigana;
 
   @override
   void initState() {
     super.initState();
     _loadDefinition();
     _checkIfWordIsSaved();
-    if (widget.language.code == 'ja') {
-      _fetchFurigana();
-    }
-  }
-
-  Future<void> _fetchFurigana() async {
-    try {
-      final furigana = await _dictionaryService.getFurigana(widget.word);
-      if (mounted) {
-        setState(() {
-          _furigana = furigana;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error getting furigana: $e');
-    }
   }
 
   Future<void> _checkIfWordIsSaved() async {
     try {
       final isSaved = await _savedWordsRepository.isWordSaved(widget.word);
       if (isSaved) {
-        // If the word is saved, get its ID
         final savedWords = await _savedWordsRepository.getSavedWords().first;
         final savedWord = savedWords.firstWhere(
           (word) => word.word.toLowerCase() == widget.word.toLowerCase(),
         );
         
-        setState(() {
-          _isSaved = true;
-          _savedWordId = savedWord.id;
-        });
+        if (mounted) {
+          setState(() {
+            _isSaved = true;
+            _savedWordId = savedWord.id;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error checking if word is saved: $e');
-    }
-  }
-
-  Future<void> _loadDefinition() async {
-    try {
-      final definition = await _dictionaryService.getDefinition(
-        widget.word,
-        widget.language,
-      );
-      setState(() {
-        _definition = definition;
-        _isLoading = false;
-        _error = null;
-      });
-    } catch (e) {
-      setState(() {
-        _definition = null;
-        _isLoading = false;
-        _error = e.toString();
-      });
-    }
-  }
-
-  Future<void> _speakWord() async {
-    if (_isSpeaking) return;
-
-    setState(() {
-      _isSpeaking = true;
-    });
-
-    try {
-      await _dictionaryService.speakWord(
-        widget.word,
-        widget.language.code,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to speak word: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      setState(() {
-        _isSpeaking = false;
-      });
     }
   }
 
@@ -146,165 +95,89 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
 
     try {
       if (_isSaved && _savedWordId != null) {
-        // Unsave the word
         await _savedWordsRepository.removeWord(_savedWordId!);
         setState(() {
           _isSaved = false;
           _savedWordId = null;
         });
       } else {
-        // Save the word
-        final meanings = _definition!['meanings'] as List<dynamic>;
-        if (meanings.isNotEmpty) {
-          final firstMeaning = meanings[0] as Map<String, dynamic>;
-          final definitions = firstMeaning['definitions'] as List<dynamic>;
-          if (definitions.isNotEmpty) {
-            final firstDefinition = definitions[0] as Map<String, dynamic>;
+        final definition = _definition!['definitions']?.isNotEmpty == true
+            ? _definition!['definitions'][0]
+            : 'No definition available';
+            
+        final examples = _definition!['examples'] as List?;
+        final savedWord = SavedWord(
+          id: const Uuid().v4(),
+          word: widget.word,
+          definition: definition,
+          language: widget.language.code,
+          examples: examples != null && examples.isNotEmpty 
+              ? [examples[0].toString()] // Save only the first example in target language
+              : [],
+          savedAt: DateTime.now(),
+        );
 
-            final savedWord = SavedWord(
-              id: const Uuid().v4(),
-              word: widget.word,
-              definition: firstDefinition['definition'] as String? ?? 'No definition available',
-              language: widget.language.code,
-              examples: [
-                if (firstDefinition['translatedExample'] != null)
-                  firstDefinition['translatedExample'] as String
-                else if (firstDefinition['example'] != null)
-                  firstDefinition['example'] as String,
-              ],
-              savedAt: DateTime.now(),
-            );
+        await _savedWordsRepository.saveWord(savedWord);
 
-            debugPrint('Saving word: ${savedWord.toJson()}');
-            await _savedWordsRepository.saveWord(savedWord);
-
-            setState(() {
-              _isSaved = true;
-              _savedWordId = savedWord.id;
-            });
-          }
-        }
+        setState(() {
+          _isSaved = true;
+          _savedWordId = savedWord.id;
+        });
       }
     } catch (e) {
       debugPrint('Error toggling word save state: $e');
-      setState(() {
-        _isSaving = false;
-      });
-
       if (mounted) {
         final errorMessage = e.toString().contains('already saved')
-          ? 'This word is already in your saved words'
-          : 'Failed to update word';
+            ? 'This word is already in your saved words'
+            : 'Failed to update word';
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 3),
           ),
         );
       }
     } finally {
-      setState(() {
-        _isSaving = false;
-      });
-    }
-  }
-
-  List<Widget> _buildMeanings() {
-    final meanings = _definition!['meanings'] as List<dynamic>;
-    if (meanings.isEmpty) {
-      return [const Text('No meanings found')];
-    }
-
-    return meanings.map<Widget>((meaning) {
-      final partOfSpeech = meaning['partOfSpeech'] as String?;
-      final definitions = meaning['definitions'] as List<dynamic>;
-
-      if (definitions.isEmpty) {
-        return const SizedBox.shrink();
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
       }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (partOfSpeech != null && partOfSpeech.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              partOfSpeech.toUpperCase(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-          ...definitions.map<Widget>((def) {
-            final definition = def['definition'] as String?;
-            final example = def['example'] as String?;
-            final translatedExample = def['translatedExample'] as String?;
-            final synonyms = def['synonyms'] as List<dynamic>?;
-
-            return Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (definition != null)
-                    Text(
-                      '• $definition',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  if (example != null || translatedExample != null) ...[
-                    const SizedBox(height: 4),
-                    if (widget.language.code == 'en' && example != null)
-                      Text(
-                        'Example: "$example"',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      )
-                    else ...[
-                      if (translatedExample != null)
-                        Text(
-                          'Example: "$translatedExample"',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontStyle: FontStyle.italic,
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          ),
-                        ),
-                      if (example != null)
-                        Text(
-                          '(English: "$example")',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                            color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
-                          ),
-                        ),
-                    ],
-                  ],
-                  if (synonyms != null && synonyms.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: synonyms.map<Widget>((synonym) => Chip(
-                        label: Text(
-                          synonym.toString(),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      )).toList(),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          }).toList(),
-        ],
-      );
-    }).toList();
+    }
   }
 
-  Widget _buildErrorMessage() {
+  Future<void> _loadDefinition() async {
+    try {
+      final definition = await _dictionaryService.getDefinition(
+        widget.word,
+        widget.language,
+      );
+      if (mounted) {
+        setState(() {
+          _definition = definition;
+          _isLoading = false;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _definition = null;
+          _isLoading = false;
+          _error = e.toString();
+        });
+      }
+    }
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildErrorState() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -312,16 +185,16 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.info_outline,
+              Icons.error_outline,
               size: 48,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 16),
             Text(
-              _error!,
+              _error ?? 'An error occurred',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.error,
               ),
             ),
           ],
@@ -330,107 +203,230 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
     );
   }
 
-  Widget _buildWordTitle() {
-    if (widget.language.code == 'ja' && _furigana != null) {
-      return RubyText(
-        [
-          RubyTextData(
-            _furigana!['text'] ?? widget.word,
-            ruby: _furigana!['reading'] ?? widget.word,
-          ),
-        ],
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.bold,
+  Widget _buildContent() {
+    final theme = Theme.of(context);
+    
+    // Pastel colors for different sections
+    const definitionsBgColor = Color(0xFFF5F5FF); // Light blue pastel
+    const examplesBgColor = Color(0xFFFFF5F5); // Light pink pastel
+    
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with word, bookmark and close button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _definition?['word'] ?? widget.word,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _isSaved ? Icons.bookmark : Icons.bookmark_border,
+                        color: _isSaved ? theme.colorScheme.primary : null,
+                      ),
+                      onPressed: _toggleSaveWord,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Part of Speech
+            if (_definition?['partOfSpeech'] != null && _definition!['partOfSpeech'] != 'unknown')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  _definition!['partOfSpeech'],
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+
+            // Japanese-specific fields
+            if (widget.language.code == 'ja' && _definition?['reading'] != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reading:',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      _definition!['reading'],
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    if (_definition!['romaji'] != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Romaji:',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _definition!['romaji'],
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+            // Definitions
+            if (_definition?['definitions'] != null && (_definition!['definitions'] as List).isNotEmpty) ...[
+              Text(
+                'Definitions:',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: definitionsBgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: (_definition!['definitions'] as List).length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${index + 1}. ',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          Expanded(
+                            child: Text(
+                              _definition!['definitions'][index],
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+
+            // Examples
+            if (_definition?['examples'] != null && (_definition!['examples'] as List).isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Examples:',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: examplesBgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: (_definition!['examples'] as List).length ~/ 2,
+                  itemBuilder: (context, index) {
+                    final targetExample = _definition!['examples'][index * 2];
+                    final englishExample = _definition!['examples'][index * 2 + 1];
+                    
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '• ',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  targetExample,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (englishExample != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0, top: 4.0),
+                              child: Text(
+                                englishExample,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ],
         ),
-      );
-    } else {
-      return Text(
-        widget.word,
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildWordTitle(),
-                        if (_definition != null && 
-                            _definition!['translatedWord'] != widget.word) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            _definition!['translatedWord'] as String,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      if (!_isLoading)
-                        IconButton(
-                          onPressed: _speakWord,
-                          icon: Icon(
-                            _isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
-                            color: _isSpeaking ? Theme.of(context).colorScheme.primary : null,
-                          ),
-                        ),
-                      if (!_isLoading && _definition != null)
-                        IconButton(
-                          onPressed: _toggleSaveWord,
-                          icon: Icon(
-                            _isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                            color: _isSaved ? Colors.purple : null,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_isLoading)
-                    const Center(child: CircularProgressIndicator())
-                  else if (_error != null)
-                    _buildErrorMessage()
-                  else if (_definition != null)
-                    ..._buildMeanings()
-                  else
-                    const Text('No definition found'),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+    if (_isLoading) {
+      return _buildLoadingState();
+    }
+
+    if (_error != null) {
+      return _buildErrorState();
+    }
+
+    return _buildContent();
   }
 }
