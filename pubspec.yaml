@@ -62,7 +62,6 @@ dependencies:
   rxdart: ^0.27.7
   japanese_word_tokenizer: ^0.0.3
   ruby_text: ^3.0.3
-  jm_dict: ^0.2.0
 
 dev_dependencies:
   flutter_test:

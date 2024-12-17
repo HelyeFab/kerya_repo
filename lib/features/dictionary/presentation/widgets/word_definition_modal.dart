@@ -215,40 +215,252 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with word, bookmark and close button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    _definition?['word'] ?? widget.word,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+            // Add JLPT and Common Word indicators at the top
+            if (_definition?['jlpt'] != null || _definition?['isCommon'] == true)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 0.0),
+                child: Row(
+                  children: [
+                    if (_definition?['jlpt'] != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Text(
+                          _definition!['jlpt'],
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    if (_definition?['isCommon'] == true) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Text(
+                          'Common',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.word,
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        // Add parts of speech after the word
+                        if (_definition?['partsOfSpeech'] != null && (_definition!['partsOfSpeech'] as List).isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                            child: Text(
+                              (_definition!['partsOfSpeech'] as List).join(', '),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontStyle: FontStyle.italic,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                        if (_definition?['reading'] != null && _definition!['reading'] != widget.word)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              _definition!['reading'],
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        _isSaved ? Icons.bookmark : Icons.bookmark_border,
-                        color: _isSaved ? theme.colorScheme.primary : null,
+                  Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFFF9C4), // Light yellow color
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _isSaved ? Icons.bookmark : Icons.bookmark_border,
+                            color: _isSaved ? theme.colorScheme.primary : null,
+                          ),
+                          onPressed: _toggleSaveWord,
+                        ),
                       ),
-                      onPressed: _toggleSaveWord,
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (_definition?['meanings'] != null && _definition!['meanings'].isNotEmpty)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.green[50], // Light pastel green background
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Meanings:',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
+                    const SizedBox(height: 8),
+                    ...(_definition!['meanings'] as List)
+                        .take(6) // Limit to 6 meanings
+                        .map((meaning) => 
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• '),
+                            Expanded(
+                              child: Text(
+                                meaning.toString(),
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Part of Speech
+              ),
+            if (widget.language.code == 'ja' && _definition?['reading'] != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF3E5F5), // Light purple color
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_definition?['reading'] != null) ...[
+                      Text(
+                        'Reading:',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _definition!['reading'],
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                    if (_definition?['onyomi'] != null && (_definition!['onyomi'] as List).isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        'On\'yomi:',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        (_definition!['onyomi'] as List).join('、 '),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                    if (_definition?['kunyomi'] != null && (_definition!['kunyomi'] as List).isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        'Kun\'yomi:',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        (_definition!['kunyomi'] as List).join('、 '),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            if (_definition?['examples'] != null && _definition!['examples'].isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Example Sentences:',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...(_definition!['examples'] as List).map((example) => 
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              example['japanese'],
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              example['english'],
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             if (_definition?['partOfSpeech'] != null && _definition!['partOfSpeech'] != 'unknown')
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
@@ -260,48 +472,6 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                   ),
                 ),
               ),
-
-            // Japanese-specific fields
-            if (widget.language.code == 'ja' && _definition?['reading'] != null)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 16.0),
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Reading:',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      _definition!['reading'],
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                    if (_definition!['romaji'] != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'Romaji:',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _definition!['romaji'],
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-            // Definitions
             if (_definition?['definitions'] != null && (_definition!['definitions'] as List).isNotEmpty) ...[
               Text(
                 'Definitions:',
@@ -344,8 +514,6 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 ),
               ),
             ],
-
-            // Examples
             if (_definition?['examples'] != null && (_definition!['examples'] as List).isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
@@ -411,6 +579,65 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 ),
               ),
             ],
+            // Add detailed meanings section
+            if (_definition?['detailedMeanings'] != null && (_definition!['detailedMeanings'] as List).isNotEmpty)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Additional Information:',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...(_definition!['detailedMeanings'] as List).map((meaning) {
+                      List<Widget> meaningWidgets = [];
+                      
+                      if (meaning['info'] != null && (meaning['info'] as List).isNotEmpty) {
+                        meaningWidgets.add(
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              (meaning['info'] as List).join(', '),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (meaning['see_also'] != null && (meaning['see_also'] as List).isNotEmpty) {
+                        meaningWidgets.add(
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'See also: ${(meaning['see_also'] as List).join(', ')}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: meaningWidgets,
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

@@ -4,8 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:Keyra/core/config/api_keys.dart';
-import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart' as tokenizer;
-import 'package:jm_dict/jm_dict.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 
 class _CacheEntry<T> {
@@ -21,103 +19,42 @@ class _CacheEntry<T> {
 class WordReading {
   final String word;
   final String? reading;
-  final bool hasKanji;
 
-  WordReading(this.word, this.reading, {this.hasKanji = false});
+  WordReading(this.word, this.reading);
 
   Map<String, dynamic> toJson() => {
     'word': word,
     'reading': reading,
-    'hasKanji': hasKanji,
   };
 
   factory WordReading.fromJson(Map<String, dynamic> json) => WordReading(
     json['word'] as String,
     json['reading'] as String?,
-    hasKanji: json['hasKanji'] as bool? ?? false,
   );
-}
-
-class KanjiReading {
-  final String kanji;
-  final String reading;
-  final bool isCompound;
-  final bool hasKanji;
-
-  KanjiReading({
-    required this.kanji,
-    required this.reading,
-    this.isCompound = false,
-    this.hasKanji = false,
-  });
 }
 
 class DictionaryException implements Exception {
   final String message;
   DictionaryException(this.message);
-
   @override
   String toString() => message;
 }
 
 class DictionaryService {
-  final Dio _dio;
-  final AudioPlayer _audioPlayer;
-  final JMDict _jmDict = JMDict();
-  bool _isInitialized = false;
-  
-  final Map<String, _CacheEntry<String>> _readingCache = {};
-  final Map<String, _CacheEntry<Map<String, dynamic>>> _definitionCache = {};
-  final Map<String, _CacheEntry<List<KanjiReading>>> _kanjiReadingCache = {};
-  
-  final Map<String, Completer<String?>> _pendingReadingRequests = <String, Completer<String?>>{};
-  final Map<String, Completer<List<KanjiReading>>> _pendingKanjiRequests = <String, Completer<List<KanjiReading>>>{};
-  
+  static const Duration _cacheTimeout = Duration(minutes: 30);
   static const int _maxCacheSize = 1000;
-  static const Duration _cacheTimeout = Duration(hours: 24);
   static const int _maxBatchSize = 10;
-  final List<String> _batchQueue = [];
 
-  DictionaryService({Dio? dio}) 
-    : _dio = dio ?? Dio(),
-      _audioPlayer = AudioPlayer();
+  final _dio = Dio();
+  final _audioPlayer = AudioPlayer();
+
+  final _readingCache = <String, _CacheEntry<String>>{};
+  final _definitionCache = <String, _CacheEntry<Map<String, dynamic>>>{};
+  final _batchQueue = <String>[];
+  final _pendingReadingRequests = <String, Completer<String?>>{};
 
   Future<void> initialize() async {
-    if (_isInitialized) return;
-    
-    try {
-      debugPrint('Initializing dictionary from network...');
-      await _jmDict.initFromNetwork(forceUpdate: false);
-      _isInitialized = true;
-    } catch (e) {
-      debugPrint('Failed to load dictionary: $e');
-      throw DictionaryException(
-        'Unable to initialize dictionary. Please check your internet connection and try again.',
-      );
-    }
-  }
-
-  bool _isKanji(String char) {
-    if (char.isEmpty) return false;
-    final code = char.codeUnitAt(0);
-    return (code >= 0x4E00 && code <= 0x9FFF) || // CJK Unified Ideographs
-           (code >= 0x3400 && code <= 0x4DBF);   // CJK Unified Ideographs Extension A
-  }
-
-  bool _hasKanji(String text) {
-    for (var i = 0; i < text.length; i++) {
-      if (_isKanji(text[i])) return true;
-    }
-    return false;
-  }
-
-  bool _isKanjiCompound(String text) {
-    if (text.length < 2) return false;
-    int kanjiCount = 0;
-    for (var i = 0; i < text.length; i++) {
-      if (_isKanji(text[i])) kanjiCount++;
-    }
-    return kanjiCount > 1;
+    // Initialize any required resources
   }
 
   void _addToCache<T>(Map<String, _CacheEntry<T>> cache, String key, T value) {
@@ -143,7 +80,6 @@ class DictionaryService {
 
   Future<Map<String, String>?> _translateWithSourceLanguage(String text, String sourceLanguage, String targetLanguage) async {
     try {
-      // Validate input parameters
       if (text.isEmpty || sourceLanguage.isEmpty || targetLanguage.isEmpty) {
         debugPrint('Invalid translation parameters: text=$text, source=$sourceLanguage, target=$targetLanguage');
         throw DictionaryException('Invalid translation parameters');
@@ -164,8 +100,6 @@ class DictionaryService {
         },
       );
 
-      debugPrint('Translation response status: ${response.statusCode}');
-      
       if (response.statusCode == 200 && 
           response.data != null &&
           response.data['data'] != null &&
@@ -176,273 +110,16 @@ class DictionaryService {
         final translatedText = translation['translatedText'] as String;
         final detectedSourceLanguage = (translation['detectedSourceLanguage'] ?? sourceLanguage) as String;
         
-        final result = <String, String>{
+        return {
           'translatedText': translatedText,
           'detectedSourceLanguage': detectedSourceLanguage,
         };
-        
-        debugPrint('Translation successful: ${result['translatedText']}');
-        return result;
       }
 
-      debugPrint('Translation failed. Response: ${response.data}');
       return null;
-    } on DioException catch (e) {
-      debugPrint('DioException during translation:');
-      debugPrint('  Error: ${e.message}');
-      debugPrint('  Response: ${e.response?.data}');
-      debugPrint('  Request: ${e.requestOptions.uri}');
-      debugPrint('  Headers: ${e.requestOptions.headers}');
-      debugPrint('  Data: ${e.requestOptions.data}');
-      rethrow;
     } catch (e) {
-      debugPrint('Unexpected error during translation: $e');
+      debugPrint('Error during translation: $e');
       throw DictionaryException('Failed to translate text: $e');
-    }
-  }
-
-  Future<List<String?>> _processBatchReadings(List<String> texts) async {
-    try {
-      final response = await _dio.post(
-        'https://labs.goo.ne.jp/api/hiragana',
-        data: {
-          'app_id': ApiKeys.gooLabsApiKey,
-          'sentence': texts.join('\n'),
-          'output_type': 'hiragana',
-        },
-      );
-
-      if (response.statusCode == 200 && 
-          response.data != null &&
-          response.data['converted'] != null) {
-        final readings = (response.data['converted'] as String).split('\n');
-        
-        final processedReadings = List<String?>.generate(texts.length, (index) {
-          if (index < readings.length) {
-            final reading = readings[index];
-            return (reading != texts[index]) ? reading : null;
-          }
-          return null;
-        });
-        
-        return processedReadings;
-      }
-      
-      return List.filled(texts.length, null);
-    } catch (e) {
-      debugPrint('Error in batch reading process: $e');
-      return List.filled(texts.length, null);
-    }
-  }
-
-  Future<void> _processBatchQueue() async {
-    if (_batchQueue.isEmpty) return;
-
-    final textsToProcess = List<String>.from(_batchQueue);
-    _batchQueue.clear();
-
-    try {
-      final readings = await _processBatchReadings(textsToProcess);
-      
-      for (var i = 0; i < textsToProcess.length; i++) {
-        final text = textsToProcess[i];
-        final reading = readings[i];
-        
-        if (reading != null && reading != text) {
-          _addToCache(_readingCache, text, reading);
-        }
-        
-        final completer = _pendingReadingRequests.remove(text);
-        if (completer != null) {
-          completer.complete(reading);
-        }
-      }
-    } catch (e) {
-      debugPrint('Error processing batch queue: $e');
-      for (var text in textsToProcess) {
-        final completer = _pendingReadingRequests.remove(text);
-        if (completer != null) {
-          completer.complete(null);
-        }
-      }
-    }
-  }
-
-  Future<String?> _getHiraganaReading(String text) async {
-    final cachedReading = _readingCache[text];
-    if (cachedReading != null && !cachedReading.isExpired) {
-      return cachedReading.value;
-    }
-
-    final existingRequest = _pendingReadingRequests[text];
-    if (existingRequest != null) {
-      return existingRequest.future;
-    }
-
-    _batchQueue.add(text);
-    
-    final completer = Completer<String?>();
-    _pendingReadingRequests[text] = completer;
-
-    if (_batchQueue.length >= _maxBatchSize) {
-      _processBatchQueue();
-    } else {
-      Future.delayed(const Duration(milliseconds: 50), _processBatchQueue);
-    }
-
-    return completer.future;
-  }
-
-  Future<List<KanjiReading>> getKanjiReadings(String text) async {
-    try {
-      final cachedEntry = _kanjiReadingCache[text];
-      if (cachedEntry != null && !cachedEntry.isExpired) {
-        return cachedEntry.value;
-      }
-
-      final existingRequest = _pendingKanjiRequests[text];
-      if (existingRequest != null) {
-        return existingRequest.future;
-      }
-
-      final completer = Completer<List<KanjiReading>>();
-      _pendingKanjiRequests[text] = completer;
-
-      try {
-        List<KanjiReading> readings = [];
-        final hasKanji = _hasKanji(text);
-        
-        if (hasKanji) {
-          if (_isKanjiCompound(text)) {
-            final compoundReading = await _getHiraganaReading(text);
-            if (compoundReading != null && compoundReading != text) {
-              readings = [KanjiReading(
-                kanji: text,
-                reading: compoundReading,
-                isCompound: true,
-                hasKanji: true,
-              )];
-            } else {
-              final tempReadings = <KanjiReading>[];
-              for (var i = 0; i < text.length; i++) {
-                final char = text[i];
-                if (_isKanji(char)) {
-                  final reading = await _getHiraganaReading(char);
-                  if (reading != null && reading != char) {
-                    tempReadings.add(KanjiReading(
-                      kanji: char,
-                      reading: reading,
-                      hasKanji: true,
-                    ));
-                  }
-                } else {
-                  tempReadings.add(KanjiReading(
-                    kanji: char,
-                    reading: char,
-                    hasKanji: false,
-                  ));
-                }
-              }
-              readings = tempReadings;
-            }
-          } else {
-            final tempReadings = <KanjiReading>[];
-            for (var i = 0; i < text.length; i++) {
-              final char = text[i];
-              if (_isKanji(char)) {
-                final reading = await _getHiraganaReading(char);
-                if (reading != null && reading != char) {
-                  tempReadings.add(KanjiReading(
-                    kanji: char,
-                    reading: reading,
-                    hasKanji: true,
-                  ));
-                }
-              } else {
-                tempReadings.add(KanjiReading(
-                  kanji: char,
-                  reading: char,
-                  hasKanji: false,
-                ));
-              }
-            }
-            readings = tempReadings;
-          }
-        } else {
-          readings = [KanjiReading(
-            kanji: text,
-            reading: text,
-            hasKanji: false,
-          )];
-        }
-
-        if (readings.isNotEmpty) {
-          _addToCache(_kanjiReadingCache, text, readings);
-        }
-        
-        completer.complete(readings);
-        _pendingKanjiRequests.remove(text);
-        
-        return readings;
-      } catch (e) {
-        completer.completeError(e);
-        _pendingKanjiRequests.remove(text);
-        rethrow;
-      }
-    } catch (e) {
-      debugPrint('Error in getKanjiReadings: $e');
-      rethrow;
-    }
-  }
-
-  Future<List<WordReading>> tokenizeWithReadings(String text) async {
-    try {
-      final tokens = tokenizer.tokenize(text);
-      List<WordReading> wordsWithReadings = [];
-      
-      final futures = tokens.map((token) async {
-        final word = token.toString();
-        if (word.trim().isEmpty) return null;
-
-        if (RegExp(r'[。、！？「」『』（）]').hasMatch(word)) {
-          return WordReading(word, null);
-        }
-
-        final hasKanji = _hasKanji(word);
-        if (!hasKanji) {
-          return WordReading(word, null, hasKanji: false);
-        }
-
-        final kanjiReadings = await getKanjiReadings(word);
-        if (kanjiReadings.isNotEmpty) {
-          if (kanjiReadings.length == 1 && kanjiReadings[0].isCompound) {
-            return WordReading(
-              word,
-              kanjiReadings[0].reading,
-              hasKanji: true,
-            );
-          } else {
-            final reading = kanjiReadings.map((r) => r.reading).join('');
-            return WordReading(
-              word,
-              reading,
-              hasKanji: true,
-            );
-          }
-        } else {
-          return WordReading(word, null, hasKanji: false);
-        }
-      });
-
-      final results = await Future.wait(futures);
-      wordsWithReadings = results.whereType<WordReading>().toList();
-
-      return wordsWithReadings;
-    } catch (e) {
-      debugPrint('Error in tokenizeWithReadings: $e');
-      throw DictionaryException(
-        'Error processing Japanese text. Please try again.',
-      );
     }
   }
 
@@ -450,202 +127,315 @@ class DictionaryService {
     if (language.code != 'ja') return null;
 
     try {
-      if (!_hasKanji(word)) return null;
+      final response = await _dio.post(
+        'https://labs.goo.ne.jp/api/hiragana',
+        data: {
+          'app_id': ApiKeys.gooLabsApiKey,
+          'sentence': word,
+          'output_type': 'hiragana',
+        },
+      );
 
-      final kanjiReadings = await getKanjiReadings(word);
-      if (kanjiReadings.isEmpty) return null;
-
-      if (kanjiReadings.length == 1 && kanjiReadings[0].isCompound) {
-        return kanjiReadings[0].reading;
-      } else {
-        return kanjiReadings.map((r) => r.reading).join('');
+      if (response.statusCode == 200 && 
+          response.data != null &&
+          response.data['converted'] != null) {
+        final reading = response.data['converted'] as String;
+        if (reading != word) {
+          _addToCache(_readingCache, word, reading);
+          return reading;
+        }
       }
+      
+      return null;
     } catch (e) {
-      debugPrint('Error getting reading for word: $word - $e');
+      debugPrint('Error getting reading: $e');
       return null;
     }
   }
 
-  Future<Map<String, dynamic>?> getDefinition(String word, BookLanguage language) async {
+  Future<Map<String, dynamic>> getDefinition(String word, BookLanguage language) async {
     try {
+      final cachedDefinition = _definitionCache[word];
+      if (cachedDefinition != null && !cachedDefinition.isExpired) {
+        return cachedDefinition.value;
+      }
+
       final sourceLanguage = _getLanguageCode(language);
-      final targetLanguage = 'en'; // We'll always get English definitions first
-      
-      // For English words, skip translation and get definition directly
-      if (sourceLanguage == 'en') {
-        debugPrint('Looking up English word: $word');
-        return _fetchEnglishDefinition(word);
-      }
+      Map<String, dynamic> definition = {'word': word};
 
-      // For other languages, translate first
-      final translation = await _translateWithSourceLanguage(word, sourceLanguage, targetLanguage);
-      if (translation == null) {
-        debugPrint('Failed to translate word: $word');
-        throw DictionaryException('Failed to translate the word');
-      }
+      // Get reading for Japanese words
+      if (language.code == 'ja') {
+        final reading = await getReading(word, language);
+        if (reading != null) {
+          definition['reading'] = reading;
+        }
 
-      final englishWord = translation['translatedText'] ?? word;
-      debugPrint('Translated "$word" to "$englishWord"');
+        // Get example sentences and meanings for Japanese words
+        try {
+          final encodedWord = Uri.encodeComponent(word);
+          final response = await _dio.get(
+            'https://jisho.org/api/v1/search/words?keyword=$encodedWord',
+          );
 
-      return _fetchEnglishDefinition(englishWord, targetLanguage: language.code);
-    } catch (e) {
-      debugPrint('Error getting dictionary entry for word: $word - $e');
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>> _fetchEnglishDefinition(String word, {String? targetLanguage}) async {
-    try {
-      final dictionaryResponse = await _dio.get(
-        'https://api.dictionaryapi.dev/api/v2/entries/en/${Uri.encodeComponent(word)}',
-      );
-
-      if (dictionaryResponse.statusCode == 200 && 
-          dictionaryResponse.data is List && 
-          dictionaryResponse.data.isNotEmpty) {
-        
-        final data = dictionaryResponse.data[0];
-        final List<dynamic> meanings = data['meanings'] ?? [];
-        
-        // Get the first part of speech and its definitions
-        String? partOfSpeech;
-        List<String> definitions = [];
-        List<String> examples = [];
-        
-        if (meanings.isNotEmpty) {
-          final firstMeaning = meanings[0];
-          partOfSpeech = firstMeaning['partOfSpeech'] as String?;
-          
-          final meaningDefinitions = firstMeaning['definitions'] as List<dynamic>? ?? [];
-          for (final def in meaningDefinitions) {
-            final definition = def['definition'] as String?;
-            if (definition != null) {
-              definitions.add(definition);
-            }
-
-            final example = def['example'] as String?;
-            if (example != null) {
-              // Translate example if needed
-              if (targetLanguage != null && targetLanguage != 'en') {
-                try {
-                  final translation = await _translateWithSourceLanguage(
-                    example,
-                    'en',
-                    targetLanguage,
-                  );
-                  if (translation != null) {
-                    examples.add(translation['translatedText']!);
-                    examples.add(example); // Add original English example
-                  }
-                } catch (e) {
-                  debugPrint('Failed to translate example: $e');
-                  examples.add(example);
-                  examples.add(example); // Add English example as fallback
-                }
-              } else {
-                examples.add(example);
-                examples.add(example); // For English words, show same example twice
+          if (response.statusCode == 200 && 
+              response.data != null &&
+              response.data['data'] != null &&
+              response.data['data'].isNotEmpty) {
+            
+            final data = response.data['data'][0];
+            final examples = <Map<String, String>>[];
+            final meanings = <String>[];
+            
+            if (data['japanese'] != null && data['japanese'].isNotEmpty) {
+              final japanese = data['japanese'][0];
+              if (japanese['reading'] != null && definition['reading'] == null) {
+                definition['reading'] = japanese['reading'];
               }
             }
+
+            if (data['senses'] != null && data['senses'].isNotEmpty) {
+              for (var sense in data['senses']) {
+                if (sense['english_definitions'] != null) {
+                  meanings.addAll(sense['english_definitions'].cast<String>());
+                }
+              }
+              definition['meanings'] = meanings;
+
+              // Extract JLPT level
+              if (data['jlpt'] != null && data['jlpt'].isNotEmpty) {
+                definition['jlpt'] = data['jlpt'][0].toUpperCase().replaceAll('JLPT-', '');
+              }
+
+              // Extract common word indicator
+              definition['isCommon'] = data['is_common'] ?? false;
+
+              // Extract parts of speech
+              if (data['senses'][0]['parts_of_speech'] != null) {
+                definition['partsOfSpeech'] = List<String>.from(data['senses'][0]['parts_of_speech']);
+              }
+
+              // Extract readings
+              if (data['japanese'] != null) {
+                List<String> onReadings = [];
+                List<String> kunReadings = [];
+                
+                // First check if we have explicit reading_meaning data
+                if (data['reading_meaning'] != null) {
+                  var readings = data['reading_meaning']['readings'];
+                  if (readings != null) {
+                    for (var reading in readings) {
+                      if (reading['type'] == 'on') {
+                        onReadings.add(reading['reading']);
+                      } else if (reading['type'] == 'kun') {
+                        kunReadings.add(reading['reading']);
+                      }
+                    }
+                  }
+                }
+                
+                // If no explicit readings found, try to infer from japanese array
+                if (onReadings.isEmpty && kunReadings.isEmpty) {
+                  for (var entry in data['japanese']) {
+                    if (entry['reading'] != null) {
+                      // For verbs and adjectives, typically use kun readings
+                      if (data['senses'] != null && 
+                          data['senses'].isNotEmpty && 
+                          data['senses'][0]['parts_of_speech'] != null) {
+                        var pos = data['senses'][0]['parts_of_speech'][0].toLowerCase();
+                        if (pos.contains('verb') || pos.contains('adjective')) {
+                          kunReadings.add(entry['reading']);
+                          continue;
+                        }
+                      }
+                      
+                      // Otherwise use katakana check as fallback
+                      if (_isKatakana(entry['reading'])) {
+                        onReadings.add(entry['reading']);
+                      } else {
+                        kunReadings.add(entry['reading']);
+                      }
+                    }
+                  }
+                }
+                
+                // Remove duplicates
+                onReadings = onReadings.toSet().toList();
+                kunReadings = kunReadings.toSet().toList();
+                
+                if (onReadings.isNotEmpty) {
+                  definition['onyomi'] = onReadings;
+                }
+                if (kunReadings.isNotEmpty) {
+                  definition['kunyomi'] = kunReadings;
+                }
+                
+                debugPrint('Extracted readings - On: $onReadings, Kun: $kunReadings');
+              }
+            }
+
+            debugPrint('Jisho definition result: ${json.encode(definition)}');
           }
+        } catch (e) {
+          debugPrint('Error fetching Jisho data: $e');
         }
-
-        final definition = {
-          'word': word,
-          'partOfSpeech': partOfSpeech ?? 'unknown',
-          'definitions': definitions,
-          'examples': examples.isNotEmpty ? examples : null,
-        };
-
-        if (targetLanguage == 'ja') {
-          // Add Japanese-specific fields
-          definition['reading'] = await getReading(word, BookLanguage.japanese);
-          definition['romaji'] = definition['reading']; // You might want to convert hiragana to romaji
-        }
-
-        _addToCache(_definitionCache, word, definition);
+        
         return definition;
       }
 
-      // Return a basic structure when no definition is found
-      return {
-        'word': word,
-        'partOfSpeech': 'unknown',
-        'definitions': ['No definition found'],
-        'examples': null,
-      };
-    } on DioException catch (e) {
-      debugPrint('DioError getting dictionary entry for word: $word');
-      debugPrint('Error response: ${e.response?.data}');
-      debugPrint('Error message: ${e.message}');
-      
-      if (e.response?.statusCode == 404) {
-        return {
-          'word': word,
-          'partOfSpeech': 'unknown',
-          'definitions': ['No definition found'],
-          'examples': null,
-        };
+      // For non-Japanese words, get English definition
+      try {
+        final englishDefinition = await _fetchEnglishDefinition(word, targetLanguage: language.code);
+        if (englishDefinition != null) {
+          definition.addAll(englishDefinition);
+        }
+      } catch (e) {
+        debugPrint('Error fetching English definition: $e');
       }
-      
-      if (e.response?.statusCode == 403) {
-        throw DictionaryException('Dictionary API access denied. Please check your API key configuration.');
-      }
-      throw DictionaryException('Failed to fetch word definition');
+
+      _addToCache(_definitionCache, word, definition);
+      return definition;
     } catch (e) {
-      debugPrint('Error fetching English definition for: $word - $e');
-      throw DictionaryException('Failed to fetch word definition');
+      debugPrint('Error in getDefinition: $e');
+      return {'word': word};
+    }
+  }
+
+  Future<Map<String, dynamic>> _getJishoDefinition(String word) async {
+    try {
+      debugPrint('Fetching Jisho definition for: $word');
+      final response = await _dio.get(
+        'https://jisho.org/api/v1/search/words?keyword=$word',
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        debugPrint('Jisho API Response: ${json.encode(data)}');
+        
+        if (data['data'] != null && data['data'].isNotEmpty) {
+          final firstEntry = data['data'][0];
+          debugPrint('First entry: ${json.encode(firstEntry)}');
+          
+          final japanese = firstEntry['japanese'][0];
+          final senses = firstEntry['senses'];
+          
+          debugPrint('Japanese data: ${json.encode(japanese)}');
+          debugPrint('Senses data: ${json.encode(senses)}');
+
+          // Extract readings
+          Map<String, List<String>> readings = {'on': [], 'kun': []};
+          if (firstEntry['japanese'] != null) {
+            for (var entry in firstEntry['japanese']) {
+              if (entry['reading'] != null) {
+                if (_isKatakana(entry['reading'])) {
+                  readings['on']!.add(entry['reading']);
+                } else {
+                  readings['kun']!.add(entry['reading']);
+                }
+              }
+            }
+          }
+          debugPrint('Extracted readings: ${json.encode(readings)}');
+
+          // Extract JLPT level
+          String? jlptLevel;
+          if (firstEntry['jlpt'] != null && firstEntry['jlpt'].isNotEmpty) {
+            jlptLevel = firstEntry['jlpt'][0].toUpperCase().replaceAll('JLPT-', '');
+          }
+          debugPrint('JLPT Level: $jlptLevel');
+
+          // Extract part of speech
+          List<String> partsOfSpeech = [];
+          if (senses.isNotEmpty && senses[0]['parts_of_speech'] != null) {
+            partsOfSpeech = List<String>.from(senses[0]['parts_of_speech']);
+          }
+          debugPrint('Parts of speech: $partsOfSpeech');
+
+          // Extract common word usage indicator
+          bool isCommon = firstEntry['is_common'] ?? false;
+          debugPrint('Is common: $isCommon');
+
+          final result = {
+            'reading': japanese['reading'] ?? '',
+            'meanings': senses.map((sense) => sense['english_definitions'][0]).toList(),
+            'onyomi': readings['on'],
+            'kunyomi': readings['kun'],
+            'jlpt': jlptLevel,
+            'isCommon': isCommon,
+            'partsOfSpeech': partsOfSpeech,
+          };
+          
+          debugPrint('Final processed result: ${json.encode(result)}');
+          return result;
+        }
+      }
+      return {};
+    } catch (e) {
+      debugPrint('Error fetching Jisho definition: $e');
+      debugPrint('Error stack trace: ${e is Error ? e.stackTrace : ''}');
+      return {};
+    }
+  }
+
+  bool _isKatakana(String text) {
+    // Katakana Unicode range
+    final katakanaRange = RegExp(r'[\u30A0-\u30FF]');
+    return katakanaRange.hasMatch(text);
+  }
+
+  Future<Map<String, dynamic>?> _fetchEnglishDefinition(String word, {String? targetLanguage}) async {
+    try {
+      final response = await _dio.get(
+        'https://api.dictionaryapi.dev/api/v2/entries/en/$word',
+      );
+
+      if (response.statusCode == 200 && response.data is List && response.data.isNotEmpty) {
+        final entry = response.data[0];
+        final meanings = entry['meanings'] as List;
+        
+        if (meanings.isNotEmpty) {
+          final firstMeaning = meanings[0];
+          final definitions = firstMeaning['definitions'] as List;
+          final examples = <String>[];
+          
+          for (var def in definitions) {
+            if (def['example'] != null) {
+              examples.add(def['example'].toString());
+            }
+          }
+
+          return {
+            'partOfSpeech': firstMeaning['partOfSpeech'] ?? 'unknown',
+            'definitions': definitions.map((d) => d['definition'].toString()).toList(),
+            'examples': examples,
+          };
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching English definition: $e');
+      return null;
     }
   }
 
   Future<void> speakWord(String word, String language) async {
     try {
-      const apiKey = ApiKeys.googleApiKey;
-      if (apiKey.isEmpty) {
-        throw Exception('Google API key is not configured.');
-      }
+      final url = Uri.parse(
+        'https://translate.google.com/translate_tts'
+        '?ie=UTF-8'
+        '&q=${Uri.encodeComponent(word)}'
+        '&tl=$language'
+        '&client=tw-ob'
+      ).toString();
 
-      final response = await _dio.post(
-        'https://texttospeech.googleapis.com/v1/text:synthesize',
-        queryParameters: {
-          'key': apiKey,
-        },
-        data: {
-          'input': {'text': word},
-          'voice': {
-            'languageCode': language,
-            'ssmlGender': 'FEMALE'
-          },
-          'audioConfig': {
-            'audioEncoding': 'MP3',
-            'speakingRate': 1.0,
-            'pitch': 0.0,
-          },
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final audioContent = response.data['audioContent'];
-        final bytes = base64.decode(audioContent);
-        final uint8List = Uint8List.fromList(bytes);
-        final source = BytesSource(uint8List);
-        await _audioPlayer.play(source);
-      }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 403) {
-        throw Exception('Text-to-speech API access denied. Please check your API key configuration.');
-      } else {
-        throw Exception('Failed to generate speech: ${e.message}');
-      }
+      await _audioPlayer.play(UrlSource(url));
     } catch (e) {
-      debugPrint('Error in text-to-speech: $e');
-      throw Exception('Failed to speak word: $e');
+      debugPrint('Error playing audio: $e');
     }
   }
 
   void clearCache() {
     _readingCache.clear();
     _definitionCache.clear();
-    _kanjiReadingCache.clear();
   }
 }

@@ -7,9 +7,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/presentation/widgets/word_definition_modal.dart';
-import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart';
-import 'package:ruby_text/ruby_text.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
+import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart';
 
 class BookReaderPage extends StatefulWidget {
   final Book book;
@@ -217,115 +216,47 @@ class _BookReaderPageState extends State<BookReaderPage> {
           if (text.isNotEmpty)
             Padding(
               padding: AppSpacing.paddingMd,
-              child: widget.language.code == 'ja'
-                  ? _buildJapaneseText(context, text)
-                  : SelectableText.rich(
-                      TextSpan(
-                        children: _buildTextSpans(text),
-                      ),
-                      style: Theme.of(context).textTheme.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
+              child: _buildTextContent(context, text),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildJapaneseText(BuildContext context, String text) {
+  Widget _buildTextContent(BuildContext context, String content) {
     return FutureBuilder<List<WordReading>>(
-      future: widget.dictionaryService.tokenizeWithReadings(text),
+      future: widget.language.code == 'ja'
+          ? _processJapaneseText(content)
+          : Future.value([WordReading(content, null)]),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 8),
-                Text('Loading Japanese text...'),
-              ],
-            ),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  color: Colors.red,
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  snapshot.error is DictionaryException
-                      ? snapshot.error.toString()
-                      : 'An error occurred while loading the text.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {});
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (snapshot.data?.isEmpty ?? true) {
-          return const Center(
-            child: Text('No text available'),
-          );
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
         }
 
         final wordsWithReadings = snapshot.data!;
-        final List<InlineSpan> textSpans = [];
+        final textSpans = <InlineSpan>[];
         
         for (var wordReading in wordsWithReadings) {
-          if (wordReading.word.trim().isEmpty) continue;
-          
-          // Skip punctuation
-          if (RegExp(r'[。、！？「」『』（）]').hasMatch(wordReading.word)) {
-            textSpans.add(TextSpan(text: wordReading.word));
+          if (wordReading.word.trim().isEmpty) {
+            textSpans.add(TextSpan(text: ' '));
             continue;
           }
           
           textSpans.add(
-            WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.ideographic,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 1),
-                child: GestureDetector(
-                  onTap: () {
-                    debugPrint('Tapped Japanese word: ${wordReading.word}');
-                    WordDefinitionModal.show(
-                      context,
-                      wordReading.word,
-                      widget.language,
-                    );
-                  },
-                  child: RubyText(
-                    [RubyTextData(wordReading.word, ruby: wordReading.reading)],
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontSize: 18.0 * _textScale,
-                    ),
-                    rubyStyle: TextStyle(
-                      fontSize: 10.0 * _textScale,
-                      color: Colors.grey[600],
-                      height: 1.0,
-                    ),
-                  ),
-                ),
+            TextSpan(
+              text: wordReading.word,
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  debugPrint('Tapped word: ${wordReading.word}');
+                  WordDefinitionModal.show(
+                    context,
+                    wordReading.word,
+                    widget.language,
+                  );
+                },
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontSize: 16.0 * _textScale,
+                height: 1.5,
               ),
             ),
           );
@@ -334,8 +265,8 @@ class _BookReaderPageState extends State<BookReaderPage> {
         return SelectableText.rich(
           TextSpan(children: textSpans),
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontSize: 18.0 * _textScale,
-            height: 3.0, // Increased line height for Japanese text
+            fontSize: 16.0 * _textScale,
+            height: 1.5,
           ),
           textAlign: TextAlign.justify,
         );
@@ -343,25 +274,35 @@ class _BookReaderPageState extends State<BookReaderPage> {
     );
   }
 
-  List<TextSpan> _buildTextSpans(String text) {
-    if (text.isEmpty) return [];
-    
-    final words = text.split(' ');
-    return words.map((word) {
-      final cleanWord = word.replaceAll(RegExp(r'^[^\p{L}]+|[^\p{L}]+$', unicode: true), '');
-      return TextSpan(
-        text: '$word ',
-        recognizer: cleanWord.isNotEmpty ? (TapGestureRecognizer()
-          ..onTap = () {
-            debugPrint('Tapped word: "$cleanWord"');
-            WordDefinitionModal.show(
-              context,
-              cleanWord,
-              widget.language,
-            );
-          }) : null,
-      );
-    }).toList();
+  Future<List<WordReading>> _processJapaneseText(String text) async {
+    try {
+      final tokens = tokenize(text);
+      final List<WordReading> results = [];
+      
+      for (var token in tokens) {
+        final word = token.toString();
+        
+        // Skip whitespace
+        if (word.trim().isEmpty) {
+          results.add(WordReading(' ', null));
+          continue;
+        }
+
+        // Handle punctuation and symbols directly
+        if (RegExp(r'[。、！？「」『』（）・〜…]').hasMatch(word)) {
+          results.add(WordReading(word, null));
+          continue;
+        }
+
+        // Add the word
+        results.add(WordReading(word, null));
+      }
+      
+      return results;
+    } catch (e) {
+      debugPrint('Error processing Japanese text: $e');
+      return [WordReading(text, null)];
+    }
   }
 
   Widget _buildAudioPlayer() {
