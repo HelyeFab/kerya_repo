@@ -2,30 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
+import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:uuid/uuid.dart';
+import 'package:ruby_text/ruby_text.dart';
 
 class WordDefinitionModal extends StatefulWidget {
   final String word;
+  final BookLanguage language;
 
   const WordDefinitionModal({
-    super.key,
+    Key? key,
     required this.word,
-  });
+    required this.language,
+  }) : super(key: key);
 
-  static Future<void> show(BuildContext context, String word) {
+  static Future<void> show(
+    BuildContext context,
+    String word,
+    BookLanguage language,
+  ) {
     return showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      enableDrag: false,
-      isDismissible: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.6,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: WordDefinitionModal(word: word),
+      builder: (_) => WordDefinitionModal(
+        word: word,
+        language: language,
       ),
     );
   }
@@ -41,14 +41,32 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isSaved = false;
+  bool _isSpeaking = false;
   String? _error;
   String? _savedWordId;
+  Map<String, String>? _furigana;
 
   @override
   void initState() {
     super.initState();
-    _fetchDefinition();
+    _loadDefinition();
     _checkIfWordIsSaved();
+    if (widget.language.code == 'ja') {
+      _fetchFurigana();
+    }
+  }
+
+  Future<void> _fetchFurigana() async {
+    try {
+      final furigana = await _dictionaryService.getFurigana(widget.word);
+      if (mounted) {
+        setState(() {
+          _furigana = furigana;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error getting furigana: $e');
+    }
   }
 
   Future<void> _checkIfWordIsSaved() async {
@@ -71,9 +89,12 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
     }
   }
 
-  Future<void> _fetchDefinition() async {
+  Future<void> _loadDefinition() async {
     try {
-      final definition = await _dictionaryService.getDefinition(widget.word.toLowerCase());
+      final definition = await _dictionaryService.getDefinition(
+        widget.word,
+        widget.language,
+      );
       setState(() {
         _definition = definition;
         _isLoading = false;
@@ -83,7 +104,35 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
       setState(() {
         _definition = null;
         _isLoading = false;
-        _error = 'Word not found';
+        _error = e.toString();
+      });
+    }
+  }
+
+  Future<void> _speakWord() async {
+    if (_isSpeaking) return;
+
+    setState(() {
+      _isSpeaking = true;
+    });
+
+    try {
+      await _dictionaryService.speakWord(
+        widget.word,
+        widget.language.code,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to speak word: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isSpeaking = false;
       });
     }
   }
@@ -105,20 +154,22 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         });
       } else {
         // Save the word
-        final meanings = _definition!['meanings'] as List<dynamic>?;
-        if (meanings?.isNotEmpty ?? false) {
-          final firstMeaning = meanings![0] as Map<String, dynamic>;
-          final definitions = firstMeaning['definitions'] as List<dynamic>?;
-          if (definitions?.isNotEmpty ?? false) {
-            final firstDefinition = definitions![0] as Map<String, dynamic>;
+        final meanings = _definition!['meanings'] as List<dynamic>;
+        if (meanings.isNotEmpty) {
+          final firstMeaning = meanings[0] as Map<String, dynamic>;
+          final definitions = firstMeaning['definitions'] as List<dynamic>;
+          if (definitions.isNotEmpty) {
+            final firstDefinition = definitions[0] as Map<String, dynamic>;
 
             final savedWord = SavedWord(
               id: const Uuid().v4(),
               word: widget.word,
               definition: firstDefinition['definition'] as String? ?? 'No definition available',
-              phonetic: _definition!['phonetic'] as String?,
+              language: widget.language.code,
               examples: [
-                if (firstDefinition['example'] != null)
+                if (firstDefinition['translatedExample'] != null)
+                  firstDefinition['translatedExample'] as String
+                else if (firstDefinition['example'] != null)
                   firstDefinition['example'] as String,
               ],
               savedAt: DateTime.now(),
@@ -161,23 +212,23 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
   }
 
   List<Widget> _buildMeanings() {
-    final meanings = _definition!['meanings'] as List<dynamic>?;
-    if (meanings == null || meanings.isEmpty) {
+    final meanings = _definition!['meanings'] as List<dynamic>;
+    if (meanings.isEmpty) {
       return [const Text('No meanings found')];
     }
 
     return meanings.map<Widget>((meaning) {
       final partOfSpeech = meaning['partOfSpeech'] as String?;
-      final definitions = meaning['definitions'] as List<dynamic>?;
+      final definitions = meaning['definitions'] as List<dynamic>;
 
-      if (definitions == null || definitions.isEmpty) {
+      if (definitions.isEmpty) {
         return const SizedBox.shrink();
       }
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (partOfSpeech != null) ...[
+          if (partOfSpeech != null && partOfSpeech.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(
               partOfSpeech.toUpperCase(),
@@ -189,6 +240,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
           ...definitions.map<Widget>((def) {
             final definition = def['definition'] as String?;
             final example = def['example'] as String?;
+            final translatedExample = def['translatedExample'] as String?;
             final synonyms = def['synonyms'] as List<dynamic>?;
 
             return Padding(
@@ -201,15 +253,34 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                       '• $definition',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                  if (example != null) ...[
+                  if (example != null || translatedExample != null) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      'Example: "$example"',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                    ),
+                    if (widget.language.code == 'en' && example != null)
+                      Text(
+                        'Example: "$example"',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                      )
+                    else ...[
+                      if (translatedExample != null)
+                        Text(
+                          'Example: "$translatedExample"',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      if (example != null)
+                        Text(
+                          '(English: "$example")',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                          ),
+                        ),
+                    ],
                   ],
                   if (synonyms != null && synonyms.isNotEmpty) ...[
                     const SizedBox(height: 8),
@@ -259,6 +330,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
     );
   }
 
+  Widget _buildWordTitle() {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -272,42 +344,46 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    widget.word,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildWordTitle(),
+                        if (_definition != null && 
+                            _definition!['translatedWord'] != widget.word) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _definition!['translatedWord'] as String,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (!_isLoading && _definition != null)
-                    IconButton(
-                      onPressed: _toggleSaveWord,
-                      icon: Icon(
-                        _isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                        color: _isSaved ? Colors.purple : null,
-                      ),
-                    ),
+                  Row(
+                    children: [
+                      if (!_isLoading)
+                        IconButton(
+                          onPressed: _speakWord,
+                          icon: Icon(
+                            _isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
+                            color: _isSpeaking ? Theme.of(context).colorScheme.primary : null,
+                          ),
+                        ),
+                      if (!_isLoading && _definition != null)
+                        IconButton(
+                          onPressed: _toggleSaveWord,
+                          icon: Icon(
+                            _isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                            color: _isSaved ? Colors.purple : null,
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
-              if (_definition != null && _definition!['phonetic'] != null) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      'Phonetic: ',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    Text(
-                      _definition!['phonetic'],
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontFamily: 'Noto Sans',
-                        fontFeatures: const [
-                          FontFeature.enable('ss01'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
           ),
         ),

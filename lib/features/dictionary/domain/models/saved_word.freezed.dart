@@ -23,7 +23,7 @@ mixin _$SavedWord {
   String get id => throw _privateConstructorUsedError;
   String get word => throw _privateConstructorUsedError;
   String get definition => throw _privateConstructorUsedError;
-  String? get phonetic => throw _privateConstructorUsedError;
+  String get language => throw _privateConstructorUsedError;
   List<String>? get examples => throw _privateConstructorUsedError;
   @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
   DateTime get savedAt => throw _privateConstructorUsedError;
@@ -47,7 +47,7 @@ abstract class $SavedWordCopyWith<$Res> {
       {String id,
       String word,
       String definition,
-      String? phonetic,
+      String language,
       List<String>? examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
       DateTime savedAt});
@@ -71,7 +71,7 @@ class _$SavedWordCopyWithImpl<$Res, $Val extends SavedWord>
     Object? id = null,
     Object? word = null,
     Object? definition = null,
-    Object? phonetic = freezed,
+    Object? language = null,
     Object? examples = freezed,
     Object? savedAt = null,
   }) {
@@ -88,10 +88,10 @@ class _$SavedWordCopyWithImpl<$Res, $Val extends SavedWord>
           ? _value.definition
           : definition // ignore: cast_nullable_to_non_nullable
               as String,
-      phonetic: freezed == phonetic
-          ? _value.phonetic
-          : phonetic // ignore: cast_nullable_to_non_nullable
-              as String?,
+      language: null == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String,
       examples: freezed == examples
           ? _value.examples
           : examples // ignore: cast_nullable_to_non_nullable
@@ -116,7 +116,7 @@ abstract class _$$SavedWordImplCopyWith<$Res>
       {String id,
       String word,
       String definition,
-      String? phonetic,
+      String language,
       List<String>? examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
       DateTime savedAt});
@@ -138,7 +138,7 @@ class __$$SavedWordImplCopyWithImpl<$Res>
     Object? id = null,
     Object? word = null,
     Object? definition = null,
-    Object? phonetic = freezed,
+    Object? language = null,
     Object? examples = freezed,
     Object? savedAt = null,
   }) {
@@ -155,10 +155,10 @@ class __$$SavedWordImplCopyWithImpl<$Res>
           ? _value.definition
           : definition // ignore: cast_nullable_to_non_nullable
               as String,
-      phonetic: freezed == phonetic
-          ? _value.phonetic
-          : phonetic // ignore: cast_nullable_to_non_nullable
-              as String?,
+      language: null == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String,
       examples: freezed == examples
           ? _value._examples
           : examples // ignore: cast_nullable_to_non_nullable
@@ -178,7 +178,7 @@ class _$SavedWordImpl extends _SavedWord {
       {required this.id,
       required this.word,
       required this.definition,
-      this.phonetic,
+      required this.language,
       final List<String>? examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
       required this.savedAt})
@@ -195,7 +195,7 @@ class _$SavedWordImpl extends _SavedWord {
   @override
   final String definition;
   @override
-  final String? phonetic;
+  final String language;
   final List<String>? _examples;
   @override
   List<String>? get examples {
@@ -212,7 +212,7 @@ class _$SavedWordImpl extends _SavedWord {
 
   @override
   String toString() {
-    return 'SavedWord(id: $id, word: $word, definition: $definition, phonetic: $phonetic, examples: $examples, savedAt: $savedAt)';
+    return 'SavedWord(id: $id, word: $word, definition: $definition, language: $language, examples: $examples, savedAt: $savedAt)';
   }
 
   @override
@@ -224,15 +224,15 @@ class _$SavedWordImpl extends _SavedWord {
             (identical(other.word, word) || other.word == word) &&
             (identical(other.definition, definition) ||
                 other.definition == definition) &&
-            (identical(other.phonetic, phonetic) ||
-                other.phonetic == phonetic) &&
+            (identical(other.language, language) ||
+                other.language == language) &&
             const DeepCollectionEquality().equals(other._examples, _examples) &&
             (identical(other.savedAt, savedAt) || other.savedAt == savedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, word, definition, phonetic,
+  int get hashCode => Object.hash(runtimeType, id, word, definition, language,
       const DeepCollectionEquality().hash(_examples), savedAt);
 
   /// Create a copy of SavedWord
@@ -256,7 +256,7 @@ abstract class _SavedWord extends SavedWord {
       {required final String id,
       required final String word,
       required final String definition,
-      final String? phonetic,
+      required final String language,
       final List<String>? examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
       required final DateTime savedAt}) = _$SavedWordImpl;
@@ -272,7 +272,7 @@ abstract class _SavedWord extends SavedWord {
   @override
   String get definition;
   @override
-  String? get phonetic;
+  String get language;
   @override
   List<String>? get examples;
   @override

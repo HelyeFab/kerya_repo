@@ -11,7 +11,7 @@ _$SavedWordImpl _$$SavedWordImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       word: json['word'] as String,
       definition: json['definition'] as String,
-      phonetic: json['phonetic'] as String?,
+      language: json['language'] as String,
       examples: (json['examples'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -23,7 +23,7 @@ Map<String, dynamic> _$$SavedWordImplToJson(_$SavedWordImpl instance) =>
       'id': instance.id,
       'word': instance.word,
       'definition': instance.definition,
-      'phonetic': instance.phonetic,
+      'language': instance.language,
       'examples': instance.examples,
       'savedAt': _dateTimeToTimestamp(instance.savedAt),
     };

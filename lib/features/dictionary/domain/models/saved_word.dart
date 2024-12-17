@@ -15,7 +15,7 @@ class SavedWord with _$SavedWord {
     required String id,
     required String word,
     required String definition,
-    String? phonetic,
+    required String language,
     List<String>? examples,
     @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
     required DateTime savedAt,

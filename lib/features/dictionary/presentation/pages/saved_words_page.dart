@@ -90,16 +90,6 @@ class SavedWordsPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (word.phonetic != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            word.phonetic!,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontFamily: 'Noto Sans',
-                                  color: Theme.of(context).colorScheme.secondary,
-                                ),
-                          ),
-                        ],
                         const SizedBox(height: 8),
                         Text(
                           word.definition,

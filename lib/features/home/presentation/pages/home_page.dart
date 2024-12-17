@@ -8,6 +8,7 @@ import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
 import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
+import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _bookRepository = BookRepository();
   final _userStatsRepository = UserStatsRepository();
+  final _dictionaryService = DictionaryService();
   List<Book> books = [];
   BookLanguage _currentLanguage = BookLanguage.english;
   bool _isLoading = true;
@@ -126,6 +128,7 @@ class _HomePageState extends State<HomePage> {
           book: book,
           language: _currentLanguage,
           userStatsRepository: _userStatsRepository,
+          dictionaryService: _dictionaryService,
         ),
       ),
     );

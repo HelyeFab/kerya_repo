@@ -7,17 +7,22 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/presentation/widgets/word_definition_modal.dart';
+import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart';
+import 'package:ruby_text/ruby_text.dart';
+import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 
 class BookReaderPage extends StatefulWidget {
   final Book book;
   final BookLanguage language;
   final UserStatsRepository userStatsRepository;
+  final DictionaryService dictionaryService;
 
   const BookReaderPage({
     super.key,
     required this.book,
     required this.language,
     required this.userStatsRepository,
+    required this.dictionaryService,
   });
 
   @override
@@ -34,6 +39,8 @@ class _BookReaderPageState extends State<BookReaderPage> {
   final double _volume = 1.0;
   bool _hasMarkedAsRead = false;
   final bool _isLoading = false;
+  List<_WordData> _wordDataList = [];
+  double _textScale = 1.0;
 
   @override
   void initState() {
@@ -103,7 +110,6 @@ class _BookReaderPageState extends State<BookReaderPage> {
     setState(() {
       _currentPage = page;
     });
-    // Mark book as read when reaching the last page
     if (page == widget.book.pages.length - 1) {
       _markBookAsRead();
     }
@@ -186,8 +192,6 @@ class _BookReaderPageState extends State<BookReaderPage> {
   Widget _buildPage(BuildContext context, BookPage page) {
     final screenHeight = MediaQuery.of(context).size.height;
     final text = page.getText(widget.language);
-    print('Building page with text: $text');
-    print('Image path: ${page.imagePath}');
     
     return Container(
       padding: AppSpacing.paddingMd,
@@ -198,46 +202,227 @@ class _BookReaderPageState extends State<BookReaderPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (page.imagePath != null) ...[
-            Builder(builder: (_) {
-              print('Attempting to load image: ${page.imagePath}');
-              return const SizedBox();
-            }),
             SizedBox(
               height: screenHeight * 0.4,
               child: Image.network(
                 page.imagePath!,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  print('Error loading image: $error');
+                  debugPrint('Error loading image: $error');
                   return const Center(child: Icon(Icons.error));
                 },
               ),
             ),
           ],
           const SizedBox(height: AppSpacing.md),
-          if (text.isNotEmpty) ...[
-            Builder(builder: (_) {
-              print('Rendering text with length: ${text.length}');
-              return const SizedBox();
-            }),
+          if (text.isNotEmpty)
             Padding(
               padding: AppSpacing.paddingMd,
-              child: SelectableText.rich(
-                TextSpan(
-                  children: _buildTextSpans(text),
-                ),
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
+              child: widget.language.code == 'ja'
+                  ? _buildJapaneseText(context, text)
+                  : SelectableText.rich(
+                      TextSpan(
+                        children: _buildTextSpans(text),
+                      ),
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
             ),
-          ] else
-            Builder(builder: (_) {
-              print('No text to display');
-              return const SizedBox();
-            }),
         ],
       ),
     );
+  }
+
+  Widget _buildJapaneseText(BuildContext context, String text) {
+    return FutureBuilder<List<RubyTextData>>(
+      future: _processJapaneseText(text),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 8),
+                Text('Loading Japanese text...'),
+              ],
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 48,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  snapshot.error is DictionaryException
+                      ? snapshot.error.toString()
+                      : 'An error occurred while loading the text.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.red,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      // Retry loading the text
+                    });
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (snapshot.data?.isEmpty ?? true) {
+          return const Center(
+            child: Text('No text available'),
+          );
+        }
+
+        final rubyTextData = snapshot.data!;
+        
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return GestureDetector(
+              onTapDown: (TapDownDetails details) {
+                try {
+                  final RenderObject? renderObject = context.findRenderObject();
+                  if (renderObject == null || !renderObject.attached) return;
+                  if (renderObject is! RenderBox) return;
+
+                  final RenderBox box = renderObject;
+                  final Offset localPosition = box.globalToLocal(details.globalPosition);
+                  
+                  final tappedWord = _findTappedWord(
+                    position: localPosition,
+                    wordDataList: _wordDataList,
+                    context: context,
+                    constraints: constraints,
+                  );
+                  
+                  if (tappedWord != null) {
+                    _showTapFeedback(context, tappedWord);
+                    
+                    WordDefinitionModal.show(
+                      context,
+                      tappedWord,
+                      widget.language,
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Unable to detect tapped word. Please try again.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              onScaleUpdate: (ScaleUpdateDetails details) {
+                setState(() {
+                  _textScale = (_textScale * details.scale).clamp(0.8, 2.0);
+                });
+              },
+              child: RubyText(
+                rubyTextData,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 2.0,
+                  fontSize: 18.0 * _textScale,
+                ),
+                rubyStyle: TextStyle(
+                  fontSize: 10.0 * _textScale,
+                  color: Colors.grey[600],
+                  height: 1.0,
+                ),
+                textAlign: TextAlign.justify,
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<List<RubyTextData>> _processJapaneseText(String text) async {
+    final wordsWithReadings = await widget.dictionaryService.tokenizeWithReadings(text);
+    final List<RubyTextData> rubyTextData = [];
+
+    for (var (word, reading) in wordsWithReadings) {
+      rubyTextData.add(RubyTextData(
+        word,
+        ruby: reading,
+      ));
+    }
+
+    return rubyTextData;
+  }
+
+  String? _findTappedWord({
+    required Offset position,
+    required List<_WordData> wordDataList,
+    required BuildContext context,
+    required BoxConstraints constraints,
+  }) {
+    final textStyle = Theme.of(context).textTheme.bodyLarge!;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor * _textScale;
+    
+    double currentY = 0;
+    double currentX = 0;
+    final maxWidth = constraints.maxWidth;
+    final List<_WordData> updatedWordData = [];
+
+    for (final wordData in wordDataList) {
+      final textPainter = TextPainter(
+        text: TextSpan(text: wordData.word, style: textStyle),
+        textDirection: TextDirection.ltr,
+        textScaleFactor: textScaleFactor,
+      )..layout(maxWidth: maxWidth);
+
+      final wordWidth = textPainter.width;
+      final wordHeight = textPainter.height * (textStyle.height ?? 1.0);
+      
+      if (currentX + wordWidth > maxWidth) {
+        currentX = 0;
+        currentY += wordHeight;
+      }
+
+      const padding = 4.0;
+      final wordRect = Rect.fromLTWH(
+        currentX - padding,
+        currentY - padding,
+        wordWidth + (padding * 2),
+        wordHeight + (padding * 2),
+      );
+
+      updatedWordData.add(_WordData(
+        word: wordData.word,
+        startIndex: wordData.startIndex,
+        endIndex: wordData.endIndex,
+        rubyData: wordData.rubyData,
+        boundingBox: wordRect,
+      ));
+
+      if (wordRect.contains(position)) {
+        _wordDataList = updatedWordData;
+        return wordData.word;
+      }
+
+      currentX += wordWidth + textStyle.letterSpacing!;
+    }
+
+    _wordDataList = updatedWordData;
+    return null;
   }
 
   List<TextSpan> _buildTextSpans(String text) {
@@ -245,10 +430,18 @@ class _BookReaderPageState extends State<BookReaderPage> {
     
     final words = text.split(' ');
     return words.map((word) {
+      final cleanWord = word.replaceAll(RegExp(r'^[^\p{L}]+|[^\p{L}]+$', unicode: true), '');
       return TextSpan(
         text: '$word ',
-        recognizer: TapGestureRecognizer()
-          ..onTap = () => WordDefinitionModal.show(context, word.replaceAll(RegExp(r'[^\w\s]'), '')),
+        recognizer: cleanWord.isNotEmpty ? (TapGestureRecognizer()
+          ..onTap = () {
+            debugPrint('Tapped word: "$cleanWord"');
+            WordDefinitionModal.show(
+              context,
+              cleanWord,
+              widget.language,
+            );
+          }) : null,
       );
     }).toList();
   }
@@ -280,4 +473,88 @@ class _BookReaderPageState extends State<BookReaderPage> {
       ),
     );
   }
+
+  String? _getKanjiReading(String word) {
+    final Map<String, String> kanjiReadings = {
+      '私': 'わたし',
+      '今日': 'きょう',
+      '明日': 'あした',
+      '学生': 'がくせい',
+      '先生': 'せんせい',
+      '日本': 'にほん',
+      '本': 'ほん',
+      '読': 'よ',
+      '見': 'み',
+      '行': 'い',
+      '来': 'く',
+      '食': 'た',
+      '飲': 'の',
+      '話': 'はな',
+      '聞': 'き',
+      '書': 'か',
+      '言': 'い',
+      '思': 'おも',
+    };
+
+    return kanjiReadings[word];
+  }
+
+  void _showTapFeedback(BuildContext context, String word) {
+    final overlay = OverlayEntry(
+      builder: (context) => Positioned.fill(
+        child: CustomPaint(
+          painter: WordHighlightPainter(
+            word: word,
+            textStyle: Theme.of(context).textTheme.bodyLarge!,
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlay);
+    Future.delayed(const Duration(milliseconds: 200), () {
+      overlay.remove();
+    });
+  }
+}
+
+class _WordData {
+  final String word;
+  final int startIndex;
+  final int endIndex;
+  final List<RubyTextData> rubyData;
+  final Rect? boundingBox;
+
+  _WordData({
+    required this.word,
+    required this.startIndex,
+    required this.endIndex,
+    required this.rubyData,
+    this.boundingBox,
+  });
+}
+
+class WordHighlightPainter extends CustomPainter {
+  final String word;
+  final TextStyle textStyle;
+
+  WordHighlightPainter({
+    required this.word,
+    required this.textStyle,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.yellow.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

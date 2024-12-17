@@ -7,6 +7,7 @@ import 'package:Keyra/features/books/presentation/pages/book_reader_page.dart';
 import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
 import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
+import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -19,6 +20,7 @@ class _LibraryPageState extends State<LibraryPage> {
   final TextEditingController _searchController = TextEditingController();
   final _bookRepository = BookRepository();
   final _userStatsRepository = UserStatsRepository();
+  final _dictionaryService = DictionaryService();
   List<Book> _filteredBooks = [];
   List<Book> _allBooks = [];
   Timer? _debounce;
@@ -132,6 +134,7 @@ class _LibraryPageState extends State<LibraryPage> {
           book: book,
           language: BookLanguage.english,
           userStatsRepository: _userStatsRepository,
+          dictionaryService: _dictionaryService,
         ),
       ),
     );
