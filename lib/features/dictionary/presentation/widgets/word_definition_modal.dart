@@ -72,9 +72,17 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         final savedWords = await _savedWordsRepository.getSavedWords().first;
         final savedWord = savedWords.firstWhere(
           (word) => word.word.toLowerCase() == widget.word.toLowerCase(),
+          orElse: () => SavedWord(
+            id: '',
+            word: '',
+            definition: '',
+            language: '',
+            examples: [],
+            savedAt: DateTime.now(),
+          ),
         );
         
-        if (mounted) {
+        if (mounted && savedWord.id.isNotEmpty) {
           setState(() {
             _isSaved = true;
             _savedWordId = savedWord.id;
@@ -421,43 +429,52 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                   ],
                 ),
               ),
-            if (_definition?['examples'] != null && _definition!['examples'].isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+            if (_definition?['examples'] != null && (_definition!['examples'] as List).isNotEmpty)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Color(0xFFFFF5F5), // Light pink color
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Example Sentences:',
+                      'Examples:',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...(_definition!['examples'] as List).map((example) => 
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
+                    ...(_definition!['examples'] as List).map((example) {
+                      final sentence = example['sentence'] as String;
+                      final translation = example['translation'] as String;
+                      
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              example['japanese'],
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                height: 1.5,
+                              sentence,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              example['english'],
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              translation,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Colors.grey[600],
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
+                      );
+                    }).toList(),
                   ],
                 ),
               ),
@@ -514,72 +531,6 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 ),
               ),
             ],
-            if (_definition?['examples'] != null && (_definition!['examples'] as List).isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Examples:',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: examplesBgColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: (_definition!['examples'] as List).length ~/ 2,
-                  itemBuilder: (context, index) {
-                    final targetExample = _definition!['examples'][index * 2];
-                    final englishExample = _definition!['examples'][index * 2 + 1];
-                    
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '• ',
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  targetExample,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (englishExample != null)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16.0, top: 4.0),
-                              child: Text(
-                                englishExample,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-            // Add detailed meanings section
             if (_definition?['detailedMeanings'] != null && (_definition!['detailedMeanings'] as List).isNotEmpty)
               Container(
                 width: double.infinity,

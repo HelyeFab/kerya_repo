@@ -16,23 +16,26 @@ import 'package:Keyra/features/dashboard/presentation/pages/dashboard_page.dart'
 import 'package:Keyra/features/profile/presentation/pages/profile_page.dart';
 import 'firebase_options.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
+import 'package:Keyra/features/dictionary/data/services/local_dictionary_service.dart';
+import 'package:Keyra/features/dictionary/data/services/japanese_dictionary_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  final dictionaryService = DictionaryService();
-  try {
-    await dictionaryService.initialize();
-  } catch (e) {
-    debugPrint('Warning: Dictionary initialization failed: $e');
-    // Continue app initialization even if dictionary fails
-    // The error will be handled when trying to display Japanese text
-  }
-  
+  await dotenv.load();
+
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize dictionary service
+  final dictionaryService = DictionaryService();
+  try {
+    await dictionaryService.initialize();
+  } catch (e) {
+    debugPrint('Error initializing dictionary service: $e');
+  }
 
   // Wait for Firebase Auth to be ready
   await FirebaseAuth.instance.authStateChanges().first;

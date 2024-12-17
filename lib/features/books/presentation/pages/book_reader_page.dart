@@ -39,6 +39,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
   bool _hasMarkedAsRead = false;
   final bool _isLoading = false;
   double _textScale = 1.0;
+  static const double _baseFontSize = 20.0;
 
   @override
   void initState() {
@@ -121,8 +122,29 @@ class _BookReaderPageState extends State<BookReaderPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            _endReadingSession();
+            Navigator.of(context).pop();
+          },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.text_decrease),
+            onPressed: () {
+              setState(() {
+                _textScale = (_textScale - 0.1).clamp(0.8, 2.0);
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.text_increase),
+            onPressed: () {
+              setState(() {
+                _textScale = (_textScale + 0.1).clamp(0.8, 2.0);
+              });
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -227,7 +249,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
     return FutureBuilder<List<WordReading>>(
       future: widget.language.code == 'ja'
           ? _processJapaneseText(content)
-          : Future.value([WordReading(content, null)]),
+          : _processNonJapaneseText(content),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -255,7 +277,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
                   );
                 },
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontSize: 16.0 * _textScale,
+                fontSize: _baseFontSize * _textScale,
                 height: 1.5,
               ),
             ),
@@ -265,7 +287,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
         return SelectableText.rich(
           TextSpan(children: textSpans),
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontSize: 16.0 * _textScale,
+            fontSize: _baseFontSize * _textScale,
             height: 1.5,
           ),
           textAlign: TextAlign.justify,
@@ -303,6 +325,23 @@ class _BookReaderPageState extends State<BookReaderPage> {
       debugPrint('Error processing Japanese text: $e');
       return [WordReading(text, null)];
     }
+  }
+
+  Future<List<WordReading>> _processNonJapaneseText(String text) async {
+    final List<WordReading> results = [];
+    
+    // Split text into words while preserving punctuation and spaces
+    final pattern = RegExp(r'(\s+|[^\s\p{L}]+|\p{L}+)', unicode: true);
+    final matches = pattern.allMatches(text);
+    
+    for (var match in matches) {
+      final word = match.group(0)!;
+      
+      // Add the word or punctuation
+      results.add(WordReading(word, null));
+    }
+    
+    return results;
   }
 
   Widget _buildAudioPlayer() {
