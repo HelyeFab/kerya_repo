@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:jm_dict/jm_dict.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class JapaneseDictionaryService {
   static final _instance = JapaneseDictionaryService._internal();
   factory JapaneseDictionaryService() => _instance;
   JapaneseDictionaryService._internal();
+
+  final String _jishoApiUrl = 'https://jisho.org/api/v1/search/words';
 
   bool get isInitialized => JMDict().isNotEmpty;
 
@@ -61,6 +65,9 @@ class JapaneseDictionaryService {
       }
     }
 
+    // Get examples from Jisho API
+    final examples = await getExampleSentences(word);
+
     return {
       'word': kanjiElements?.first.element ?? word,
       'reading': entry.readingElements.first.element,
@@ -81,12 +88,66 @@ class JapaneseDictionaryService {
           .toList(),
       'jlpt': null, // JMDict package doesn't provide JLPT level
       'isCommon': entry.kanjiElements?.any((e) => e.information?.any((i) => i.name.contains('ichi1')) ?? false) ?? false,
-      'examples': [], // We'll need to handle examples separately
+      'examples': examples,
     };
   }
 
   Future<List<Map<String, String>>> getExampleSentences(String word) async {
-    // For now, return empty list since JMDict doesn't include examples
+    try {
+      final response = await http.get(Uri.parse('$_jishoApiUrl?keyword=$word'));
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> results = data['data'];
+        
+        if (results.isNotEmpty) {
+          final List<Map<String, String>> examples = [];
+          
+          for (var result in results) {
+            if (result['japanese']?[0]?['word'] == word || 
+                result['japanese']?[0]?['reading'] == word) {
+              
+              final sentences = result['sentences'] as List?;
+              if (sentences != null) {
+                for (var sentence in sentences) {
+                  examples.add({
+                    'sentence': sentence['japanese'],
+                    'reading': sentence['reading'],
+                    'translation': sentence['english'],
+                  });
+                }
+              }
+            }
+          }
+          
+          // If no examples found in the first result, try getting from other results
+          if (examples.isEmpty) {
+            for (var result in results) {
+              final senses = result['senses'] as List;
+              for (var sense in senses) {
+                final sentences = sense['sentences'] as List?;
+                if (sentences != null) {
+                  for (var sentence in sentences) {
+                    examples.add({
+                      'sentence': sentence['japanese'],
+                      'reading': sentence['reading'],
+                      'translation': sentence['english'],
+                    });
+                  }
+                }
+              }
+              
+              // Limit to 3 examples
+              if (examples.length >= 3) break;
+            }
+          }
+          
+          return examples;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting Japanese example sentences: $e');
+    }
     return [];
   }
 }

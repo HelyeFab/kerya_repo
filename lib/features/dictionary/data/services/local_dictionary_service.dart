@@ -50,16 +50,32 @@ class LocalDictionaryService {
         final entry = data[0];
         final meanings = entry['meanings'] as List<dynamic>;
         
+        // Extract definitions and examples
+        final List<String> definitions = [];
+        final List<Map<String, String>> examples = [];
+        
+        for (var meaning in meanings) {
+          final defs = meaning['definitions'] as List<dynamic>;
+          for (var def in defs) {
+            // Add definition
+            definitions.add(def['definition'].toString());
+            
+            // Add example if available
+            if (def['example'] != null) {
+              examples.add({
+                'sentence': def['example'].toString(),
+                'translation': def['example'].toString(), // Same for English
+              });
+            }
+          }
+        }
+        
         return {
           'word': entry['word'] ?? word,
           'reading': entry['phonetic'] ?? '',
-          'meanings': meanings.map((m) => 
-            (m['definitions'] as List<dynamic>)
-              .map((d) => d['definition'].toString())
-              .join(", ")
-          ).toList(),
+          'meanings': definitions,
           'partsOfSpeech': meanings.map((m) => m['partOfSpeech'].toString()).toList(),
-          'examples': [],
+          'examples': examples,
         };
       }
     }

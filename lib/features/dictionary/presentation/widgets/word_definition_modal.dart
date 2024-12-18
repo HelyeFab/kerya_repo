@@ -4,6 +4,7 @@ import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
 import 'package:uuid/uuid.dart';
+import 'package:ruby_text/ruby_text.dart';
 
 class WordDefinitionModal extends StatefulWidget {
   final String word;
@@ -20,7 +21,7 @@ class WordDefinitionModal extends StatefulWidget {
     String word,
     BookLanguage language,
   ) {
-    final height = MediaQuery.of(context).size.height * 0.6; // Fixed height at 60% of screen
+    final height = MediaQuery.of(context).size.height * 0.6;
     
     return showModalBottomSheet(
       context: context,
@@ -109,8 +110,8 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
           _savedWordId = null;
         });
       } else {
-        final definition = _definition!['definitions']?.isNotEmpty == true
-            ? _definition!['definitions'][0]
+        final definition = _definition!['meanings']?.isNotEmpty == true
+            ? _definition!['meanings'][0]
             : 'No definition available';
             
         final examples = _definition!['examples'] as List?;
@@ -120,7 +121,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
           definition: definition,
           language: widget.language.code,
           examples: examples != null && examples.isNotEmpty 
-              ? [examples[0].toString()] // Save only the first example in target language
+              ? [examples[0].toString()]
               : [],
           savedAt: DateTime.now(),
         );
@@ -213,10 +214,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
 
   Widget _buildContent() {
     final theme = Theme.of(context);
-    
-    // Pastel colors for different sections
-    const definitionsBgColor = Color(0xFFF5F5FF); // Light blue pastel
-    const examplesBgColor = Color(0xFFFFF5F5); // Light pink pastel
+    final isJapanese = widget.language.code == 'ja';
     
     return SingleChildScrollView(
       child: Padding(
@@ -224,47 +222,6 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Add JLPT and Common Word indicators at the top
-            if (_definition?['jlpt'] != null || _definition?['isCommon'] == true)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 0.0),
-                child: Row(
-                  children: [
-                    if (_definition?['jlpt'] != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                        child: Text(
-                          _definition!['jlpt'],
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    if (_definition?['isCommon'] == true) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                        decoration: BoxDecoration(
-                          color: Colors.green[50],
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                        child: Text(
-                          'Common',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.green[700],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -275,31 +232,45 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          widget.word,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        if (isJapanese && _definition?['reading'] != null)
+                          RubyText(
+                            [RubyTextData(
+                              widget.word,
+                              ruby: _definition!['reading'],
+                            )],
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            rubyStyle: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          )
+                        else
+                          Text(
+                            widget.word,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        // Add parts of speech after the word
-                        if (_definition?['partsOfSpeech'] != null && (_definition!['partsOfSpeech'] as List).isNotEmpty)
+                        if (_definition?['partsOfSpeech'] != null)
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                            padding: const EdgeInsets.only(top: 4.0),
                             child: Text(
                               (_definition!['partsOfSpeech'] as List).join(', '),
-                              style: theme.textTheme.bodySmall?.copyWith(
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 fontStyle: FontStyle.italic,
                                 color: Colors.grey[600],
                               ),
                             ),
                           ),
-                        if (_definition?['reading'] != null && _definition!['reading'] != widget.word)
+                        if (!isJapanese && _definition?['reading'] != null && _definition!['reading'].isNotEmpty)
                           Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
+                            padding: const EdgeInsets.only(top: 4.0),
                             child: Text(
-                              _definition!['reading'],
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[600],
+                              "/${_definition!['reading']}/",
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontFamily: 'NotoSans',
+                                color: Colors.grey[800],
                               ),
                             ),
                           ),
@@ -310,7 +281,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                     children: [
                       Container(
                         decoration: const BoxDecoration(
-                          color: Color(0xFFFFF9C4), // Light yellow color
+                          color: Color(0xFFFFF9C4),
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
@@ -336,7 +307,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: Colors.green[50], // Light pastel green background
+                  color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Column(
@@ -344,13 +315,13 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                   children: [
                     Text(
                       'Meanings:',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
                     ...(_definition!['meanings'] as List)
-                        .take(6) // Limit to 6 meanings
+                        .take(6)
                         .map((meaning) => 
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
@@ -361,71 +332,13 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                             Expanded(
                               child: Text(
                                 meaning.toString(),
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                style: theme.textTheme.bodyMedium,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            if (widget.language.code == 'ja' && _definition?['reading'] != null)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3E5F5), // Light purple color
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_definition?['reading'] != null) ...[
-                      Text(
-                        'Reading:',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _definition!['reading'],
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                    if (_definition?['onyomi'] != null && (_definition!['onyomi'] as List).isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        'On\'yomi:',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        (_definition!['onyomi'] as List).join('、 '),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                    if (_definition?['kunyomi'] != null && (_definition!['kunyomi'] as List).isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        'Kun\'yomi:',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        (_definition!['kunyomi'] as List).join('、 '),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -435,7 +348,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF5F5), // Light pink color
+                  color: const Color(0xFFFFF5F5),
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Column(
@@ -443,148 +356,65 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                   children: [
                     Text(
                       'Examples:',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...(_definition!['examples'] as List).map((example) {
-                      final sentence = example['sentence'] as String;
-                      final translation = example['translation'] as String;
-                      
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              sentence,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              translation,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ),
-            if (_definition?['partOfSpeech'] != null && _definition!['partOfSpeech'] != 'unknown')
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  _definition!['partOfSpeech'],
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            if (_definition?['definitions'] != null && (_definition!['definitions'] as List).isNotEmpty) ...[
-              Text(
-                'Definitions:',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: definitionsBgColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: (_definition!['definitions'] as List).length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${index + 1}. ',
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                          Expanded(
-                            child: Text(
-                              _definition!['definitions'][index],
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-            if (_definition?['detailedMeanings'] != null && (_definition!['detailedMeanings'] as List).isNotEmpty)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Additional Information:',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...(_definition!['detailedMeanings'] as List).map((meaning) {
-                      List<Widget> meaningWidgets = [];
-                      
-                      if (meaning['info'] != null && (meaning['info'] as List).isNotEmpty) {
-                        meaningWidgets.add(
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              (meaning['info'] as List).join(', '),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontStyle: FontStyle.italic,
+                    ...(_definition!['examples'] as List).map((example) {
+                      if (isJapanese) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              RubyText(
+                                [RubyTextData(
+                                  example['sentence'] as String,
+                                  ruby: example['reading'] as String,
+                                )],
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                rubyStyle: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 4),
+                              Text(
+                                example['translation'] as String,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[600],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                example['sentence'] as String,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                example['translation'] as String,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[600],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }
-
-                      if (meaning['see_also'] != null && (meaning['see_also'] as List).isNotEmpty) {
-                        meaningWidgets.add(
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              'See also: ${(meaning['see_also'] as List).join(', ')}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: meaningWidgets,
-                      );
                     }).toList(),
                   ],
                 ),
