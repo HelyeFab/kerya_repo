@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../../core/services/firestore_service.dart';
+import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
+import '../../../../features/dictionary/domain/models/saved_word.dart';
+import '../../../../features/books/domain/models/book_language.dart';
+import '../../../../core/widgets/language_selector.dart';
 
 class SavedWordsPage extends StatefulWidget {
   const SavedWordsPage({Key? key}) : super(key: key);
@@ -10,7 +14,8 @@ class SavedWordsPage extends StatefulWidget {
 }
 
 class _SavedWordsPageState extends State<SavedWordsPage> {
-  final FirestoreService firestoreService = FirestoreService();
+  final SavedWordsRepository _repository = SavedWordsRepository();
+  BookLanguage? _selectedLanguage;
   
   // List of pastel colors to cycle through
   final List<Color> pastelColors = [
@@ -48,7 +53,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
 
     if (shouldDelete == true) {
       try {
-        await firestoreService.deleteSavedWord(wordId);
+        await _repository.removeWord(wordId);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -57,6 +62,101 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
         }
       }
     }
+  }
+
+  void _onLanguageChanged(BookLanguage? language) {
+    setState(() {
+      _selectedLanguage = language;
+    });
+  }
+
+  void _showWordDetails(SavedWord word) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: double.infinity,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        word.word,
+                        style: const TextStyle(
+                          fontFamily: 'Noto Sans',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Definition:',
+                        style: TextStyle(
+                          fontFamily: 'Noto Sans',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        word.definition,
+                        style: const TextStyle(fontFamily: 'Noto Sans'),
+                      ),
+                      if (word.examples?.isNotEmpty ?? false) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Examples:',
+                          style: TextStyle(
+                            fontFamily: 'Noto Sans',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        ...(word.examples?.take(2) ?? []).map((example) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            '• $example',
+                            style: const TextStyle(fontFamily: 'Noto Sans'),
+                          ),
+                        )),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -75,27 +175,59 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                 fontWeight: FontWeight.bold,
               ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: LanguageSelector(
+              currentLanguage: _selectedLanguage,
+              onLanguageChanged: _onLanguageChanged,
+              showAllOption: true,
+            ),
+          ),
+        ],
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: firestoreService.getSavedWordsWithDetails(),
+      body: StreamBuilder<List<SavedWord>>(
+        stream: _repository.getSavedWords(
+          language: _selectedLanguage?.code,
+        ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No saved words found.'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _selectedLanguage == null
+                        ? 'No saved words found.'
+                        : 'No saved words found for ${_selectedLanguage!.displayName}.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  if (_selectedLanguage != null) ...[
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedLanguage = null;
+                        });
+                      },
+                      icon: const Icon(Icons.language),
+                      label: const Text('Show all languages'),
+                    ),
+                  ],
+                ],
+              ),
+            );
           } else {
             final words = snapshot.data!;
             return ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: words.length,
               itemBuilder: (context, index) {
-                final wordData = words[index];
-                final examples = wordData['examples'];
-                final examplesText = (examples == null || examples.isEmpty)
-                    ? 'Not available'
-                    : examples.toString();
+                final word = words[index];
                 
                 // Cycle through pastel colors
                 final color = pastelColors[index % pastelColors.length];
@@ -103,46 +235,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text(
-                            wordData['word'],
-                            style: const TextStyle(
-                              fontFamily: 'Noto Sans',
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          content: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Definition: ${wordData['definition']}',
-                                style: const TextStyle(fontFamily: 'Noto Sans'),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Phonetic: ${wordData['phonetic'] ?? 'Not available'}',
-                                style: const TextStyle(fontFamily: 'Noto Sans'),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Examples: $examplesText',
-                                style: const TextStyle(fontFamily: 'Noto Sans'),
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Close'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                    onTap: () => _showWordDetails(word),
                     child: Container(
                       decoration: BoxDecoration(
                         color: color,
@@ -165,29 +258,37 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    wordData['word'],
+                                    word.word,
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       fontFamily: 'Noto Sans',
                                     ),
                                   ),
-                                  if (wordData['phonetic'] != null) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      wordData['phonetic'],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                        fontFamily: 'Noto Sans',
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Image.asset(
+                                        BookLanguage.fromCode(word.language).flagAsset,
+                                        width: 16,
+                                        height: 16,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        BookLanguage.fromCode(word.language).displayName,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                          fontFamily: 'Noto Sans',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              onPressed: () => _deleteWord(wordData['id'], wordData['word']),
+                              onPressed: () => _deleteWord(word.id, word.word),
                               icon: const HugeIcon(
                                 icon: HugeIcons.strokeRoundedDeletePutBack,
                                 color: Colors.black,

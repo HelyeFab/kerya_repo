@@ -85,21 +85,27 @@ class SavedWordsRepository {
     }
   }
 
-  Stream<List<SavedWord>> getSavedWords() {
+  Stream<List<SavedWord>> getSavedWords({String? language}) {
     final user = _auth.currentUser;
     if (user == null) {
       throw Exception('User not authenticated');
     }
 
-    return _firestore
+    Query<Map<String, dynamic>> query = _firestore
         .collection('users')
         .doc(user.uid)
-        .collection('saved_words')
-        .orderBy('savedAt', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => SavedWord.fromFirestore(doc))
-            .toList());
+        .collection('saved_words');
+
+    // First filter by language if specified, then order by savedAt
+    if (language != null) {
+      query = query.where('language', isEqualTo: language);
+    }
+    
+    // Apply ordering after any filters
+    query = query.orderBy('savedAt', descending: true);
+
+    return query.snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => SavedWord.fromFirestore(doc)).toList());
   }
 
   Future<void> updateSavedWordsCount() async {
@@ -109,22 +115,12 @@ class SavedWordsRepository {
     }
 
     try {
-      final wordsSnapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('saved_words')
-          .count()
-          .get();
-
+      final savedWords = await getSavedWords().first;
       await _firestore
           .collection('users')
           .doc(user.uid)
-          .set({
-            'savedWords': wordsSnapshot.count,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+          .update({'saved_words_count': savedWords.length});
     } catch (e) {
-      print('Error updating saved words count: $e');
       throw Exception('Failed to update saved words count');
     }
   }

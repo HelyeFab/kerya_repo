@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+import 'package:ruby_text/ruby_text.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
 import 'package:Keyra/core/config/app_strings.dart';
-import 'package:uuid/uuid.dart';
-import 'package:ruby_text/ruby_text.dart';
 import 'package:Keyra/core/widgets/loading_animation.dart';
 
 class WordDefinitionModal extends StatefulWidget {
@@ -112,19 +112,35 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
           _savedWordId = null;
         });
       } else {
-        final definition = _definition!['meanings']?.isNotEmpty == true
-            ? _definition!['meanings'][0]
-            : 'No definition available';
-            
+        String definition;
+        final meanings = _definition!['meanings'] as List<dynamic>?;
+        
+        if (widget.language.code == 'ja') {
+          // For Japanese, keep the current behavior
+          definition = meanings?.isNotEmpty == true
+              ? meanings![0].toString()
+              : 'No definition available';
+        } else if (widget.language.code == 'en') {
+          // For English, take up to 6 meanings
+          definition = meanings != null && meanings.isNotEmpty
+              ? meanings.take(6).map((m) => '• ${m.toString()}').join('\n')
+              : 'No definition available';
+        } else {
+          // For other languages, use the translation
+          definition = meanings != null && meanings.isNotEmpty
+              ? meanings[0].toString()
+              : 'No definition available';
+        }
+
         final examples = _definition!['examples'] as List?;
         final savedWord = SavedWord(
           id: const Uuid().v4(),
           word: widget.word,
           definition: definition,
           language: widget.language.code,
-          examples: examples != null && examples.isNotEmpty 
-              ? [examples[0].toString()]
-              : [],
+          examples: examples?.take(3).map((e) => 
+            e is Map ? e['sentence'].toString() : e.toString()
+          ).toList() ?? [],
           savedAt: DateTime.now(),
         );
 
@@ -333,7 +349,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                     ),
                     const SizedBox(height: 8),
                     ...(_definition!['meanings'] as List)
-                        .take(6)
+                        .take(6) // Show up to 6 meanings
                         .map((meaning) => 
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
@@ -373,7 +389,9 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...(_definition!['examples'] as List).map((example) {
+                    ...(_definition!['examples'] as List)
+                        .take(3) // Show up to 3 examples
+                        .map((example) {
                       if (isJapanese) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
@@ -406,24 +424,11 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                       } else {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                example['sentence'] as String,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                example['translation'] as String,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[600],
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            example.toString(),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         );
                       }

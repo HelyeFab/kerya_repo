@@ -51,8 +51,8 @@ class LocalDictionaryService {
         final meanings = entry['meanings'] as List<dynamic>;
         
         // Extract definitions and examples
-        final List<String> definitions = [];
-        final List<Map<String, String>> examples = [];
+        final List<dynamic> definitions = [];
+        final List<String> examples = [];
         
         for (var meaning in meanings) {
           final defs = meaning['definitions'] as List<dynamic>;
@@ -62,10 +62,7 @@ class LocalDictionaryService {
             
             // Add example if available
             if (def['example'] != null) {
-              examples.add({
-                'sentence': def['example'].toString(),
-                'translation': def['example'].toString(), // Same for English
-              });
+              examples.add(def['example'].toString());
             }
           }
         }
@@ -107,6 +104,53 @@ class LocalDictionaryService {
       if (translations.isNotEmpty) {
         final englishTranslation = translations[0]['translatedText'];
         
+        // Get English definitions to get multiple meanings
+        final englishDefinitions = await _getEnglishDefinition(englishTranslation);
+        List<String> meanings = [];
+        
+        // If we got English definitions, use them (up to 6)
+        if (englishDefinitions.containsKey('meanings')) {
+          meanings = (englishDefinitions['meanings'] as List)
+              .take(6)
+              .map((m) => m.toString())
+              .toList();
+        }
+        
+        // If no English definitions found, use the translation
+        if (meanings.isEmpty) {
+          meanings = [englishTranslation];
+        }
+        
+        // Now translate all meanings back to target language
+        final translatedMeanings = await Future.wait(
+          meanings.map((meaning) async {
+            final meaningResponse = await http.post(
+              Uri.parse('$_translationBaseUrl?key=$apiKey'),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode({
+                'q': meaning,
+                'source': 'en',
+                'target': targetLang,
+                'format': 'text'
+              })
+            );
+            
+            if (meaningResponse.statusCode == 200) {
+              final meaningData = json.decode(meaningResponse.body);
+              final meaningTranslations = meaningData['data']['translations'] as List;
+              if (meaningTranslations.isNotEmpty) {
+                return meaningTranslations[0]['translatedText'] as String;
+              }
+            }
+            return null;
+          })
+        );
+        
+        // Filter out null values
+        final List<String> nonNullMeanings = translatedMeanings
+            .whereType<String>()
+            .toList();
+        
         // Get example sentences for the English translation
         final examples = await _getExampleSentences(englishTranslation);
         
@@ -128,22 +172,24 @@ class LocalDictionaryService {
               final exampleData = json.decode(exampleResponse.body);
               final exampleTranslations = exampleData['data']['translations'] as List;
               if (exampleTranslations.isNotEmpty) {
-                return {
-                  'sentence': exampleTranslations[0]['translatedText'],
-                  'translation': example,
-                };
+                return exampleTranslations[0]['translatedText'] as String;
               }
             }
             return null;
           })
         );
         
+        // Filter out null values
+        final List<String> nonNullExamples = translatedExamples
+            .whereType<String>()
+            .toList();
+        
         return {
           'word': text,
           'reading': '',
-          'meanings': [englishTranslation],
-          'partsOfSpeech': [],
-          'examples': translatedExamples.where((e) => e != null).toList(),
+          'meanings': nonNullMeanings,
+          'partsOfSpeech': <String>[],
+          'examples': nonNullExamples,
         };
       }
     }
@@ -166,7 +212,7 @@ class LocalDictionaryService {
               .expand((m) => (m['definitions'] as List<dynamic>))
               .where((d) => d['example'] != null)
               .map((d) => d['example'].toString())
-              .take(2)  // Limit to 2 examples to avoid too many translations
+              .take(3)  // Get up to 3 examples
               .toList();
           
           return examples;

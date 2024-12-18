@@ -170,14 +170,18 @@ class DictionaryService {
       
       if (language.code == 'ja') {
         definition = await _japaneseDictionary.getDefinition(word);
+        if (definition != null) {
+          final examples = await getExampleSentences(
+            word, 
+            language, 
+            definition['meanings'] as List<String>?
+          );
+          definition['examples'] = examples;
+        }
       } else {
         definition = await _localDictionary.getDefinition(word, language: language.code);
-      }
-      
-      // Get examples after we have the definition
-      final examples = await getExampleSentences(word, language, definition?['meanings'] as List<String>?);
-      if (definition != null) {
-        definition['examples'] = examples;
+        // For non-Japanese languages, the examples are already included in the definition
+        // from the LocalDictionaryService's _getEnglishDefinition or _getTranslation methods
       }
       
       return definition ?? {'word': word};
@@ -197,7 +201,8 @@ class DictionaryService {
         final meaning = meanings?.isNotEmpty == true ? meanings!.first : '';
         return await _japaneseDictionary.getExampleSentences(word, meaning);
       } else {
-        return await _localDictionary.getExampleSentences(word);
+        // For non-Japanese languages, examples are handled in the definition methods
+        return [];
       }
     } catch (e) {
       debugPrint('Error getting example sentences: $e');
