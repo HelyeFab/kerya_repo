@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
-import '../widgets/progress_stats_card.dart';
+import '../widgets/circular_stats_card.dart';
 import 'saved_words_page.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -37,7 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         color: Colors.grey[600],
                       ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // Stats Content
                 BlocConsumer<DashboardBloc, DashboardState>(
@@ -78,91 +78,107 @@ class _DashboardPageState extends State<DashboardPage> {
                       loaded: (booksRead, favoriteBooks, readingStreak, savedWords) {
                         return Column(
                           children: [
-                            // Books Read Progress
-                            ProgressStatsCard(
-                              title: 'Books Read',
-                              value: booksRead,
-                              maxValue: 50, // Target for books to read
-                              icon: Icons.book,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Favorite Books Progress
-                            ProgressStatsCard(
-                              title: 'Favorite Books',
-                              value: favoriteBooks,
-                              maxValue: 20, // Target for favorite books
-                              icon: Icons.favorite,
-                              color: Colors.red,
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Reading Streak Progress
-                            ProgressStatsCard(
-                              title: 'Reading Streak',
-                              value: readingStreak,
-                              maxValue: 30, // Monthly streak target
-                              icon: Icons.local_fire_department,
-                              color: Colors.orange,
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Saved Words Card
-                            Card(
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const SavedWordsPage(),
-                                    ),
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(16),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.bookmark,
-                                        size: 24,
-                                        color: Colors.purple,
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Saved Words',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            savedWords.toString(),
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const Spacer(),
-                                      Icon(
-                                        Icons.chevron_right,
-                                        color: Colors.grey[400],
-                                      ),
-                                    ],
+                            // First Row: Books Read and Favorite Books
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(
+                                  child: CircularStatsCard(
+                                    title: 'Books Read',
+                                    value: booksRead,
+                                    maxValue: 50,
+                                    icon: Icons.book,
+                                    color: Colors.blue,
                                   ),
                                 ),
-                              ),
+                                Expanded(
+                                  child: CircularStatsCard(
+                                    title: 'Favorite Books',
+                                    value: favoriteBooks,
+                                    maxValue: 20,
+                                    icon: Icons.favorite,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Second Row: Reading Streak and Saved Words
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Reading Streak Circle
+                                Expanded(
+                                  child: CircularStatsCard(
+                                    title: 'Reading Streak',
+                                    value: readingStreak,
+                                    maxValue: 30,
+                                    icon: Icons.local_fire_department,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                // Compact Saved Words Card
+                                Expanded(
+                                  child: Card(
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const SavedWordsPage(),
+                                          ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.bookmark,
+                                                  size: 20,
+                                                  color: Colors.purple,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'Saved Words',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Icon(
+                                                  Icons.chevron_right,
+                                                  size: 20,
+                                                  color: Colors.grey[400],
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              savedWords.toString(),
+                                              style: const TextStyle(
+                                                fontSize: 32,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         );

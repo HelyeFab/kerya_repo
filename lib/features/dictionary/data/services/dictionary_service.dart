@@ -57,12 +57,11 @@ class DictionaryService {
   final _batchQueue = <String>[];
   final _pendingReadingRequests = <String, Completer<String?>>{};
 
-  // Add public getter to check if dictionary is already initialized
   bool get isDictionaryInitialized => _japaneseDictionary.isInitialized;
 
   Future<void> initialize() async {
     try {
-      await _localDictionary.recreateDatabase(); // Force recreate on startup for now
+      await _localDictionary.recreateDatabase();
       await _japaneseDictionary.initialize();
     } catch (e) {
       debugPrint('Error initializing dictionaries: $e');
@@ -142,7 +141,7 @@ class DictionaryService {
       final response = await _dio.post(
         'https://labs.goo.ne.jp/api/hiragana',
         data: {
-          'app_id': dotenv.env['GOO_LABS_API_KEY'],
+          'app_id': ApiKeys.gooLabsApiKey,
           'sentence': word,
           'output_type': 'hiragana',
         },
@@ -175,6 +174,12 @@ class DictionaryService {
         definition = await _localDictionary.getDefinition(word, language: language.code);
       }
       
+      // Get examples after we have the definition
+      final examples = await getExampleSentences(word, language, definition?['meanings'] as List<String>?);
+      if (definition != null) {
+        definition['examples'] = examples;
+      }
+      
       return definition ?? {'word': word};
     } catch (e) {
       debugPrint('Error getting definition: $e');
@@ -182,10 +187,15 @@ class DictionaryService {
     }
   }
 
-  Future<List<Map<String, String>>> getExampleSentences(String word, BookLanguage language) async {
+  Future<List<Map<String, String>>> getExampleSentences(
+    String word,
+    BookLanguage language,
+    [List<String>? meanings]
+  ) async {
     try {
       if (language.code == 'ja') {
-        return await _japaneseDictionary.getExampleSentences(word);
+        final meaning = meanings?.isNotEmpty == true ? meanings!.first : '';
+        return await _japaneseDictionary.getExampleSentences(word, meaning);
       } else {
         return await _localDictionary.getExampleSentences(word);
       }

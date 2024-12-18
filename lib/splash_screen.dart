@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:Keyra/core/config/app_strings.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool isInitialized;
@@ -22,45 +23,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  // Each message group contains translations in order: EN, FR, ES, DE, JA
-  final List<List<String>> messageGroups = [
-    [
-      "Downloading dictionary entries... 📚",
-      "Téléchargement des entrées du dictionnaire... 📚",
-      "Descargando entradas del diccionario... 📚",
-      "Wörterbucheinträge werden heruntergeladen... 📚",
-      "辞書のエントリをダウンロード中... 📚",
-    ],
-    [
-      "Processing Japanese words... 🎌",
-      "Traitement des mots japonais... 🎌",
-      "Procesando palabras japonesas... 🎌",
-      "Verarbeitung japanischer Wörter... 🎌",
-      "日本語の単語を処理中... 🎌",
-    ],
-    [
-      "Building your fabulous library... 📖",
-      "Construction de votre bibliothèque fabuleuse... 📖",
-      "Construyendo tu fabulosa biblioteca... 📖",
-      "Aufbau Ihrer fabelhaften Bibliothek... 📖",
-      "素晴らしいライブラリを構築中... 📖",
-    ],
-    [
-      "Organizing kanji and vocabulary... ✨",
-      "Organisation des kanjis et du vocabulaire... ✨",
-      "Organizando kanji y vocabulario... ✨",
-      "Kanji und Vokabeln organisieren... ✨",
-      "漢字と語彙を整理中... ✨",
-    ],
-    [
-      "Preparing your learning journey... 🚀",
-      "Préparation de votre voyage d'apprentissage... 🚀",
-      "Preparando tu viaje de aprendizaje... 🚀",
-      "Vorbereitung Ihrer Lernreise... 🚀",
-      "学びの旅を準備中... 🚀",
-    ],
-  ];
-
   Timer? _timer;
   String _currentMessage = "";
   int _currentGroupIndex = 0;
@@ -72,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
     debugPrint('SplashScreen initState - isFirstLaunch: ${widget.isFirstLaunch}');
     
     // Start with the first message in English
-    _currentMessage = messageGroups[0][0];
+    _currentMessage = AppStrings.splashMessages[0][AppStrings.englishIndex];
 
     // Update message every 2 seconds if it's first launch
     if (widget.isFirstLaunch) {
@@ -84,10 +46,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
             // If we've shown all languages for current message, move to next message
             if (_currentLanguageIndex == 0) {
-              _currentGroupIndex = (_currentGroupIndex + 1) % messageGroups.length;
+              _currentGroupIndex = (_currentGroupIndex + 1) % AppStrings.splashMessages.length;
             }
 
-            _currentMessage = messageGroups[_currentGroupIndex][_currentLanguageIndex];
+            _currentMessage = AppStrings.splashMessages[_currentGroupIndex][_currentLanguageIndex];
           });
         }
       });

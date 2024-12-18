@@ -25,6 +25,11 @@ class AppColors {
   static const Color playful = Color(0xFFFF9800);
   static const Color calm = Color(0xFF81C784);
   static const Color focus = Color(0xFF4FC3F7);
+
+  // Control colors
+  static const Color controlPurple = Color(0xFFE6E0F4);
+  static const Color controlPink = Color(0xFFFFE0E6);
+  static const Color controlText = Color(0xFF1C1B1F); // Using onSurface color for consistency
 }
 
 const lightColorScheme = ColorScheme(

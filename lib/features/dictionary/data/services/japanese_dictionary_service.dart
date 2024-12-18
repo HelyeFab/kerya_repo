@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:jm_dict/jm_dict.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:Keyra/core/config/api_keys.dart';
 
 class JapaneseDictionaryService {
   static final _instance = JapaneseDictionaryService._internal();
@@ -10,6 +11,8 @@ class JapaneseDictionaryService {
   JapaneseDictionaryService._internal();
 
   final String _jishoApiUrl = 'https://jisho.org/api/v1/search/words';
+  final String _translationBaseUrl = 'https://translation.googleapis.com/language/translate/v2';
+  final String _gooApiUrl = 'https://labs.goo.ne.jp/api/hiragana';
 
   bool get isInitialized => JMDict().isNotEmpty;
 
@@ -33,9 +36,61 @@ class JapaneseDictionaryService {
     }
   }
 
+  Future<String?> _getReading(String text) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_gooApiUrl),
+        body: {
+          'app_id': ApiKeys.gooLabsApiKey,
+          'sentence': text,
+          'output_type': 'hiragana',
+        },
+      );
+
+      if (response.statusCode == 200 && 
+          response.body.isNotEmpty) {
+        final data = json.decode(response.body);
+        if (data['converted'] != null) {
+          return data['converted'] as String;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting reading: $e');
+    }
+    return null;
+  }
+
   Future<Map<String, dynamic>> getDefinition(String word) async {
     if (!isInitialized) await initialize();
     
+    // First get Jisho data for parts of speech
+    final response = await http.get(Uri.parse('$_jishoApiUrl?keyword=$word'));
+    List<String> jishoPartsOfSpeech = [];
+    String? firstPartOfSpeech;
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List<dynamic> results = data['data'];
+      
+      if (results.isNotEmpty) {
+        final result = results[0];
+        final senses = result['senses'] as List;
+        
+        // Get all unique parts of speech
+        final Set<String> uniquePos = {};
+        for (var sense in senses) {
+          final pos = sense['parts_of_speech'] as List;
+          uniquePos.addAll(pos.cast<String>());
+          // Store the first part of speech for example generation
+          if (firstPartOfSpeech == null && pos.isNotEmpty) {
+            firstPartOfSpeech = pos[0];
+          }
+        }
+        jishoPartsOfSpeech = uniquePos.toList();
+      }
+    }
+    
+    // Then get JMDict data
     final results = JMDict().search(keyword: word, limit: 1);
     if (results?.isEmpty ?? true) return {'word': word};
 
@@ -65,19 +120,18 @@ class JapaneseDictionaryService {
       }
     }
 
-    // Get examples from Jisho API
-    final examples = await getExampleSentences(word);
+    // Get examples using translations
+    final examples = await getExampleSentences(
+      word,
+      meanings.isNotEmpty ? meanings.first : null,
+      firstPartOfSpeech,
+    );
 
     return {
       'word': kanjiElements?.first.element ?? word,
       'reading': entry.readingElements.first.element,
       'meanings': meanings,
-      'partsOfSpeech': senseElements.isNotEmpty
-          ? senseElements.first.glossaries
-              .where((e) => e.type != null)
-              .map((e) => e.type!.name)
-              .toList()
-          : [],
+      'partsOfSpeech': jishoPartsOfSpeech,
       'onyomi': entry.readingElements
           .where((e) => e.information?.any((i) => i.name.contains('ok')) ?? false)
           .map((e) => e.element)
@@ -86,68 +140,110 @@ class JapaneseDictionaryService {
           .where((e) => e.information?.any((i) => i.name.contains('kun')) ?? false)
           .map((e) => e.element)
           .toList(),
-      'jlpt': null, // JMDict package doesn't provide JLPT level
+      'jlpt': null,
       'isCommon': entry.kanjiElements?.any((e) => e.information?.any((i) => i.name.contains('ichi1')) ?? false) ?? false,
       'examples': examples,
     };
   }
 
-  Future<List<Map<String, String>>> getExampleSentences(String word) async {
+  List<String> _getExampleTemplates(String? partOfSpeech) {
+    // Default templates if no part of speech is provided
+    if (partOfSpeech == null) {
+      return [
+        "I saw a WORD in the garden.",
+        "There is a WORD near the tree.",
+      ];
+    }
+
+    // Convert to lowercase for easier matching
+    final pos = partOfSpeech.toLowerCase();
+
+    if (pos.contains('noun')) {
+      return [
+        "I saw a WORD in the garden.",
+        "There is a WORD near the tree.",
+      ];
+    } else if (pos.contains('adjective') || pos.contains('i-adjective') || pos.contains('na-adjective')) {
+      return [
+        "The garden is very WORD.",
+        "This flower looks WORD.",
+      ];
+    } else if (pos.contains('verb')) {
+      return [
+        "I like to WORD in the garden.",
+        "They often WORD at the park.",
+      ];
+    } else if (pos.contains('adverb')) {
+      return [
+        "She WORD walked through the garden.",
+        "The bird WORD flew away.",
+      ];
+    }
+
+    // Fallback templates
+    return [
+      "I like this WORD.",
+      "Can you see the WORD?",
+    ];
+  }
+
+  Future<List<Map<String, String>>> getExampleSentences(
+    String word,
+    [String? meaning, String? partOfSpeech]
+  ) async {
     try {
-      final response = await http.get(Uri.parse('$_jishoApiUrl?keyword=$word'));
+      final apiKey = ApiKeys.googleApiKey;
+      if (apiKey == null) {
+        debugPrint('Error: Google Translate API key not found');
+        return [];
+      }
+
+      // Get appropriate templates based on part of speech
+      final templates = _getExampleTemplates(partOfSpeech);
       
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List<dynamic> results = data['data'];
-        
-        if (results.isNotEmpty) {
-          final List<Map<String, String>> examples = [];
-          
-          for (var result in results) {
-            if (result['japanese']?[0]?['word'] == word || 
-                result['japanese']?[0]?['reading'] == word) {
-              
-              final sentences = result['sentences'] as List?;
-              if (sentences != null) {
-                for (var sentence in sentences) {
-                  examples.add({
-                    'sentence': sentence['japanese'],
-                    'reading': sentence['reading'],
-                    'translation': sentence['english'],
-                  });
-                }
-              }
-            }
+      // Use meaning or word to fill templates
+      final englishWord = meaning?.split(',')[0].trim() ?? word;
+      final englishSentences = templates.map((template) => 
+        template.replaceAll('WORD', englishWord)
+      ).toList();
+
+      final examples = <Map<String, String>>[];
+
+      for (var englishSentence in englishSentences) {
+        // Translate to Japanese
+        final response = await http.post(
+          Uri.parse('$_translationBaseUrl?key=$apiKey'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'q': englishSentence,
+            'source': 'en',
+            'target': 'ja',
+            'format': 'text'
+          })
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          final translations = data['data']['translations'] as List;
+          if (translations.isNotEmpty) {
+            final japaneseSentence = translations[0]['translatedText'] as String;
+            
+            // Get reading for the Japanese sentence
+            final reading = await _getReading(japaneseSentence);
+
+            examples.add({
+              'sentence': japaneseSentence,
+              'reading': reading ?? '',
+              'translation': englishSentence,
+            });
           }
-          
-          // If no examples found in the first result, try getting from other results
-          if (examples.isEmpty) {
-            for (var result in results) {
-              final senses = result['senses'] as List;
-              for (var sense in senses) {
-                final sentences = sense['sentences'] as List?;
-                if (sentences != null) {
-                  for (var sentence in sentences) {
-                    examples.add({
-                      'sentence': sentence['japanese'],
-                      'reading': sentence['reading'],
-                      'translation': sentence['english'],
-                    });
-                  }
-                }
-              }
-              
-              // Limit to 3 examples
-              if (examples.length >= 3) break;
-            }
-          }
-          
-          return examples;
         }
       }
+
+      return examples;
     } catch (e) {
-      debugPrint('Error getting Japanese example sentences: $e');
+      debugPrint('Error creating example sentences: $e');
+      return [];
     }
-    return [];
   }
 }

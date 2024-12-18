@@ -3,8 +3,10 @@ import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart'
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
+import 'package:Keyra/core/config/app_strings.dart';
 import 'package:uuid/uuid.dart';
 import 'package:ruby_text/ruby_text.dart';
+import 'package:Keyra/core/widgets/loading_animation.dart';
 
 class WordDefinitionModal extends StatefulWidget {
   final String word;
@@ -181,8 +183,18 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const LoadingAnimation(size: 80),
+        const SizedBox(height: 16),
+        Text(
+          AppStrings.findingExamplesFor(widget.word),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
     );
   }
 
@@ -314,7 +326,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Meanings:',
+                      AppStrings.meanings,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -355,7 +367,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Examples:',
+                      AppStrings.examples,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

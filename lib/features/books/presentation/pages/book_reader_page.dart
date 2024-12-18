@@ -5,6 +5,7 @@ import 'package:Keyra/features/books/domain/models/book_page.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
+import 'package:Keyra/core/theme/color_schemes.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/presentation/widgets/word_definition_modal.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
@@ -125,19 +126,20 @@ class _BookReaderPageState extends State<BookReaderPage> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isDecrease 
-            ? const Color(0xFFE6E0F4) // Pastel purple for A-
-            : const Color(0xFFFFE0E6), // Pastel pink for A+
+            ? AppColors.controlPurple
+            : AppColors.controlPink,
       ),
       child: IconButton(
         icon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16),
+            Icon(icon, size: 16, color: AppColors.controlText),
             Text(
               isDecrease ? '-' : '+',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: AppColors.controlText,
               ),
             ),
           ],
@@ -151,38 +153,6 @@ class _BookReaderPageState extends State<BookReaderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            _endReadingSession();
-            Navigator.of(context).pop();
-          },
-        ),
-        actions: [
-          _buildFontSizeButton(
-            icon: Icons.text_fields,
-            onPressed: () {
-              setState(() {
-                _textScale = (_textScale - 0.1).clamp(0.8, 2.0);
-              });
-            },
-            isDecrease: true,
-          ),
-          _buildFontSizeButton(
-            icon: Icons.text_fields,
-            onPressed: () {
-              setState(() {
-                _textScale = (_textScale + 0.1).clamp(0.8, 2.0);
-              });
-            },
-            isDecrease: false,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: _isLoading
           ? const LoadingAnimation(size: 100)
           : PageView.builder(
@@ -191,18 +161,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
               itemCount: widget.book.pages.length,
               itemBuilder: (context, index) {
                 final page = widget.book.pages[index];
-                return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _buildPage(context, page),
-                      if (page.getAudioPath(widget.language) != null)
-                        Padding(
-                          padding: AppSpacing.paddingVerticalMd,
-                          child: _buildAudioPlayer(),
-                        ),
-                    ],
-                  ),
-                );
+                return _buildPage(context, page);
               },
             ),
       bottomNavigationBar: SafeArea(
@@ -250,39 +209,98 @@ class _BookReaderPageState extends State<BookReaderPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final text = page.getText(widget.language);
     
-    return Container(
-      padding: AppSpacing.paddingMd,
-      constraints: BoxConstraints(
-        minHeight: screenHeight * 0.7,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (page.imagePath != null) ...[
-            SizedBox(
-              height: screenHeight * 0.4,
-              child: Image.network(
-                page.imagePath!,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  debugPrint('Error loading image: $error');
-                  return const Center(child: Icon(Icons.error));
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const LoadingAnimation(size: 100);
-                },
+    return Stack(
+      children: [
+        // Text content with space for image
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: screenHeight * 0.5), // Space for image
+              if (text.isNotEmpty)
+                Padding(
+                  padding: AppSpacing.paddingMd,
+                  child: _buildTextContent(context, text),
+                ),
+              if (page.getAudioPath(widget.language) != null)
+                Padding(
+                  padding: AppSpacing.paddingVerticalMd,
+                  child: _buildAudioPlayer(),
+                ),
+            ],
+          ),
+        ),
+        
+        // Image taking up half the screen
+        if (page.imagePath != null)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: screenHeight * 0.5,
+            child: Image.network(
+              page.imagePath!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('Error loading image: $error');
+                return const Center(child: Icon(Icons.error));
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const LoadingAnimation(size: 100);
+              },
+            ),
+          ),
+        
+        // Controls overlay
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Material(
+            type: MaterialType.transparency,
+            child: SafeArea(
+              child: Row(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.controlPurple,
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back, color: AppColors.controlText),
+                      onPressed: () {
+                        _endReadingSession();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                  const Spacer(),
+                  _buildFontSizeButton(
+                    icon: Icons.text_fields,
+                    onPressed: () {
+                      setState(() {
+                        _textScale = (_textScale - 0.1).clamp(0.8, 2.0);
+                      });
+                    },
+                    isDecrease: true,
+                  ),
+                  _buildFontSizeButton(
+                    icon: Icons.text_fields,
+                    onPressed: () {
+                      setState(() {
+                        _textScale = (_textScale + 0.1).clamp(0.8, 2.0);
+                      });
+                    },
+                    isDecrease: false,
+                  ),
+                  const SizedBox(width: 8),
+                ],
               ),
             ),
-          ],
-          const SizedBox(height: AppSpacing.md),
-          if (text.isNotEmpty)
-            Padding(
-              padding: AppSpacing.paddingMd,
-              child: _buildTextContent(context, text),
-            ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -390,7 +408,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
       child: IconButton(
         icon: Icon(
           _isPlaying ? Icons.pause_circle : Icons.play_circle,
-          color: const Color(0xFF6750A4),
+          color: AppColors.primary,
         ),
         iconSize: 48,
         onPressed: () async {
