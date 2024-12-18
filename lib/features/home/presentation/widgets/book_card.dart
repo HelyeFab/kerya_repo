@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:Keyra/core/widgets/loading_animation.dart';
 
 class BookCard extends StatelessWidget {
   final String title;
@@ -48,13 +49,7 @@ class BookCard extends StatelessWidget {
                     },
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
+                      return const LoadingAnimation(size: 50);
                     },
                   ),
                   Positioned(

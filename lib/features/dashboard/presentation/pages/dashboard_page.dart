@@ -13,13 +13,6 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   @override
-  void initState() {
-    super.initState();
-    // Trigger loading of dashboard stats when the page initializes
-    context.read<DashboardBloc>().loadDashboardStats();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -47,11 +40,41 @@ class _DashboardPageState extends State<DashboardPage> {
                 const SizedBox(height: 24),
 
                 // Stats Content
-                BlocBuilder<DashboardBloc, DashboardState>(
+                BlocConsumer<DashboardBloc, DashboardState>(
+                  listener: (context, state) {
+                    state.maybeWhen(
+                      error: (message) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                            backgroundColor: Theme.of(context).colorScheme.error,
+                            action: SnackBarAction(
+                              label: 'Retry',
+                              textColor: Colors.white,
+                              onPressed: () {
+                                context.read<DashboardBloc>().loadDashboardStats();
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      orElse: () {},
+                    );
+                  },
                   builder: (context, state) {
                     return state.when(
-                      initial: () => const Center(child: CircularProgressIndicator()),
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      initial: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
                       loaded: (booksRead, favoriteBooks, readingStreak, savedWords) {
                         return Column(
                           children: [
@@ -85,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             const SizedBox(height: 16),
 
-                            // Saved Words Card (kept as a regular card for contrast)
+                            // Saved Words Card
                             Card(
                               elevation: 4,
                               shape: RoundedRectangleBorder(
@@ -145,9 +168,34 @@ class _DashboardPageState extends State<DashboardPage> {
                         );
                       },
                       error: (message) => Center(
-                        child: Text(
-                          'Error: $message',
-                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: Theme.of(context).colorScheme.error,
+                                size: 48,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error: $message',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  context.read<DashboardBloc>().loadDashboardStats();
+                                },
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Retry'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

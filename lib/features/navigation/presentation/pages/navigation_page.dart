@@ -42,7 +42,7 @@ class _NavigationPageState extends State<NavigationPage> {
         BlocProvider<DashboardBloc>(
           create: (context) => DashboardBloc(
             userStatsRepository: UserStatsRepository(),
-          )..loadDashboardStats(),
+          ),
         ),
       ],
       child: BlocListener<AuthBloc, AuthState>(

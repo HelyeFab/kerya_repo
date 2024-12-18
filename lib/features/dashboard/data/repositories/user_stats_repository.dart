@@ -30,35 +30,62 @@ class UserStatsRepository {
     return docSnap.data() ?? const UserStats();
   }
 
-  Stream<UserStats> streamUserStats() {
+  Future<int> _getSavedWordsCount() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
+
+    try {
+      // Get all saved words documents
+      final savedWordsSnapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('saved_words')
+          .get();
+      
+      return savedWordsSnapshot.docs.length;
+    } catch (e) {
+      print('Error getting saved words count: $e');
+      return 0;
+    }
+  }
+
+  Stream<UserStats> streamUserStats() async* {
     final user = _auth.currentUser;
     if (user == null) {
       throw Exception('User not authenticated');
     }
 
-    // Reference to the user's document
-    final docRef = _firestore.collection('users').doc(user.uid);
+    try {
+      // Get the current saved words count
+      final savedWordsCount = await _getSavedWordsCount();
 
-    // First ensure the document exists with default values
-    docRef.set({
-      'booksRead': 0,
-      'favoriteBooks': 0,
-      'readingStreak': 0,
-      'savedWords': 0,
-      'lastUpdated': FieldValue.serverTimestamp(),
-      'isReadingActive': false,
-      'currentSessionMinutes': 0,
-      'readDates': [],
-    }, SetOptions(merge: true)); // merge: true ensures we don't overwrite existing data
+      // Reference to the user's document
+      final docRef = _firestore.collection('users').doc(user.uid);
 
-    // Then return the stream with the converter
-    return docRef
-        .withConverter(
-          fromFirestore: UserStats.fromFirestore,
-          toFirestore: (UserStats stats, _) => stats.toFirestore(),
-        )
-        .snapshots()
-        .map((snapshot) => snapshot.data() ?? const UserStats());
+      // First ensure the document exists with default values and correct saved words count
+      await docRef.set({
+        'booksRead': 0,
+        'favoriteBooks': 0,
+        'readingStreak': 0,
+        'savedWords': savedWordsCount, // Use the actual count
+        'lastUpdated': FieldValue.serverTimestamp(),
+        'isReadingActive': false,
+        'currentSessionMinutes': 0,
+        'readDates': [],
+      }, SetOptions(merge: true));
+
+      // Then yield the stream with the converter
+      yield* docRef
+          .withConverter(
+            fromFirestore: UserStats.fromFirestore,
+            toFirestore: (UserStats stats, _) => stats.toFirestore(),
+          )
+          .snapshots()
+          .map((snapshot) => snapshot.data() ?? const UserStats());
+    } catch (e) {
+      print('Error in streamUserStats: $e');
+      throw Exception('Failed to initialize user stats: $e');
+    }
   }
 
   Future<void> markBookAsRead() async {

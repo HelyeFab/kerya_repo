@@ -8,6 +8,7 @@ import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
 import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
+import 'package:Keyra/core/widgets/loading_animation.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -221,7 +222,7 @@ class _LibraryPageState extends State<LibraryPage> {
                       height: 24,
                       child: Padding(
                         padding: EdgeInsets.all(12.0),
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: LoadingAnimation(size: 24),
                       ),
                     )
                   : _searchController.text.isNotEmpty
@@ -255,7 +256,7 @@ class _LibraryPageState extends State<LibraryPage> {
         const SizedBox(height: AppSpacing.md),
         Expanded(
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const LoadingAnimation(size: 100)
               : RefreshIndicator(
                   onRefresh: () async {
                     _loadBooks();

@@ -9,6 +9,7 @@ import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
+import 'package:Keyra/core/widgets/loading_animation.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -230,7 +231,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               height: 280,
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const LoadingAnimation(size: 100)
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                       scrollDirection: Axis.horizontal,
@@ -266,7 +267,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: AppSpacing.md),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const LoadingAnimation(size: 100)
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                       itemCount: books.length,
@@ -296,13 +297,7 @@ class _HomePageState extends State<HomePage> {
                                   },
                                   loadingBuilder: (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        value: loadingProgress.expectedTotalBytes != null
-                                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                            : null,
-                                      ),
-                                    );
+                                    return const LoadingAnimation(size: 30);
                                   },
                                 ),
                               ),

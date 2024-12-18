@@ -28,18 +28,18 @@ class OnboardingData {
 
 final List<OnboardingData> onboardingPages = [
   OnboardingData(
-    title: 'Welcome to Keyra Books',
-    description: 'Discover a world of AI-generated stories tailored just for you',
+    title: 'Welcome to Your Language Adventure!',
+    description: 'Bonjour! こんにちは! ¡Hola! I\'m Keyra, your new reading buddy! 📚🌍  I\'ll guide you through magical AI-created stories filled with colourful worlds and playful adventures. Together, we\'ll explore new languages and make learning fun!',
     imagePath: 'assets/images/onboarding/keyra01.png',
   ),
   OnboardingData(
-    title: 'Create Your Own Stories',
-    description: 'Let your imagination run wild with personalized AI-powered storytelling',
+    title: 'Stories That Speak to You!',
+    description: 'Did you know stories have superpowers? ✨ They help you learn words, understand cultures, and spark your imagination! Whether it\'s French, Japanese, Spanish, Italian or English, my books are here to make you smile, learn, and grow – one story at a time!',
     imagePath: 'assets/images/onboarding/keyra02.png',
   ),
   OnboardingData(
-    title: 'Share and Explore',
-    description: 'Join our community of storytellers and explore amazing tales together',
+    title: 'Let\'s Start Your Journey!',
+    description: 'Grab your book 📖, choose your language 🚀, and let\'s dive into a world of magical tales! I\'ll be right here to cheer you on. Who said learning a new language couldn\'t be fun? 🌟 Let\'s make your adventure unforgettable!',
     imagePath: 'assets/images/onboarding/keyra03.png',
   ),
 ];

@@ -9,6 +9,7 @@ import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository
 import 'package:Keyra/features/dictionary/presentation/widgets/word_definition_modal.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart';
+import 'package:Keyra/core/widgets/loading_animation.dart';
 
 class BookReaderPage extends StatefulWidget {
   final Book book;
@@ -114,6 +115,39 @@ class _BookReaderPageState extends State<BookReaderPage> {
     }
   }
 
+  Widget _buildFontSizeButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required bool isDecrease,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isDecrease 
+            ? const Color(0xFFE6E0F4) // Pastel purple for A-
+            : const Color(0xFFFFE0E6), // Pastel pink for A+
+      ),
+      child: IconButton(
+        icon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16),
+            Text(
+              isDecrease ? '-' : '+',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        onPressed: onPressed,
+        tooltip: isDecrease ? 'Decrease font size' : 'Increase font size',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -128,26 +162,29 @@ class _BookReaderPageState extends State<BookReaderPage> {
           },
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.text_decrease),
+          _buildFontSizeButton(
+            icon: Icons.text_fields,
             onPressed: () {
               setState(() {
                 _textScale = (_textScale - 0.1).clamp(0.8, 2.0);
               });
             },
+            isDecrease: true,
           ),
-          IconButton(
-            icon: const Icon(Icons.text_increase),
+          _buildFontSizeButton(
+            icon: Icons.text_fields,
             onPressed: () {
               setState(() {
                 _textScale = (_textScale + 0.1).clamp(0.8, 2.0);
               });
             },
+            isDecrease: false,
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingAnimation(size: 100)
           : PageView.builder(
               controller: _pageController,
               onPageChanged: _onPageChanged,
@@ -231,6 +268,10 @@ class _BookReaderPageState extends State<BookReaderPage> {
                   debugPrint('Error loading image: $error');
                   return const Center(child: Icon(Icons.error));
                 },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const LoadingAnimation(size: 100);
+                },
               ),
             ),
           ],
@@ -252,7 +293,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
           : _processNonJapaneseText(content),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const LoadingAnimation(size: 50);
         }
 
         final wordsWithReadings = snapshot.data!;

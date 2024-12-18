@@ -22,19 +22,39 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
     const Color(0xFFE5FFFF), // Pastel Cyan
   ];
 
-  Future<void> _deleteWord(String wordId) async {
-    try {
-      await firestoreService.deleteSavedWord(wordId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Word deleted successfully')),
+  Future<void> _deleteWord(String wordId, String word) async {
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Word?'),
+          content: Text('Are you sure you want to delete "$word" from your saved words?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
         );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting word: $e')),
-        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      try {
+        await firestoreService.deleteSavedWord(wordId);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting word: $e')),
+          );
+        }
       }
     }
   }
@@ -167,7 +187,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => _deleteWord(wordData['id']),
+                              onPressed: () => _deleteWord(wordData['id'], wordData['word']),
                               icon: const HugeIcon(
                                 icon: HugeIcons.strokeRoundedDeletePutBack,
                                 color: Colors.black,
