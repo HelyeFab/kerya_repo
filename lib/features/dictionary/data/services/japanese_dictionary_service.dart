@@ -44,7 +44,7 @@ class JapaneseDictionaryService {
     for (var sense in senseElements) {
       // Only include glossaries that are explicitly marked as English
       var englishGlossaries = sense.glossaries
-          .where((g) => g.language?.name == 'eng')
+          .where((g) => g.language.name == 'eng')
           .map((g) => g.text)
           .toList();
       

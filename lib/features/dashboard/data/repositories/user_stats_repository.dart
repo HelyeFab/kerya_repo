@@ -36,9 +36,23 @@ class UserStatsRepository {
       throw Exception('User not authenticated');
     }
 
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
+    // Reference to the user's document
+    final docRef = _firestore.collection('users').doc(user.uid);
+
+    // First ensure the document exists with default values
+    docRef.set({
+      'booksRead': 0,
+      'favoriteBooks': 0,
+      'readingStreak': 0,
+      'savedWords': 0,
+      'lastUpdated': FieldValue.serverTimestamp(),
+      'isReadingActive': false,
+      'currentSessionMinutes': 0,
+      'readDates': [],
+    }, SetOptions(merge: true)); // merge: true ensures we don't overwrite existing data
+
+    // Then return the stream with the converter
+    return docRef
         .withConverter(
           fromFirestore: UserStats.fromFirestore,
           toFirestore: (UserStats stats, _) => stats.toFirestore(),

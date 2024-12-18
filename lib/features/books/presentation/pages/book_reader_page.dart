@@ -260,7 +260,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
         
         for (var wordReading in wordsWithReadings) {
           if (wordReading.word.trim().isEmpty) {
-            textSpans.add(TextSpan(text: ' '));
+            textSpans.add(const TextSpan(text: ' '));
             continue;
           }
           

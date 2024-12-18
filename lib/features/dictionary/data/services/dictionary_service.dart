@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -57,6 +56,9 @@ class DictionaryService {
   final _definitionCache = <String, _CacheEntry<Map<String, dynamic>>>{};
   final _batchQueue = <String>[];
   final _pendingReadingRequests = <String, Completer<String?>>{};
+
+  // Add public getter to check if dictionary is already initialized
+  bool get isDictionaryInitialized => _japaneseDictionary.isInitialized;
 
   Future<void> initialize() async {
     try {

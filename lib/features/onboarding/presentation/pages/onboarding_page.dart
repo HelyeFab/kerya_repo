@@ -46,7 +46,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _onGetStarted() async {
     // Mark onboarding as seen
     await widget.preferencesService.setHasSeenOnboarding();
-    
+
     if (!mounted) return;
 
     // Navigate to auth page with proper providers
@@ -91,8 +91,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: TextButton(
                 onPressed: _skipToEnd,
                 style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: Text(
                   'Skip',
@@ -145,7 +147,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       ),
                     ),
                   ),
-                  
+
                   // Get Started button
                   if (_currentPage == onboardingPages.length - 1) ...[
                     const SizedBox(height: 32),
@@ -153,7 +155,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       onPressed: _onGetStarted,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onPrimary,
                         minimumSize: const Size(double.infinity, 56),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),

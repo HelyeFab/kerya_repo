@@ -16,9 +16,12 @@ import 'package:Keyra/features/dashboard/presentation/pages/dashboard_page.dart'
 import 'package:Keyra/features/profile/presentation/pages/profile_page.dart';
 import 'firebase_options.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
-import 'package:Keyra/features/dictionary/data/services/local_dictionary_service.dart';
-import 'package:Keyra/features/dictionary/data/services/japanese_dictionary_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'splash_screen.dart';
+import 'dart:async';
+
+// Create a stream controller for dictionary initialization status
+final _dictionaryInitController = StreamController<bool>.broadcast();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,16 +32,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize dictionary service
+  // Check if dictionary is already initialized
   final dictionaryService = DictionaryService();
-  try {
-    await dictionaryService.initialize();
-  } catch (e) {
-    debugPrint('Error initializing dictionary service: $e');
-  }
-
-  // Wait for Firebase Auth to be ready
-  await FirebaseAuth.instance.authStateChanges().first;
+  final isFirstLaunch = !dictionaryService.isDictionaryInitialized;
+  debugPrint('Is first launch: $isFirstLaunch');
 
   // Initialize preferences service
   final preferencesService = await PreferencesService.init();
@@ -76,15 +73,35 @@ void main() async {
     // Continue with app initialization even if book population fails
   }
 
-  runApp(MyApp(preferencesService: preferencesService));
+  // If it's first launch, start dictionary initialization in background
+  if (isFirstLaunch) {
+    debugPrint('Starting dictionary initialization in background...');
+    dictionaryService.initialize().then((_) {
+      debugPrint('Dictionary initialization complete');
+      _dictionaryInitController.add(true);
+    }).catchError((e) {
+      debugPrint('Error initializing dictionary: $e');
+      _dictionaryInitController.add(true); // Allow proceeding even on error
+    });
+  } else {
+    // Dictionary already initialized
+    _dictionaryInitController.add(true);
+  }
+
+  runApp(MyApp(
+    preferencesService: preferencesService,
+    isFirstLaunch: isFirstLaunch,
+  ));
 }
 
 class MyApp extends StatelessWidget {
   final PreferencesService preferencesService;
+  final bool isFirstLaunch;
 
   const MyApp({
     super.key,
     required this.preferencesService,
+    required this.isFirstLaunch,
   });
 
   @override
@@ -101,16 +118,14 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Keyra',
         theme: AppTheme.lightTheme,
-        home: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            return state.when(
-              initial: () => const Center(child: CircularProgressIndicator()),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              authenticated: (uid) => const NavigationPage(),
-              unauthenticated: () => OnboardingPage(preferencesService: preferencesService),
-              error: (message) => Center(
-                child: Text('Error: $message'),
-              ),
+        home: StreamBuilder<bool>(
+          stream: _dictionaryInitController.stream,
+          initialData: !isFirstLaunch, // If not first launch, dictionary is already initialized
+          builder: (context, snapshot) {
+            return SplashScreen(
+              isInitialized: snapshot.data ?? false,
+              isFirstLaunch: isFirstLaunch,
+              preferencesService: preferencesService,
             );
           },
         ),
@@ -120,6 +135,8 @@ class MyApp extends StatelessWidget {
           '/create': (context) => const CreatePage(),
           '/dashboard': (context) => const DashboardPage(),
           '/profile': (context) => const ProfilePage(),
+          '/onboarding': (context) => OnboardingPage(preferencesService: preferencesService),
+          '/navigation': (context) => const NavigationPage(),
         },
       ),
     );

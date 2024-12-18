@@ -309,7 +309,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                   Row(
                     children: [
                       Container(
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Color(0xFFFFF9C4), // Light yellow color
                           shape: BoxShape.circle,
                         ),
@@ -377,7 +377,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: Color(0xFFF3E5F5), // Light purple color
+                  color: const Color(0xFFF3E5F5), // Light purple color
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Column(
@@ -435,7 +435,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: Color(0xFFFFF5F5), // Light pink color
+                  color: const Color(0xFFFFF5F5), // Light pink color
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Column(
