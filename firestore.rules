@@ -7,10 +7,37 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Helper function to validate stats increment/decrement
+    function isValidStatsUpdate(oldDoc, newDoc) {
+      let diff = newDoc.data.savedWords - oldDoc.data.savedWords;
+      let favDiff = newDoc.data.favoriteBooks - oldDoc.data.favoriteBooks;
+      let booksDiff = newDoc.data.booksRead - oldDoc.data.booksRead;
+      
+      // Allow only +1/-1 changes or no change
+      return (diff == 1 || diff == -1 || diff == 0) &&
+             (favDiff == 1 || favDiff == -1 || favDiff == 0) &&
+             (booksDiff == 1 || booksDiff == 0);
+    }
+
+    // Helper function to validate stats fields
+    function hasValidStatsFields(doc) {
+      let data = doc.data;
+      return data.keys().hasAll(['booksRead', 'favoriteBooks', 'readingStreak', 'savedWords', 'lastUpdated']) &&
+             data.booksRead is number &&
+             data.favoriteBooks is number &&
+             data.readingStreak is number &&
+             data.savedWords is number &&
+             data.lastUpdated is timestamp;
+    }
+
     // Allow read access to all collections for authenticated users
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if isAuthenticated() && request.auth.uid == userId && hasValidStatsFields(request.resource);
+      allow update: if isAuthenticated() && 
+                      request.auth.uid == userId && 
+                      hasValidStatsFields(request.resource) &&
+                      isValidStatsUpdate(resource, request.resource);
       
       // Add rules for favorites subcollection
       match /favorites/{bookId} {

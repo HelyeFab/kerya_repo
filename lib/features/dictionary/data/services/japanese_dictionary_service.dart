@@ -1,40 +1,24 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:jm_dict/jm_dict.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:Keyra/core/config/api_keys.dart';
+import 'package:Keyra/features/dictionary/data/services/wanikani_service.dart';
 
 class JapaneseDictionaryService {
   static final _instance = JapaneseDictionaryService._internal();
   factory JapaneseDictionaryService() => _instance;
   JapaneseDictionaryService._internal();
 
-  final String _jishoApiUrl = 'https://jisho.org/api/v1/search/words';
-  final String _translationBaseUrl = 'https://translation.googleapis.com/language/translate/v2';
   final String _gooApiUrl = 'https://labs.goo.ne.jp/api/hiragana';
+  final String _jishoApiUrl = 'https://jisho.org/api/v1/search/words';
+  final WanikaniService _wanikaniService = WanikaniService();
 
-  bool get isInitialized => JMDict().isNotEmpty;
+  // Always return true since we don't need initialization anymore
+  bool get isInitialized => true;
 
-  Future<void> initialize() async {
-    if (isInitialized) return;
-
-    try {
-      await JMDict().initFromNetwork(forceUpdate: false);
-    } catch (e) {
-      debugPrint('Error initializing JMDict: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> recreateDatabase() async {
-    try {
-      await JMDict().initFromNetwork(forceUpdate: true);
-    } catch (e) {
-      debugPrint('Error recreating JMDict: $e');
-      rethrow;
-    }
-  }
+  // Empty initialize method to maintain compatibility
+  Future<void> initialize() async {}
 
   Future<String?> _getReading(String text) async {
     try {
@@ -60,190 +44,207 @@ class JapaneseDictionaryService {
     return null;
   }
 
+  Future<Map<String, dynamic>?> _getJishoData(String word) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_jishoApiUrl?keyword=$word'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['data'] != null && data['data'].isNotEmpty) {
+          final firstResult = data['data'][0];
+          final japanese = firstResult['japanese'][0];
+          final senses = firstResult['senses'] as List;
+
+          // Extract all meanings with their metadata
+          final meanings = <Map<String, dynamic>>[];
+          for (final sense in senses) {
+            final englishDefs = sense['english_definitions'] as List;
+            final partsOfSpeech = sense['parts_of_speech'] as List;
+            
+            for (final def in englishDefs) {
+              meanings.add({
+                'meaning': def,
+                'primary': false, // Jisho doesn't specify primary meanings
+                'parts_of_speech': partsOfSpeech,
+              });
+            }
+          }
+
+          return {
+            'reading': japanese['reading'],
+            'meanings': meanings,
+            'partsOfSpeech': senses[0]['parts_of_speech'] as List,
+            'source': 'jisho',
+          };
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting Jisho data: $e');
+    }
+    return null;
+  }
+
   Future<Map<String, dynamic>> getDefinition(String word) async {
-    if (!isInitialized) await initialize();
-    
-    // First get Jisho data for parts of speech
-    final response = await http.get(Uri.parse('$_jishoApiUrl?keyword=$word'));
-    List<String> jishoPartsOfSpeech = [];
-    String? firstPartOfSpeech;
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List<dynamic> results = data['data'];
+    try {
+      debugPrint('Getting WaniKani data for: $word');
       
-      if (results.isNotEmpty) {
-        final result = results[0];
-        final senses = result['senses'] as List;
+      // Get WaniKani data
+      final wanikaniData = await _wanikaniService.getKanjiData(word);
+      
+      if (wanikaniData == null) {
+        debugPrint('No WaniKani data found, falling back to Jisho');
         
-        // Get all unique parts of speech
-        final Set<String> uniquePos = {};
-        for (var sense in senses) {
-          final pos = sense['parts_of_speech'] as List;
-          uniquePos.addAll(pos.cast<String>());
-          // Store the first part of speech for example generation
-          if (firstPartOfSpeech == null && pos.isNotEmpty) {
-            firstPartOfSpeech = pos[0];
+        // Fall back to Jisho dictionary
+        final jishoData = await _getJishoData(word);
+        
+        if (jishoData != null) {
+          debugPrint('Found Jisho data');
+          final result = {
+            'word': word,
+            'reading': jishoData['reading'],
+            'meanings': jishoData['meanings'],
+            'partsOfSpeech': jishoData['partsOfSpeech'],
+            'source': 'jisho',
+          };
+
+          // If no reading from Jisho, try Goo Labs
+          if (result['reading'] == null) {
+            result['reading'] = await _getReading(word);
+          }
+
+          debugPrint('\n=== Final processed result (Jisho) ===');
+          debugPrint('Word: ${result['word']}');
+          debugPrint('Reading: ${result['reading']}');
+          debugPrint('Meanings: ${result['meanings']}');
+          debugPrint('Parts of Speech: ${result['partsOfSpeech']}');
+          debugPrint('=== End of result ===\n');
+
+          return result;
+        }
+
+        // If both WaniKani and Jisho fail, try to at least get a reading
+        final reading = await _getReading(word);
+        return {
+          'word': word,
+          'reading': reading,
+          'meanings': [],
+          'partsOfSpeech': [],
+          'source': 'goo',
+        };
+      }
+
+      // Process WaniKani data
+      final readings = wanikaniData['readings'] as List<dynamic>?;
+      String? reading;
+      
+      if (readings != null && readings.isNotEmpty) {
+        // Find primary reading or use first reading
+        Map<String, dynamic>? primaryReading;
+        
+        // First try to find a reading marked as primary
+        for (final r in readings) {
+          if (r is Map<String, dynamic>) {
+            final isPrimary = r['primary'];
+            if (isPrimary != null && isPrimary == true) {
+              primaryReading = r;
+              break;
+            }
           }
         }
-        jishoPartsOfSpeech = uniquePos.toList();
-      }
-    }
-    
-    // Then get JMDict data
-    final results = JMDict().search(keyword: word, limit: 1);
-    if (results?.isEmpty ?? true) return {'word': word};
-
-    final entry = results!.first;
-    final kanjiElements = entry.kanjiElements;
-    final senseElements = entry.senseElements;
-
-    // Filter only English glossaries
-    List<String> meanings = [];
-    for (var sense in senseElements) {
-      // Only include glossaries that are explicitly marked as English
-      var englishGlossaries = sense.glossaries
-          .where((g) => g.language.name == 'eng')
-          .map((g) => g.text)
-          .toList();
-      
-      // If no explicit English glossaries found, try those without language tag
-      if (englishGlossaries.isEmpty) {
-        englishGlossaries = sense.glossaries
-            .where((g) => g.language == null)
-            .map((g) => g.text)
-            .toList();
+        
+        // If no primary reading found, use the first valid reading
+        if (primaryReading == null && readings.isNotEmpty) {
+          final firstReading = readings.first;
+          if (firstReading is Map<String, dynamic>) {
+            primaryReading = firstReading;
+          }
+        }
+        
+        if (primaryReading != null && primaryReading.containsKey('reading')) {
+          reading = primaryReading['reading']?.toString();
+        }
       }
       
-      if (englishGlossaries.isNotEmpty) {
-        meanings.add(englishGlossaries.join(', '));
-      }
-    }
-
-    // Get examples using translations
-    final examples = await getExampleSentences(
-      word,
-      meanings.isNotEmpty ? meanings.first : null,
-      firstPartOfSpeech,
-    );
-
-    return {
-      'word': kanjiElements?.first.element ?? word,
-      'reading': entry.readingElements.first.element,
-      'meanings': meanings,
-      'partsOfSpeech': jishoPartsOfSpeech,
-      'onyomi': entry.readingElements
-          .where((e) => e.information?.any((i) => i.name.contains('ok')) ?? false)
-          .map((e) => e.element)
-          .toList(),
-      'kunyomi': entry.readingElements
-          .where((e) => e.information?.any((i) => i.name.contains('kun')) ?? false)
-          .map((e) => e.element)
-          .toList(),
-      'jlpt': null,
-      'isCommon': entry.kanjiElements?.any((e) => e.information?.any((i) => i.name.contains('ichi1')) ?? false) ?? false,
-      'examples': examples,
-    };
-  }
-
-  List<String> _getExampleTemplates(String? partOfSpeech) {
-    // Default templates if no part of speech is provided
-    if (partOfSpeech == null) {
-      return [
-        "I saw a WORD in the garden.",
-        "There is a WORD near the tree.",
-      ];
-    }
-
-    // Convert to lowercase for easier matching
-    final pos = partOfSpeech.toLowerCase();
-
-    if (pos.contains('noun')) {
-      return [
-        "I saw a WORD in the garden.",
-        "There is a WORD near the tree.",
-      ];
-    } else if (pos.contains('adjective') || pos.contains('i-adjective') || pos.contains('na-adjective')) {
-      return [
-        "The garden is very WORD.",
-        "This flower looks WORD.",
-      ];
-    } else if (pos.contains('verb')) {
-      return [
-        "I like to WORD in the garden.",
-        "They often WORD at the park.",
-      ];
-    } else if (pos.contains('adverb')) {
-      return [
-        "She WORD walked through the garden.",
-        "The bird WORD flew away.",
-      ];
-    }
-
-    // Fallback templates
-    return [
-      "I like this WORD.",
-      "Can you see the WORD?",
-    ];
-  }
-
-  Future<List<Map<String, String>>> getExampleSentences(
-    String word,
-    [String? meaning, String? partOfSpeech]
-  ) async {
-    try {
-      final apiKey = ApiKeys.googleApiKey;
-      if (apiKey == null) {
-        debugPrint('Error: Google Translate API key not found');
-        return [];
+      if (reading == null) {
+        reading = await _getReading(word);
       }
 
-      // Get appropriate templates based on part of speech
-      final templates = _getExampleTemplates(partOfSpeech);
+      // Extract meanings with their metadata
+      final meaningsData = wanikaniData['meanings'];
+      final meanings = <Map<String, dynamic>>[];
       
-      // Use meaning or word to fill templates
-      final englishWord = meaning?.split(',')[0].trim() ?? word;
-      final englishSentences = templates.map((template) => 
-        template.replaceAll('WORD', englishWord)
-      ).toList();
-
-      final examples = <Map<String, String>>[];
-
-      for (var englishSentence in englishSentences) {
-        // Translate to Japanese
-        final response = await http.post(
-          Uri.parse('$_translationBaseUrl?key=$apiKey'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'q': englishSentence,
-            'source': 'en',
-            'target': 'ja',
-            'format': 'text'
-          })
-        );
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          final translations = data['data']['translations'] as List;
-          if (translations.isNotEmpty) {
-            final japaneseSentence = translations[0]['translatedText'] as String;
-            
-            // Get reading for the Japanese sentence
-            final reading = await _getReading(japaneseSentence);
-
-            examples.add({
-              'sentence': japaneseSentence,
-              'reading': reading ?? '',
-              'translation': englishSentence,
+      if (meaningsData != null && meaningsData is List<dynamic>) {
+        for (final m in meaningsData) {
+          if (m is Map<String, dynamic>) {
+            meanings.add({
+              'meaning': m['meaning']?.toString() ?? '',
+              'primary': m['primary'] ?? false,
+              'parts_of_speech': ['kanji'], // WaniKani specific
             });
           }
         }
       }
 
-      return examples;
+      // Sort readings by type (kunyomi first, then onyomi)
+      final sortedReadings = <Map<String, dynamic>>[];
+      if (readings != null) {
+        for (final reading in readings) {
+          if (reading is Map<String, dynamic>) {
+            sortedReadings.add(reading);
+          }
+        }
+        sortedReadings.sort((a, b) {
+          final aType = a['type']?.toString() ?? '';
+          final bType = b['type']?.toString() ?? '';
+          if (aType == bType) {
+            final bPrimary = b['primary'];
+            final aPrimary = a['primary'];
+            if (bPrimary == true) return 1;
+            if (aPrimary == true) return -1;
+            return 0;
+          }
+          return aType == 'kunyomi' ? -1 : 1;
+        });
+      }
+
+      // Extract level data
+      final level = wanikaniData['level']?.toString() ?? '1';
+
+      final result = {
+        'word': word,
+        'reading': reading,
+        'meanings': meanings,
+        'partsOfSpeech': ['kanji'],
+        'wanikani': {
+          ...wanikaniData,
+          'readings': sortedReadings,
+          'level': level,
+        },
+        'source': 'wanikani',
+      };
+      
+      debugPrint('\n=== Final processed result (WaniKani) ===');
+      debugPrint('Word: ${result['word']}');
+      debugPrint('Reading: ${result['reading']}');
+      debugPrint('Meanings: ${result['meanings']}');
+      debugPrint('Parts of Speech: ${result['partsOfSpeech']}');
+      if (result['source'] == 'wanikani') {
+        final wanikani = result['wanikani'] as Map<String, dynamic>;
+        debugPrint('Level: ${wanikani['level']}');
+      }
+      debugPrint('=== End of result ===\n');
+      
+      return result;
     } catch (e) {
-      debugPrint('Error creating example sentences: $e');
-      return [];
+      debugPrint('Error getting definition: $e');
+      return {
+        'word': word,
+        'meanings': [],
+        'partsOfSpeech': [],
+        'source': 'error',
+      };
     }
   }
 }

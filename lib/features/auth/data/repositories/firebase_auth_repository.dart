@@ -1,15 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../dashboard/data/repositories/user_stats_repository.dart';
 
 class FirebaseAuthRepository {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
+  final UserStatsRepository _userStatsRepository;
 
   FirebaseAuthRepository({
     FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
+    UserStatsRepository? userStatsRepository,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn();
+        _googleSignIn = googleSignIn ?? GoogleSignIn(),
+        _userStatsRepository = userStatsRepository ?? UserStatsRepository();
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
@@ -35,7 +39,12 @@ class FirebaseAuthRepository {
       );
 
       print('Signing in to Firebase...');
-      return await _firebaseAuth.signInWithCredential(credential);
+      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+      
+      // Initialize user stats after successful sign in
+      await _userStatsRepository.getUserStats();
+      
+      return userCredential;
     } catch (e) {
       print('Error during Google Sign In: $e');
       throw Exception('Failed to sign in with Google: ${e.toString()}');
@@ -47,10 +56,15 @@ class FirebaseAuthRepository {
     required String password,
   }) async {
     try {
-      return await _firebaseAuth.signInWithEmailAndPassword(
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+      
+      // Initialize user stats after successful sign in
+      await _userStatsRepository.getUserStats();
+      
+      return userCredential;
     } catch (e) {
       throw Exception('Failed to sign in with email and password: $e');
     }
@@ -69,6 +83,9 @@ class FirebaseAuthRepository {
       
       // Update user profile with name
       await userCredential.user?.updateDisplayName(name);
+      
+      // Initialize user stats for new user
+      await _userStatsRepository.getUserStats();
       
       return userCredential;
     } catch (e) {

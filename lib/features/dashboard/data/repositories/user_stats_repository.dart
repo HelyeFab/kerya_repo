@@ -18,73 +18,129 @@ class UserStatsRepository {
       throw Exception('User not authenticated');
     }
 
-    final docRef = _firestore
+    try {
+      final docRef = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .withConverter(
+            fromFirestore: UserStats.fromFirestore,
+            toFirestore: (UserStats stats, _) => stats.toFirestore(),
+          );
+
+      // Get the document
+      final docSnap = await docRef.get();
+      
+      // If document doesn't exist, initialize it
+      if (!docSnap.exists) {
+        print('Initializing user stats document for user: ${user.uid}');
+        await _initializeUserStats(user.uid);
+        // Get the newly created document
+        final newDocSnap = await docRef.get();
+        return newDocSnap.data() ?? const UserStats();
+      }
+
+      return docSnap.data() ?? const UserStats();
+    } catch (e) {
+      print('Error getting user stats: $e');
+      throw Exception('Failed to get user stats: $e');
+    }
+  }
+
+  Stream<UserStats> streamUserStats() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    return _firestore
         .collection('users')
         .doc(user.uid)
         .withConverter(
           fromFirestore: UserStats.fromFirestore,
           toFirestore: (UserStats stats, _) => stats.toFirestore(),
-        );
-
-    final docSnap = await docRef.get();
-    return docSnap.data() ?? const UserStats();
+        )
+        .snapshots()
+        .asyncMap((snapshot) async {
+          if (!snapshot.exists) {
+            // Initialize the document and wait for it to complete
+            await _initializeUserStats(user.uid);
+            // Get the newly created document
+            final newSnapshot = await _firestore
+                .collection('users')
+                .doc(user.uid)
+                .withConverter(
+                  fromFirestore: UserStats.fromFirestore,
+                  toFirestore: (UserStats stats, _) => stats.toFirestore(),
+                )
+                .get();
+            return newSnapshot.data() ?? const UserStats();
+          }
+          return snapshot.data() ?? const UserStats();
+        });
   }
 
-  Future<int> _getSavedWordsCount() async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('User not authenticated');
-
+  Future<void> _initializeUserStats(String userId) async {
     try {
-      // Get all saved words documents
-      final savedWordsSnapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('saved_words')
-          .get();
+      // Create a default UserStats instance
+      const defaultStats = UserStats(
+        booksRead: 0,
+        favoriteBooks: 0,
+        readingStreak: 0,
+        savedWords: 0,
+        readDates: [],
+        isReadingActive: false,
+        currentSessionMinutes: 0,
+      );
+
+      // Convert to Firestore data using the model's toFirestore method
+      final data = defaultStats.toFirestore();
       
-      return savedWordsSnapshot.docs.length;
+      // Add server timestamp
+      data['lastUpdated'] = FieldValue.serverTimestamp();
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .set(data, SetOptions(merge: true));
+      
+      print('Successfully initialized user stats document');
     } catch (e) {
-      print('Error getting saved words count: $e');
-      return 0;
+      print('Error initializing user stats: $e');
+      throw Exception('Failed to initialize user stats: $e');
     }
   }
 
-  Stream<UserStats> streamUserStats() async* {
+  Future<void> incrementSavedWords() async {
     final user = _auth.currentUser;
     if (user == null) {
       throw Exception('User not authenticated');
     }
 
     try {
-      // Get the current saved words count
-      final savedWordsCount = await _getSavedWordsCount();
-
-      // Reference to the user's document
-      final docRef = _firestore.collection('users').doc(user.uid);
-
-      // First ensure the document exists with default values and correct saved words count
-      await docRef.set({
-        'booksRead': 0,
-        'favoriteBooks': 0,
-        'readingStreak': 0,
-        'savedWords': savedWordsCount, // Use the actual count
+      await _firestore.collection('users').doc(user.uid).set({
+        'savedWords': FieldValue.increment(1),
         'lastUpdated': FieldValue.serverTimestamp(),
-        'isReadingActive': false,
-        'currentSessionMinutes': 0,
-        'readDates': [],
       }, SetOptions(merge: true));
-
-      // Then yield the stream with the converter
-      yield* docRef
-          .withConverter(
-            fromFirestore: UserStats.fromFirestore,
-            toFirestore: (UserStats stats, _) => stats.toFirestore(),
-          )
-          .snapshots()
-          .map((snapshot) => snapshot.data() ?? const UserStats());
     } catch (e) {
-      print('Error in streamUserStats: $e');
-      throw Exception('Failed to initialize user stats: $e');
+      print('Error incrementing saved words: $e');
+      throw Exception('Failed to increment saved words: $e');
+    }
+  }
+
+  Future<void> decrementSavedWords() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      await _firestore.collection('users').doc(user.uid).set({
+        'savedWords': FieldValue.increment(-1),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print('Error decrementing saved words: $e');
+      throw Exception('Failed to decrement saved words: $e');
     }
   }
 
@@ -169,48 +225,37 @@ class UserStatsRepository {
     );
   }
 
-  Future<void> updateFavoriteBooks(int count) async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-
-    await _firestore.collection('users').doc(user.uid).set(
-      {
-        'favoriteBooks': count,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-  }
-
-  Future<void> updateFavoriteCount() async {
+  Future<void> incrementFavoriteBooks() async {
     final user = _auth.currentUser;
     if (user == null) {
       throw Exception('User not authenticated');
     }
 
     try {
-      // Get the count of favorite books
-      final favoritesSnapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('favorites')
-          .get();
-      
-      final favoriteCount = favoritesSnapshot.docs.length;
-
-      // Update the user stats with the new favorite count
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set({
-            'favoriteBooks': favoriteCount,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+      await _firestore.collection('users').doc(user.uid).set({
+        'favoriteBooks': FieldValue.increment(1),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e) {
-      print('Error updating favorite count: $e');
-      throw Exception('Failed to update favorite count');
+      print('Error incrementing favorite books: $e');
+      throw Exception('Failed to increment favorite books: $e');
+    }
+  }
+
+  Future<void> decrementFavoriteBooks() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      await _firestore.collection('users').doc(user.uid).set({
+        'favoriteBooks': FieldValue.increment(-1),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print('Error decrementing favorite books: $e');
+      throw Exception('Failed to decrement favorite books: $e');
     }
   }
 }

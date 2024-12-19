@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:ruby_text/ruby_text.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
 import 'package:Keyra/core/config/app_strings.dart';
 import 'package:Keyra/core/widgets/loading_animation.dart';
+import 'japanese_word_definition_modal.dart';
 
 class WordDefinitionModal extends StatefulWidget {
   final String word;
@@ -23,6 +23,11 @@ class WordDefinitionModal extends StatefulWidget {
     String word,
     BookLanguage language,
   ) {
+    // For Japanese words, use the Japanese-specific modal
+    if (language.code == 'ja') {
+      return JapaneseWordDefinitionModal.show(context, word, language);
+    }
+
     final height = MediaQuery.of(context).size.height * 0.6;
     
     return showModalBottomSheet(
@@ -115,32 +120,24 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         String definition;
         final meanings = _definition!['meanings'] as List<dynamic>?;
         
-        if (widget.language.code == 'ja') {
-          // For Japanese, keep the current behavior
-          definition = meanings?.isNotEmpty == true
-              ? meanings![0].toString()
-              : 'No definition available';
-        } else if (widget.language.code == 'en') {
-          // For English, take up to 6 meanings
-          definition = meanings != null && meanings.isNotEmpty
-              ? meanings.take(6).map((m) => '• ${m.toString()}').join('\n')
-              : 'No definition available';
+        if (meanings != null && meanings.isNotEmpty) {
+          if (widget.language.code == 'en') {
+            // For English, take up to 6 meanings
+            definition = meanings.take(6).map((m) => '• $m').join('\n');
+          } else {
+            // For other languages, use the first translation
+            definition = meanings.first.toString();
+          }
         } else {
-          // For other languages, use the translation
-          definition = meanings != null && meanings.isNotEmpty
-              ? meanings[0].toString()
-              : 'No definition available';
+          definition = 'No definition available';
         }
 
-        final examples = _definition!['examples'] as List?;
         final savedWord = SavedWord(
           id: const Uuid().v4(),
           word: widget.word,
           definition: definition,
           language: widget.language.code,
-          examples: examples?.take(3).map((e) => 
-            e is Map ? e['sentence'].toString() : e.toString()
-          ).toList() ?? [],
+          examples: [],
           savedAt: DateTime.now(),
         );
 
@@ -240,204 +237,130 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
     );
   }
 
-  Widget _buildContent() {
-    final theme = Theme.of(context);
-    final isJapanese = widget.language.code == 'ja';
-    
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
+  Widget _buildHeader(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.word,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (_definition?['partsOfSpeech'] != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      (_definition!['partsOfSpeech'] as List).join(', '),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                if (_definition?['reading'] != null && _definition!['reading'].isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      "/${_definition!['reading']}/",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontFamily: 'NotoSans',
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF9C4),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    _isSaved ? Icons.bookmark : Icons.bookmark_border,
+                    color: _isSaved ? theme.colorScheme.primary : null,
+                  ),
+                  onPressed: _toggleSaveWord,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMeaningsSection(ThemeData theme) {
+    if (_definition?['meanings'] == null || (_definition!['meanings'] as List).isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.meanings,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...(_definition!['meanings'] as List)
+              .take(6)
+              .map((meaning) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isJapanese && _definition?['reading'] != null)
-                          RubyText(
-                            [RubyTextData(
-                              widget.word,
-                              ruby: _definition!['reading'],
-                            )],
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            rubyStyle: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.grey[600],
-                            ),
-                          )
-                        else
-                          Text(
-                            widget.word,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        const Text('• '),
+                        Expanded(
+                          child: Text(
+                            meaning.toString(),
+                            style: theme.textTheme.bodyMedium,
                           ),
-                        if (_definition?['partsOfSpeech'] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Text(
-                              (_definition!['partsOfSpeech'] as List).join(', '),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        if (!isJapanese && _definition?['reading'] != null && _definition!['reading'].isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Text(
-                              "/${_definition!['reading']}/",
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontFamily: 'NotoSans',
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFFF9C4),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            _isSaved ? Icons.bookmark : Icons.bookmark_border,
-                            color: _isSaved ? theme.colorScheme.primary : null,
-                          ),
-                          onPressed: _toggleSaveWord,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            if (_definition?['meanings'] != null && _definition!['meanings'].isNotEmpty)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppStrings.meanings,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...(_definition!['meanings'] as List)
-                        .take(6) // Show up to 6 meanings
-                        .map((meaning) => 
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• '),
-                            Expanded(
-                              child: Text(
-                                meaning.toString(),
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (_definition?['examples'] != null && (_definition!['examples'] as List).isNotEmpty)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF5F5),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppStrings.examples,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...(_definition!['examples'] as List)
-                        .take(3) // Show up to 3 examples
-                        .map((example) {
-                      if (isJapanese) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RubyText(
-                                [RubyTextData(
-                                  example['sentence'] as String,
-                                  ruby: example['reading'] as String,
-                                )],
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                rubyStyle: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                example['translation'] as String,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[600],
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Text(
-                            example.toString(),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }
-                    }).toList(),
-                  ],
-                ),
-              ),
-          ],
-        ),
+                  ))
+              .toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    final theme = Theme.of(context);
+    
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildHeader(theme),
+          _buildMeaningsSection(theme),
+        ],
       ),
     );
   }

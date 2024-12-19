@@ -45,17 +45,13 @@ class DictionaryException implements Exception {
 class DictionaryService {
   static const Duration _cacheTimeout = Duration(minutes: 30);
   static const int _maxCacheSize = 1000;
-  static const int _maxBatchSize = 10;
 
   final _dio = Dio();
   final _audioPlayer = AudioPlayer();
   final LocalDictionaryService _localDictionary = LocalDictionaryService();
   final JapaneseDictionaryService _japaneseDictionary = JapaneseDictionaryService();
 
-  final _readingCache = <String, _CacheEntry<String>>{};
   final _definitionCache = <String, _CacheEntry<Map<String, dynamic>>>{};
-  final _batchQueue = <String>[];
-  final _pendingReadingRequests = <String, Completer<String?>>{};
 
   bool get isDictionaryInitialized => _japaneseDictionary.isInitialized;
 
@@ -134,79 +130,29 @@ class DictionaryService {
     }
   }
 
-  Future<String?> getReading(String word, BookLanguage language) async {
-    if (language.code != 'ja') return null;
-
-    try {
-      final response = await _dio.post(
-        'https://labs.goo.ne.jp/api/hiragana',
-        data: {
-          'app_id': ApiKeys.gooLabsApiKey,
-          'sentence': word,
-          'output_type': 'hiragana',
-        },
-      );
-
-      if (response.statusCode == 200 && 
-          response.data != null &&
-          response.data['converted'] != null) {
-        final reading = response.data['converted'] as String;
-        if (reading != word) {
-          _addToCache(_readingCache, word, reading);
-          return reading;
-        }
-      }
-      
-      return null;
-    } catch (e) {
-      debugPrint('Error getting reading: $e');
-      return null;
-    }
-  }
-
   Future<Map<String, dynamic>> getDefinition(String word, BookLanguage language) async {
     try {
+      // Check cache first
+      final cacheKey = '${language.code}:$word';
+      final cached = _definitionCache[cacheKey];
+      if (cached != null && !cached.isExpired) {
+        return cached.value;
+      }
+
       Map<String, dynamic>? definition;
       
       if (language.code == 'ja') {
         definition = await _japaneseDictionary.getDefinition(word);
-        if (definition != null) {
-          final examples = await getExampleSentences(
-            word, 
-            language, 
-            definition['meanings'] as List<String>?
-          );
-          definition['examples'] = examples;
-        }
       } else {
         definition = await _localDictionary.getDefinition(word, language: language.code);
-        // For non-Japanese languages, the examples are already included in the definition
-        // from the LocalDictionaryService's _getEnglishDefinition or _getTranslation methods
       }
       
-      return definition ?? {'word': word};
+      final result = definition ?? {'word': word};
+      _addToCache(_definitionCache, cacheKey, result);
+      return result;
     } catch (e) {
       debugPrint('Error getting definition: $e');
       return {'word': word};
-    }
-  }
-
-  Future<List<Map<String, String>>> getExampleSentences(
-    String word,
-    BookLanguage language,
-    [List<String>? meanings]
-  ) async {
-    try {
-      if (language.code == 'ja') {
-        final meaning = meanings?.isNotEmpty == true ? meanings!.first : '';
-        return await _japaneseDictionary.getExampleSentences(word, meaning);
-      } else {
-        // For non-Japanese languages, examples are handled in the definition methods
-        return [];
-      }
-    } catch (e) {
-      debugPrint('Error getting example sentences: $e');
-      return [];
     }
   }
 
@@ -227,7 +173,6 @@ class DictionaryService {
   }
 
   void clearCache() {
-    _readingCache.clear();
     _definitionCache.clear();
   }
 }

@@ -50,14 +50,22 @@ class SavedWordsRepository {
         throw Exception('Word is already saved');
       }
 
+      // Start a batch write
+      final batch = _firestore.batch();
+      
       final userRef = _firestore.collection('users').doc(user.uid);
       final wordsRef = userRef.collection('saved_words');
 
-      // Save the word
-      await wordsRef.doc(word.id).set(word.toFirestore());
+      // Add the word
+      batch.set(wordsRef.doc(word.id), word.toFirestore());
 
-      // Update saved words count in user stats
-      await updateSavedWordsCount();
+      // Commit the batch
+      await batch.commit();
+      
+      // Update saved words count based on actual count
+      await _updateSavedWordsCount();
+      
+      print('Successfully saved word and updated count');
     } catch (e) {
       print('Error saving word: $e');
       throw Exception(e.toString());
@@ -71,17 +79,55 @@ class SavedWordsRepository {
     }
 
     try {
+      // Start a batch write
+      final batch = _firestore.batch();
+      
       final userRef = _firestore.collection('users').doc(user.uid);
-      final wordsRef = userRef.collection('saved_words');
+      final wordRef = userRef.collection('saved_words').doc(wordId);
 
-      // Remove the word
-      await wordsRef.doc(wordId).delete();
+      // Delete the word
+      batch.delete(wordRef);
 
-      // Update saved words count in user stats
-      await updateSavedWordsCount();
+      // Commit the batch
+      await batch.commit();
+      
+      // Update saved words count based on actual count
+      await _updateSavedWordsCount();
+      
+      print('Successfully removed word and updated count');
     } catch (e) {
       print('Error removing word: $e');
       throw Exception('Failed to remove word');
+    }
+  }
+
+  Future<void> _updateSavedWordsCount() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      // Get the actual count of saved words
+      final querySnapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('saved_words')
+          .count()
+          .get();
+
+      final actualCount = querySnapshot.count;
+
+      // Update the user stats with the actual count
+      await _firestore.collection('users').doc(user.uid).set({
+        'savedWords': actualCount,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      print('Successfully updated saved words count to: $actualCount');
+    } catch (e) {
+      print('Error updating saved words count: $e');
+      throw Exception('Failed to update saved words count');
     }
   }
 
@@ -106,22 +152,5 @@ class SavedWordsRepository {
 
     return query.snapshots().map((snapshot) =>
         snapshot.docs.map((doc) => SavedWord.fromFirestore(doc)).toList());
-  }
-
-  Future<void> updateSavedWordsCount() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-
-    try {
-      final savedWords = await getSavedWords().first;
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .update({'saved_words_count': savedWords.length});
-    } catch (e) {
-      throw Exception('Failed to update saved words count');
-    }
   }
 }

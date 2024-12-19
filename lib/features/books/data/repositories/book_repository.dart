@@ -156,15 +156,13 @@ class BookRepository {
           'bookId': book.id,
           'timestamp': FieldValue.serverTimestamp(),
         });
+        await _userStatsRepository.incrementFavoriteBooks();
       } else {
         print('Removing book ${book.id} from favorites');
         await favoriteRef.delete();
+        await _userStatsRepository.decrementFavoriteBooks();
       }
       print('Successfully updated favorite status');
-      
-      // Update the user's favorite books count
-      await _userStatsRepository.updateFavoriteCount();
-      print('Successfully updated favorite count in user stats');
     } catch (e, stackTrace) {
       print('Error updating favorite status: $e');
       print('Stack trace: $stackTrace');
