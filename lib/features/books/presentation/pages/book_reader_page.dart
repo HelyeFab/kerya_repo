@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/features/books/domain/models/book.dart';
 import 'package:Keyra/features/books/domain/models/book_page.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
@@ -170,16 +171,23 @@ class _BookReaderPageState extends State<BookReaderPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _currentPage > 0
-                    ? () {
-                        _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    : null,
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.controlPurple,
+                ),
+                child: IconButton(
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
+                    color: AppColors.controlText,
+                    size: 24.0,
+                  ),
+                  onPressed: () {
+                    _endReadingSession();
+                    Navigator.of(context).pop();
+                  },
+                ),
               ),
               const SizedBox(width: 16),
               Text(
@@ -268,7 +276,11 @@ class _BookReaderPageState extends State<BookReaderPage> {
                       color: AppColors.controlPurple,
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back, color: AppColors.controlText),
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowLeft01,
+                        color: AppColors.controlText,
+                        size: 24.0,
+                      ),
                       onPressed: () {
                         _endReadingSession();
                         Navigator.of(context).pop();

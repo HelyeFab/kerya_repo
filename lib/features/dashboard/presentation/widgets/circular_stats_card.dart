@@ -48,43 +48,38 @@ class CircularStatsCard extends StatelessWidget {
         
         // Circle with Value
         SizedBox(
-          width: 90,
-          height: 90,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Transform.rotate(
-                angle: -math.pi / 2,
-                child: CustomPaint(
-                  size: const Size(90, 90),
-                  painter: CircularProgressPainter(
-                    backgroundColor: color.withOpacity(0.1),
-                    valueColor: color,
-                    value: value / maxValue,
-                    strokeWidth: 8,
+          width: 85,
+          height: 85,
+          child: CustomPaint(
+            painter: CircularProgressPainter(
+              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+              valueColor: color,
+              value: value / maxValue,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    value.toString(),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  Text(
+                    '$value / $maxValue',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                value.toString(),
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
         const SizedBox(height: 8),
-        
-        // Progress Text
-        Text(
-          '$value / $maxValue',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-        ),
       ],
     );
   }
@@ -100,7 +95,7 @@ class CircularProgressPainter extends CustomPainter {
     required this.backgroundColor,
     required this.valueColor,
     required this.value,
-    required this.strokeWidth,
+    this.strokeWidth = 8,
   });
 
   @override

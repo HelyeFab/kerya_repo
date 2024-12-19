@@ -261,9 +261,9 @@ class _LibraryPageState extends State<LibraryPage> {
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(width: 8),
-                      const HugeIcon(
+                      HugeIcon(
                         icon: HugeIcons.strokeRoundedArrowDown01,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onBackground,
                         size: 24.0,
                       ),
                     ],

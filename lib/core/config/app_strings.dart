@@ -1,4 +1,8 @@
 class AppStrings {
+  // App info
+  static const String appName = 'Keyra';
+  static const String appTagline = 'Learn while you Read';
+
   // Splash screen messages
   static const List<List<String>> splashMessages = [
     [

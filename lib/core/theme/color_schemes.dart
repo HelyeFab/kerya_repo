@@ -1,79 +1,90 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF6750A4);
-  static const Color secondary = Color(0xFF625B71);
-  static const Color tertiary = Color(0xFF7D5260);
-  
-  // Background colors
-  static const Color background = Color(0xFFF6F2FF); // New softer purple background
-  static const Color surface = Color(0xFFFFFBFE);
-  static const Color surfaceVariant = Color(0xFFE7E0EC);
-  
-  // Text colors
-  static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color onSecondary = Color(0xFFFFFFFF);
-  static const Color onTertiary = Color(0xFFFFFFFF);
-  static const Color onBackground = Color(0xFF1C1B1F);
-  static const Color onSurface = Color(0xFF1C1B1F);
-  
-  // Error colors
-  static const Color error = Color(0xFFB3261E);
-  static const Color onError = Color(0xFFFFFFFF);
-  
-  // Custom colors for children's app
-  static const Color playful = Color(0xFFFF9800);
-  static const Color calm = Color(0xFF81C784);
-  static const Color focus = Color(0xFF4FC3F7);
+  // Light theme colors
+  static const Color lightPrimary = Color(0xFF6750A4);
+  static const Color lightSecondary = Color(0xFF625B71);
+  static const Color lightTertiary = Color(0xFF7D5260);
+  static const Color lightBackground = Color(0xFFF6F2FF);
+  static const Color lightSurface = Color(0xFFFFFBFE);
+  static const Color lightSurfaceVariant = Color(0xFFE7E0EC);
+  static const Color lightOnPrimary = Color(0xFFFFFFFF);
+  static const Color lightOnSecondary = Color(0xFFFFFFFF);
+  static const Color lightOnTertiary = Color(0xFFFFFFFF);
+  static const Color lightOnBackground = Color(0xFF1C1B1F);
+  static const Color lightOnSurface = Color(0xFF1C1B1F);
 
-  // Control colors
-  static const Color controlPurple = Color(0xFFE6E0F4);
-  static const Color controlPink = Color(0xFFFFE0E6);
-  static const Color controlText = Color(0xFF1C1B1F); // Using onSurface color for consistency
+  // Dark theme colors
+  static const Color darkPrimary = Color(0xFFBB86FC);
+  static const Color darkSecondary = Color(0xFF03DAC6);
+  static const Color darkTertiary = Color(0xFFCF6679);
+  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkSurface = Color(0xFF1E1E1E);
+  static const Color darkSurfaceVariant = Color(0xFF373737);
+  static const Color darkOnPrimary = Color(0xFF000000);
+  static const Color darkOnSecondary = Color(0xFF000000);
+  static const Color darkOnTertiary = Color(0xFFFFFFFF);
+  static const Color darkOnBackground = Color(0xFFFFFFFF);
+  static const Color darkOnSurface = Color(0xFFB3B3B3);
 
-  // Icon colors
-  static const Color icon = Color(0xFF1C1B1F); // Default icon color for light theme
-  static const Color iconDark = Color(0xFFFFFBFE); // Icon color for dark theme
+  // Common colors
+  static const Color error = Color(0xFFCF6679);
+  static const Color onError = Color(0xFF000000);
+  static const Color playful = Color(0xFFFFAB40);
+  static const Color calm = Color(0xFF64DD17);
+  static const Color focus = Color(0xFF0091EA);
+
+  // Control colors for reader
+  static const Color controlPurple = Color(0xFFBB86FC);
+  static const Color controlPink = Color(0xFFF48FB1);
+  static const Color controlText = Color(0xFFFFFFFF);
+
+  // Icon colors for navigation
+  static const Color icon = Color(0xFF1C1B1F);
+  static const Color iconDark = Color(0xFFFFFFFF);
+
+  // For backward compatibility
+  static const Color primary = lightPrimary;
 
   // Flashcard colors
-  static const flashcardHardLight = Color(0xFFFFDAD6);  // Light red
-  static const flashcardHardDark = Color(0xFF680003);   // Dark red
-  
-  static const flashcardGoodLight = Color(0xFFE8DEF8);  // Light purple
-  static const flashcardGoodDark = Color(0xFF4F378B);   // Dark purple
-  
-  static const flashcardEasyLight = Color(0xFFD4E9D6);  // Light green
-  static const flashcardEasyDark = Color(0xFF006D40);   // Dark green
+  static const flashcardHardLight = Color(0xFFCF6679);
+  static const flashcardHardDark = Color(0xFF8E0031);
+  static const flashcardGoodLight = Color(0xFF81D4FA);
+  static const flashcardGoodDark = Color(0xFF0277BD);
+  static const flashcardEasyLight = Color(0xFFB9F6CA);
+  static const flashcardEasyDark = Color(0xFF1B5E20);
 }
 
 const lightColorScheme = ColorScheme(
   brightness: Brightness.light,
-  primary: AppColors.primary,
-  onPrimary: AppColors.onPrimary,
-  secondary: AppColors.secondary,
-  onSecondary: AppColors.onSecondary,
-  tertiary: AppColors.tertiary,
-  onTertiary: AppColors.onTertiary,
+  primary: AppColors.lightPrimary,
+  onPrimary: AppColors.lightOnPrimary,
+  secondary: AppColors.lightSecondary,
+  onSecondary: AppColors.lightOnSecondary,
+  tertiary: AppColors.lightTertiary,
+  onTertiary: AppColors.lightOnTertiary,
   error: AppColors.error,
   onError: AppColors.onError,
-  background: AppColors.background,
-  onBackground: AppColors.onBackground,
-  surface: AppColors.surface,
-  onSurface: AppColors.onSurface,
+  background: AppColors.lightBackground,
+  onBackground: AppColors.lightOnBackground,
+  surface: AppColors.lightSurface,
+  onSurface: AppColors.lightOnSurface,
+  surfaceVariant: AppColors.lightSurfaceVariant,
 );
 
 const darkColorScheme = ColorScheme(
   brightness: Brightness.dark,
-  primary: AppColors.primary,
-  onPrimary: AppColors.background,
-  secondary: AppColors.secondary,
-  onSecondary: AppColors.background,
-  tertiary: AppColors.tertiary,
-  onTertiary: AppColors.background,
+  primary: AppColors.darkPrimary,
+  onPrimary: AppColors.darkOnPrimary,
+  secondary: AppColors.darkSecondary,
+  onSecondary: AppColors.darkOnSecondary,
+  tertiary: AppColors.darkTertiary,
+  onTertiary: AppColors.darkOnTertiary,
   error: AppColors.error,
-  onError: AppColors.background,
-  background: Color(0xFF1C1B1F), // Dark theme background
-  onBackground: AppColors.surface,
-  surface: AppColors.onBackground,
-  onSurface: AppColors.background,
+  onError: AppColors.onError,
+  background: AppColors.darkBackground,
+  onBackground: AppColors.darkOnBackground,
+  surface: AppColors.darkSurface,
+  onSurface: AppColors.darkOnSurface,
+  surfaceVariant: AppColors.darkSurfaceVariant,
 );

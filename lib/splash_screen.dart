@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Keyra/core/config/app_strings.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool isInitialized;
@@ -102,6 +103,22 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text(
+              AppStrings.appName,
+              style: GoogleFonts.fascinateInline(
+                fontSize: 48,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            Text(
+              AppStrings.appTagline,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 32),
             Lottie.asset(
               'assets/loader/animation_1734447560170.json',
               width: 200,
@@ -113,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen> {
               child: Text(
                 _currentMessage,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16, // Reduced from 18
                   fontWeight: FontWeight.w500,
                   color: Theme.of(context).colorScheme.primary,
                 ),

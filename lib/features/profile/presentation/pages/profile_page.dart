@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:Keyra/core/theme/color_schemes.dart';
 import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../dictionary/presentation/pages/saved_words_page.dart';
+import 'privacy_policy_page.dart';
+import 'terms_of_service_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -193,7 +196,12 @@ class ProfilePage extends StatelessWidget {
                   title: const Text('Privacy Policy'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    // TODO: Navigate to privacy policy
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPolicyPage(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
@@ -205,7 +213,43 @@ class ProfilePage extends StatelessWidget {
                   title: const Text('Terms of Service'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    // TODO: Navigate to terms of service
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TermsOfServicePage(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCode,
+                    color: iconColor,
+                    size: 24.0,
+                  ),
+                  title: const Text('Developer'),
+                  subtitle: const Text('Emmanuel Fabiani'),
+                ),
+                ListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedMessage01,
+                    color: iconColor,
+                    size: 24.0,
+                  ),
+                  title: const Text('Contact Us'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final Uri emailLaunchUri = Uri(
+                      scheme: 'mailto',
+                      path: 'keyra-reader@gmail.com',
+                      queryParameters: {
+                        'subject': 'Keyra App Feedback',
+                      },
+                    );
+                    final String url = emailLaunchUri.toString();
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    }
                   },
                 ),
               ],

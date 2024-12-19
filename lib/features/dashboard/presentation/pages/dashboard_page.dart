@@ -215,6 +215,7 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                             children: [
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Icon(
                                                     Icons.bookmark,
@@ -222,11 +223,14 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                                     color: Colors.purple,
                                                   ),
                                                   const SizedBox(width: 8),
-                                                  Text(
-                                                    'Saved Words',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      color: Colors.grey[700],
+                                                  Flexible(
+                                                    child: Text(
+                                                      'Saved Words',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.grey[700],
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
                                                     ),
                                                   ),
                                                   const SizedBox(width: 4),

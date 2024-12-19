@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 // Custom class to handle both language and "all" states
 class LanguageSelection {
@@ -114,14 +114,21 @@ class LanguageSelector extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ] else ...[
-              const Icon(Icons.language, size: 24),
+              Icon(
+                Icons.language,
+                size: 24,
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
               const SizedBox(width: 8),
-              const Text('All'),
+              Text(
+                'All',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ],
             const SizedBox(width: 8),
-            const HugeIcon(
+            HugeIcon(
               icon: HugeIcons.strokeRoundedArrowDown01,
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onBackground,
               size: 24.0,
             ),
           ],
