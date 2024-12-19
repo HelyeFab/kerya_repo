@@ -36,24 +36,22 @@ class _SplashScreenState extends State<SplashScreen> {
     // Start with the first message in English
     _currentMessage = AppStrings.splashMessages[0][AppStrings.englishIndex];
 
-    // Update message every 2 seconds if it's first launch
-    if (widget.isFirstLaunch) {
-      _timer = Timer.periodic(Duration(seconds: 2), (timer) {
-        if (mounted) {
-          setState(() {
-            // Update language index first
-            _currentLanguageIndex = (_currentLanguageIndex + 1) % 5;
+    // Update message every 2 seconds
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+      if (mounted) {
+        setState(() {
+          // Update language index first
+          _currentLanguageIndex = (_currentLanguageIndex + 1) % 5;
 
-            // If we've shown all languages for current message, move to next message
-            if (_currentLanguageIndex == 0) {
-              _currentGroupIndex = (_currentGroupIndex + 1) % AppStrings.splashMessages.length;
-            }
+          // If we've shown all languages for current message, move to next message
+          if (_currentLanguageIndex == 0) {
+            _currentGroupIndex = (_currentGroupIndex + 1) % AppStrings.splashMessages.length;
+          }
 
-            _currentMessage = AppStrings.splashMessages[_currentGroupIndex][_currentLanguageIndex];
-          });
-        }
-      });
-    }
+          _currentMessage = AppStrings.splashMessages[_currentGroupIndex][_currentLanguageIndex];
+        });
+      }
+    });
 
     // Navigate after delay - now 10 seconds for both cases
     Future.delayed(
@@ -110,19 +108,18 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 200,
             ),
             SizedBox(height: 32),
-            if (widget.isFirstLaunch)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: Text(
-                  _currentMessage,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  textAlign: TextAlign.center,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Text(
+                _currentMessage,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
+                textAlign: TextAlign.center,
               ),
+            ),
           ],
         ),
       ),

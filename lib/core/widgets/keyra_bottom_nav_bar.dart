@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../theme/color_schemes.dart';
 
 class KeyraBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -11,6 +12,15 @@ class KeyraBottomNavBar extends StatelessWidget {
     required this.onTap,
   });
 
+  Color _getIconColor(BuildContext context, bool isSelected) {
+    if (isSelected) {
+      return Theme.of(context).colorScheme.primary;
+    }
+    return Theme.of(context).brightness == Brightness.light
+        ? AppColors.icon
+        : AppColors.iconDark;
+  }
+
   Widget _buildNavItem({
     required BuildContext context,
     required IconData icon,
@@ -19,6 +29,7 @@ class KeyraBottomNavBar extends StatelessWidget {
   }) {
     final isSelected = currentIndex == index;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final iconColor = _getIconColor(context, isSelected);
 
     return GestureDetector(
       onTap: () => onTap(index),
@@ -31,23 +42,16 @@ class KeyraBottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon == HugeIcons.strokeRoundedDashboardBrowsing)
-              HugeIcon(
-                icon: icon,
-                color: isSelected ? primaryColor : Theme.of(context).colorScheme.onSurface,
-                size: 20.0,
-              )
-            else
-              Icon(
-                icon,
-                color: isSelected ? primaryColor : Theme.of(context).colorScheme.onSurface,
-                size: 20,
-              ),
+            HugeIcon(
+              icon: icon,
+              color: iconColor,
+              size: 20.0,
+            ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? primaryColor : Theme.of(context).colorScheme.onSurface,
+                color: iconColor,
                 fontSize: 9,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),

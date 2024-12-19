@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
 import 'package:Keyra/features/books/domain/models/book.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
@@ -28,6 +29,7 @@ class _LibraryPageState extends State<LibraryPage> {
   bool _isSearching = false;
   bool _isLoading = true;
   String _activeFilter = 'All';
+  BookLanguage _currentLanguage = BookLanguage.english;
 
   @override
   void initState() {
@@ -74,7 +76,7 @@ class _LibraryPageState extends State<LibraryPage> {
     final searchTerm = _searchController.text.toLowerCase();
     setState(() {
       var filtered = _allBooks.where((book) {
-        final matchesSearch = book.getTitle(BookLanguage.english).toLowerCase().contains(searchTerm);
+        final matchesSearch = book.getTitle(_currentLanguage).toLowerCase().contains(searchTerm);
         
         switch (_activeFilter) {
           case 'All':
@@ -91,6 +93,15 @@ class _LibraryPageState extends State<LibraryPage> {
       _filteredBooks = filtered;
       _isSearching = false;
     });
+  }
+
+  void _onLanguageChanged(BookLanguage? language) {
+    if (language != null) {
+      setState(() {
+        _currentLanguage = language;
+      });
+      _filterBooks(); // Refresh the filtered books with new language
+    }
   }
 
   void _onFilterChanged(String filter) {
@@ -133,7 +144,7 @@ class _LibraryPageState extends State<LibraryPage> {
       MaterialPageRoute(
         builder: (context) => BookReaderPage(
           book: book,
-          language: BookLanguage.english,
+          language: _currentLanguage,
           userStatsRepository: _userStatsRepository,
           dictionaryService: _dictionaryService,
         ),
@@ -179,7 +190,7 @@ class _LibraryPageState extends State<LibraryPage> {
       itemBuilder: (context, index) {
         final book = books[index];
         return BookCard(
-          title: book.getTitle(BookLanguage.english),
+          title: book.getTitle(_currentLanguage),
           coverImagePath: book.coverImage,
           isFavorite: book.isFavorite,
           onFavoriteTap: () => _toggleFavorite(index),
@@ -196,12 +207,70 @@ class _LibraryPageState extends State<LibraryPage> {
       children: [
         Padding(
           padding: AppSpacing.paddingLg,
-          child: Text(
-            'Library',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Library',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+              PopupMenuButton<BookLanguage>(
+                initialValue: _currentLanguage,
+                onSelected: _onLanguageChanged,
+                itemBuilder: (context) => BookLanguage.values
+                    .map(
+                      (language) => PopupMenuItem(
+                        value: language,
+                        child: Row(
+                          children: [
+                            Image.asset(
+                              language.flagAsset,
+                              width: 24,
+                              height: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(language.displayName),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        _currentLanguage.flagAsset,
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _currentLanguage.code.toUpperCase(),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(width: 8),
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowDown01,
+                        color: Colors.black,
+                        size: 24.0,
+                      ),
+                    ],
+                  ),
                 ),
+              ),
+            ],
           ),
         ),
         Padding(

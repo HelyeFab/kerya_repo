@@ -30,6 +30,10 @@ class AppColors {
   static const Color controlPurple = Color(0xFFE6E0F4);
   static const Color controlPink = Color(0xFFFFE0E6);
   static const Color controlText = Color(0xFF1C1B1F); // Using onSurface color for consistency
+
+  // Icon colors
+  static const Color icon = Color(0xFF1C1B1F); // Default icon color for light theme
+  static const Color iconDark = Color(0xFFFFFBFE); // Icon color for dark theme
 }
 
 const lightColorScheme = ColorScheme(
