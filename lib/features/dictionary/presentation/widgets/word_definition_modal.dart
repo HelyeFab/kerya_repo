@@ -33,7 +33,7 @@ class WordDefinitionModal extends StatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      isDismissible: true,
+      useSafeArea: true,
       enableDrag: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SizedBox(
@@ -103,21 +103,15 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
   }
 
   Future<void> _toggleSaveWord() async {
-    if (_definition == null || _isSaving) return;
+    if (_definition == null) return;
 
     setState(() {
-      _isSaving = true;
+      _isSaved = !_isSaved;
     });
 
-    try {
-      if (_isSaved && _savedWordId != null) {
-        await _savedWordsRepository.removeWord(_savedWordId!);
-        setState(() {
-          _isSaved = false;
-          _savedWordId = null;
-        });
-      } else {
-        String definition;
+    if (_isSaved) {
+      try {
+        String definition = '';
         final meanings = _definition!['meanings'] as List<dynamic>?;
         
         if (meanings != null && meanings.isNotEmpty) {
@@ -125,11 +119,8 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
             // For English, take up to 6 meanings
             definition = meanings.take(6).map((m) => '• $m').join('\n');
           } else {
-            // For other languages, use the first translation
-            definition = meanings.first.toString();
+            definition = meanings.join('\n');
           }
-        } else {
-          definition = 'No definition available';
         }
 
         final savedWord = SavedWord(
@@ -142,32 +133,15 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         );
 
         await _savedWordsRepository.saveWord(savedWord);
-
-        setState(() {
-          _isSaved = true;
-          _savedWordId = savedWord.id;
-        });
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isSaved = false;
+          });
+        }
       }
-    } catch (e) {
-      debugPrint('Error toggling word save state: $e');
-      if (mounted) {
-        final errorMessage = e.toString().contains('already saved')
-            ? 'This word is already in your saved words'
-            : 'Failed to update word';
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-      }
+    } else {
+      await _savedWordsRepository.removeWord(widget.word);
     }
   }
 
@@ -261,7 +235,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                       (_definition!['partsOfSpeech'] as List).join(', '),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontStyle: FontStyle.italic,
-                        color: Colors.grey[600],
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -272,7 +246,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                       "/${_definition!['reading']}/",
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontFamily: 'NotoSans',
-                        color: Colors.grey[800],
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -282,8 +256,10 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
           Row(
             children: [
               Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFF9C4),
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark
+                      ? theme.colorScheme.surfaceVariant
+                      : const Color(0xFFFFF9C4),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -315,7 +291,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: theme.colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -325,6 +301,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
             AppStrings.meanings,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -335,17 +312,54 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('• '),
+                        Text('• ', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                         Expanded(
                           child: Text(
                             meaning.toString(),
-                            style: theme.textTheme.bodyMedium,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ))
               .toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEtymologySection(ThemeData theme) {
+    if (_definition?['etymology'] == null || _definition!['etymology'].isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Etymology',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _definition!['etymology'],
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -360,6 +374,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         children: [
           _buildHeader(theme),
           _buildMeaningsSection(theme),
+          _buildEtymologySection(theme),
         ],
       ),
     );

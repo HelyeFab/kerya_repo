@@ -2,12 +2,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dart';
 import 'package:Keyra/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:Keyra/features/auth/data/repositories/firebase_auth_repository.dart';
 import 'package:Keyra/core/theme/app_theme.dart';
+import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
 import 'package:Keyra/features/home/presentation/pages/home_page.dart';
 import 'package:Keyra/features/library/presentation/pages/library_page.dart';
@@ -19,6 +21,7 @@ import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart'
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'splash_screen.dart';
 import 'dart:async';
+import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 
 // Create a stream controller for dictionary initialization status
 final _dictionaryInitController = StreamController<bool>.broadcast();
@@ -26,6 +29,15 @@ final _dictionaryInitController = StreamController<bool>.broadcast();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
+
+  // Initialize preferences service
+  final preferencesService = await PreferencesService.init();
+
+  // Initialize theme bloc
+  final themeBloc = await ThemeBloc.create();
+
+  // Initialize SharedPreferences for theme persistence
+  final sharedPreferences = await SharedPreferences.getInstance();
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -36,9 +48,6 @@ void main() async {
   final dictionaryService = DictionaryService();
   final isFirstLaunch = !dictionaryService.isDictionaryInitialized;
   debugPrint('Is first launch: $isFirstLaunch');
-
-  // Initialize preferences service
-  final preferencesService = await PreferencesService.init();
 
   // Initialize sample books if needed
   try {
@@ -91,53 +100,76 @@ void main() async {
   runApp(MyApp(
     preferencesService: preferencesService,
     isFirstLaunch: isFirstLaunch,
+    themeBloc: themeBloc,
   ));
 }
 
 class MyApp extends StatelessWidget {
   final PreferencesService preferencesService;
   final bool isFirstLaunch;
+  final ThemeBloc themeBloc;
 
   const MyApp({
     super.key,
     required this.preferencesService,
     required this.isFirstLaunch,
+    required this.themeBloc,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final bloc = AuthBloc(
-          authRepository: FirebaseAuthRepository(),
-        );
-        bloc.add(const AuthBlocEvent.startAuthListening());
-        return bloc;
-      },
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Keyra',
-        theme: AppTheme.lightTheme,
-        home: StreamBuilder<bool>(
-          stream: _dictionaryInitController.stream,
-          initialData: !isFirstLaunch, // If not first launch, dictionary is already initialized
-          builder: (context, snapshot) {
-            return SplashScreen(
-              isInitialized: snapshot.data ?? false,
-              isFirstLaunch: isFirstLaunch,
-              preferencesService: preferencesService,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) {
+            final bloc = AuthBloc(
+              authRepository: FirebaseAuthRepository(),
+            );
+            bloc.add(const AuthBlocEvent.startAuthListening());
+            return bloc;
+          },
+        ),
+        BlocProvider.value(
+          value: themeBloc,
+        ),
+      ],
+      child: MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<SavedWordsRepository>(
+            create: (context) => SavedWordsRepository(),
+          ),
+        ],
+        child: BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (context, themeState) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'Keyra',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeState.themeMode,
+              home: StreamBuilder<bool>(
+                stream: _dictionaryInitController.stream,
+                initialData: !isFirstLaunch,
+                builder: (context, snapshot) {
+                  return SplashScreen(
+                    isInitialized: snapshot.data ?? false,
+                    isFirstLaunch: isFirstLaunch,
+                    preferencesService: preferencesService,
+                  );
+                },
+              ),
+              routes: {
+                '/home': (context) => const HomePage(),
+                '/library': (context) => const LibraryPage(),
+                '/create': (context) => const CreatePage(),
+                '/dashboard': (context) => const DashboardPage(),
+                '/profile': (context) => const ProfilePage(),
+                '/onboarding': (context) => OnboardingPage(preferencesService: preferencesService),
+                '/navigation': (context) => const NavigationPage(),
+              },
             );
           },
         ),
-        routes: {
-          '/home': (context) => const HomePage(),
-          '/library': (context) => const LibraryPage(),
-          '/create': (context) => const CreatePage(),
-          '/dashboard': (context) => const DashboardPage(),
-          '/profile': (context) => const ProfilePage(),
-          '/onboarding': (context) => OnboardingPage(preferencesService: preferencesService),
-          '/navigation': (context) => const NavigationPage(),
-        },
       ),
     );
   }

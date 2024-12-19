@@ -6,7 +6,7 @@ class AppColors {
   static const Color tertiary = Color(0xFF7D5260);
   
   // Background colors
-  static const Color background = Color(0xFFFFFBFE);
+  static const Color background = Color(0xFFF6F2FF); // New softer purple background
   static const Color surface = Color(0xFFFFFBFE);
   static const Color surfaceVariant = Color(0xFFE7E0EC);
   
@@ -34,6 +34,16 @@ class AppColors {
   // Icon colors
   static const Color icon = Color(0xFF1C1B1F); // Default icon color for light theme
   static const Color iconDark = Color(0xFFFFFBFE); // Icon color for dark theme
+
+  // Flashcard colors
+  static const flashcardHardLight = Color(0xFFFFDAD6);  // Light red
+  static const flashcardHardDark = Color(0xFF680003);   // Dark red
+  
+  static const flashcardGoodLight = Color(0xFFE8DEF8);  // Light purple
+  static const flashcardGoodDark = Color(0xFF4F378B);   // Dark purple
+  
+  static const flashcardEasyLight = Color(0xFFD4E9D6);  // Light green
+  static const flashcardEasyDark = Color(0xFF006D40);   // Dark green
 }
 
 const lightColorScheme = ColorScheme(
@@ -46,6 +56,8 @@ const lightColorScheme = ColorScheme(
   onTertiary: AppColors.onTertiary,
   error: AppColors.error,
   onError: AppColors.onError,
+  background: AppColors.background,
+  onBackground: AppColors.onBackground,
   surface: AppColors.surface,
   onSurface: AppColors.onSurface,
 );
@@ -60,6 +72,8 @@ const darkColorScheme = ColorScheme(
   onTertiary: AppColors.background,
   error: AppColors.error,
   onError: AppColors.background,
+  background: Color(0xFF1C1B1F), // Dark theme background
+  onBackground: AppColors.surface,
   surface: AppColors.onBackground,
   onSurface: AppColors.background,
 );

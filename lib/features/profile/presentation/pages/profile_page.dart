@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/core/theme/color_schemes.dart';
+import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../dictionary/presentation/pages/saved_words_page.dart';
 
@@ -140,7 +141,7 @@ class ProfilePage extends StatelessWidget {
                   title: const Text('Dark Mode'),
                   value: Theme.of(context).brightness == Brightness.dark,
                   onChanged: (bool value) {
-                    // TODO: Implement theme switching
+                    context.read<ThemeBloc>().add(const ThemeEvent.toggleTheme());
                   },
                 ),
                 const Divider(),

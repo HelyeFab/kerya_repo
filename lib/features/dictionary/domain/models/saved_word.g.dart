@@ -12,10 +12,16 @@ _$SavedWordImpl _$$SavedWordImplFromJson(Map<String, dynamic> json) =>
       word: json['word'] as String,
       definition: json['definition'] as String,
       language: json['language'] as String,
-      examples: (json['examples'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+      examples:
+          (json['examples'] as List<dynamic>).map((e) => e as String).toList(),
       savedAt: _timestampToDateTime(json['savedAt'] as Timestamp),
+      progress: (json['progress'] as num?)?.toInt() ?? 0,
+      difficulty: (json['difficulty'] as num?)?.toInt() ?? 0,
+      lastReviewed:
+          _nullableTimestampToDateTime(json['lastReviewed'] as Timestamp?),
+      repetitions: (json['repetitions'] as num?)?.toInt() ?? 0,
+      easeFactor: (json['easeFactor'] as num?)?.toDouble() ?? 2.5,
+      interval: (json['interval'] as num?)?.toInt() ?? 1,
     );
 
 Map<String, dynamic> _$$SavedWordImplToJson(_$SavedWordImpl instance) =>
@@ -26,4 +32,10 @@ Map<String, dynamic> _$$SavedWordImplToJson(_$SavedWordImpl instance) =>
       'language': instance.language,
       'examples': instance.examples,
       'savedAt': _dateTimeToTimestamp(instance.savedAt),
+      'progress': instance.progress,
+      'difficulty': instance.difficulty,
+      'lastReviewed': _nullableDateTimeToTimestamp(instance.lastReviewed),
+      'repetitions': instance.repetitions,
+      'easeFactor': instance.easeFactor,
+      'interval': instance.interval,
     };

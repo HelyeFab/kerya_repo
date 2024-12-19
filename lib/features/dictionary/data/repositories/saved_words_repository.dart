@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/models/saved_word.dart';
-import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
+import '../../domain/services/spaced_repetition_service.dart';
+import '../../../dashboard/data/repositories/user_stats_repository.dart';
 
 class SavedWordsRepository {
   final FirebaseFirestore _firestore;
@@ -101,6 +102,31 @@ class SavedWordsRepository {
     }
   }
 
+  Future<void> updateWord(SavedWord word) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      print('Updating word in Firebase: ${word.word}');
+      print('Word data: ${word.toFirestore()}');
+      
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('saved_words')
+          .doc(word.id)
+          .update(word.toFirestore());
+      
+      print('Successfully updated word: ${word.word}');
+    } catch (e) {
+      print('Error updating word: $e');
+      print('Error details: ${e.toString()}');
+      throw Exception('Failed to update word: ${e.toString()}');
+    }
+  }
+
   Future<void> _updateSavedWordsCount() async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -150,7 +176,77 @@ class SavedWordsRepository {
     // Apply ordering after any filters
     query = query.orderBy('savedAt', descending: true);
 
-    return query.snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => SavedWord.fromFirestore(doc)).toList());
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return SavedWord.fromFirestore(doc);
+      }).toList();
+    });
+  }
+
+  Future<List<SavedWord>> getSavedWordsList({String? language}) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    Query<Map<String, dynamic>> query = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('saved_words');
+
+    // First filter by language if specified, then order by savedAt
+    if (language != null) {
+      query = query.where('language', isEqualTo: language);
+    }
+    
+    // Apply ordering after any filters
+    query = query.orderBy('savedAt', descending: true);
+
+    final snapshot = await query.get();
+    return snapshot.docs.map((doc) => SavedWord.fromFirestore(doc)).toList();
+  }
+
+  Future<List<SavedWord>> getDueWords({String? language}) async {
+    final words = await getSavedWordsList(language: language);
+    final spacedRepetitionService = SpacedRepetitionService();
+    return spacedRepetitionService.getDueWords(words);
+  }
+
+  Stream<Map<String, int>> getWordProgressCounts({String? language}) {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    Query<Map<String, dynamic>> query = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('saved_words');
+    
+    if (language != null) {
+      query = query.where('language', isEqualTo: language.toLowerCase());
+    }
+
+    return query.snapshots().map((snapshot) {
+      final counts = {
+        'new': 0,
+        'learning': 0,
+        'learned': 0,
+      };
+
+      for (var doc in snapshot.docs) {
+        final progress = doc.data()['progress'] as int? ?? 0;
+        if (progress == 0) {
+          counts['new'] = (counts['new'] ?? 0) + 1;
+        } else if (progress == 1) {
+          counts['learning'] = (counts['learning'] ?? 0) + 1;
+        } else {
+          counts['learned'] = (counts['learned'] ?? 0) + 1;
+        }
+      }
+
+      print('Word counts: $counts');
+      return counts;
+    });
   }
 }

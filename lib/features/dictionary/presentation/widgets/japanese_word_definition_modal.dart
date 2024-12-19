@@ -68,7 +68,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
     _checkIfWordIsSaved();
   }
 
-  Widget _formatMnemonicText(String text, ThemeData theme) {
+  Widget _formatMnemonicText(String text, ThemeData theme, {Color? textColor}) {
     final pattern = RegExp(r'<(radical|kanji|reading)>(.*?)</\1>');
     final spans = <TextSpan>[];
     int lastEnd = 0;
@@ -78,7 +78,9 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
       if (match.start > lastEnd) {
         spans.add(TextSpan(
           text: text.substring(lastEnd, match.start),
-          style: theme.textTheme.bodyMedium,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: textColor ?? theme.colorScheme.onSurface,
+          ),
         ));
       }
 
@@ -118,7 +120,9 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
     if (lastEnd < text.length) {
       spans.add(TextSpan(
         text: text.substring(lastEnd),
-        style: theme.textTheme.bodyMedium,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor ?? theme.colorScheme.onSurface,
+        ),
       ));
     }
 
@@ -327,7 +331,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
                       fontWeight: FontWeight.bold,
                     ),
                     rubyStyle: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   )
                 else
@@ -344,7 +348,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
                       (_definition!['partsOfSpeech'] as List).join(', '),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontStyle: FontStyle.italic,
-                        color: Colors.grey[600],
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -376,8 +380,10 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
           Row(
             children: [
               Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFF9C4),
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark
+                      ? theme.colorScheme.surfaceVariant
+                      : const Color(0xFFFFF9C4),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -409,7 +415,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: theme.colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -419,6 +425,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
             AppStrings.meanings,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -429,14 +436,16 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('• '),
+                        Text('• ', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                         Expanded(
                           child: Row(
                             children: [
                               Expanded(
                                 child: Text(
                                   meaning['meaning']?.toString() ?? '',
-                                  style: theme.textTheme.bodyMedium,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ),
                               if (meaning['primary'] == true)
@@ -480,7 +489,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
           margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: theme.colorScheme.surfaceVariant,
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Column(
@@ -490,6 +499,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
                 'Readings',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 8),
@@ -502,11 +512,14 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
                               '${reading['type'] == 'kunyomi' ? 'Kun' : 'On'}: ',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             Text(
                               reading['reading']?.toString() ?? '',
-                              style: theme.textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                             if (reading['primary'] == true)
                               Container(
@@ -544,7 +557,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
           margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: const Color(0xFFE3F2FD),
+            color: theme.colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Column(
@@ -554,12 +567,14 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
                 'Meaning Mnemonic',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSecondaryContainer,
                 ),
               ),
               const SizedBox(height: 8),
               _formatMnemonicText(
                 wanikaniData['meaning_mnemonic']?.toString() ?? '',
                 theme,
+                textColor: theme.colorScheme.onSecondaryContainer,
               ),
             ],
           ),
@@ -575,7 +590,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
           margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: const Color(0xFFFCE4EC),
+            color: theme.colorScheme.tertiaryContainer,
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Column(
@@ -585,12 +600,14 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
                 'Reading Mnemonic',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onTertiaryContainer,
                 ),
               ),
               const SizedBox(height: 8),
               _formatMnemonicText(
                 wanikaniData['reading_mnemonic']?.toString() ?? '',
                 theme,
+                textColor: theme.colorScheme.onTertiaryContainer,
               ),
             ],
           ),

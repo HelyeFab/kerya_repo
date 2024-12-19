@@ -24,9 +24,22 @@ mixin _$SavedWord {
   String get word => throw _privateConstructorUsedError;
   String get definition => throw _privateConstructorUsedError;
   String get language => throw _privateConstructorUsedError;
-  List<String>? get examples => throw _privateConstructorUsedError;
+  List<String> get examples => throw _privateConstructorUsedError;
   @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
   DateTime get savedAt => throw _privateConstructorUsedError;
+  int get progress =>
+      throw _privateConstructorUsedError; // 0 = new, 1 = learning, 2 = learned
+  int get difficulty =>
+      throw _privateConstructorUsedError; // 0 = hard, 1 = good, 2 = easy
+  @JsonKey(
+      fromJson: _nullableTimestampToDateTime,
+      toJson: _nullableDateTimeToTimestamp)
+  DateTime? get lastReviewed => throw _privateConstructorUsedError;
+  int get repetitions =>
+      throw _privateConstructorUsedError; // Number of times reviewed
+  double get easeFactor =>
+      throw _privateConstructorUsedError; // SuperMemo easiness factor
+  int get interval => throw _privateConstructorUsedError;
 
   /// Serializes this SavedWord to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -48,9 +61,18 @@ abstract class $SavedWordCopyWith<$Res> {
       String word,
       String definition,
       String language,
-      List<String>? examples,
+      List<String> examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-      DateTime savedAt});
+      DateTime savedAt,
+      int progress,
+      int difficulty,
+      @JsonKey(
+          fromJson: _nullableTimestampToDateTime,
+          toJson: _nullableDateTimeToTimestamp)
+      DateTime? lastReviewed,
+      int repetitions,
+      double easeFactor,
+      int interval});
 }
 
 /// @nodoc
@@ -72,8 +94,14 @@ class _$SavedWordCopyWithImpl<$Res, $Val extends SavedWord>
     Object? word = null,
     Object? definition = null,
     Object? language = null,
-    Object? examples = freezed,
+    Object? examples = null,
     Object? savedAt = null,
+    Object? progress = null,
+    Object? difficulty = null,
+    Object? lastReviewed = freezed,
+    Object? repetitions = null,
+    Object? easeFactor = null,
+    Object? interval = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -92,14 +120,38 @@ class _$SavedWordCopyWithImpl<$Res, $Val extends SavedWord>
           ? _value.language
           : language // ignore: cast_nullable_to_non_nullable
               as String,
-      examples: freezed == examples
+      examples: null == examples
           ? _value.examples
           : examples // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
+              as List<String>,
       savedAt: null == savedAt
           ? _value.savedAt
           : savedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      progress: null == progress
+          ? _value.progress
+          : progress // ignore: cast_nullable_to_non_nullable
+              as int,
+      difficulty: null == difficulty
+          ? _value.difficulty
+          : difficulty // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastReviewed: freezed == lastReviewed
+          ? _value.lastReviewed
+          : lastReviewed // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      repetitions: null == repetitions
+          ? _value.repetitions
+          : repetitions // ignore: cast_nullable_to_non_nullable
+              as int,
+      easeFactor: null == easeFactor
+          ? _value.easeFactor
+          : easeFactor // ignore: cast_nullable_to_non_nullable
+              as double,
+      interval: null == interval
+          ? _value.interval
+          : interval // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -117,9 +169,18 @@ abstract class _$$SavedWordImplCopyWith<$Res>
       String word,
       String definition,
       String language,
-      List<String>? examples,
+      List<String> examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-      DateTime savedAt});
+      DateTime savedAt,
+      int progress,
+      int difficulty,
+      @JsonKey(
+          fromJson: _nullableTimestampToDateTime,
+          toJson: _nullableDateTimeToTimestamp)
+      DateTime? lastReviewed,
+      int repetitions,
+      double easeFactor,
+      int interval});
 }
 
 /// @nodoc
@@ -139,8 +200,14 @@ class __$$SavedWordImplCopyWithImpl<$Res>
     Object? word = null,
     Object? definition = null,
     Object? language = null,
-    Object? examples = freezed,
+    Object? examples = null,
     Object? savedAt = null,
+    Object? progress = null,
+    Object? difficulty = null,
+    Object? lastReviewed = freezed,
+    Object? repetitions = null,
+    Object? easeFactor = null,
+    Object? interval = null,
   }) {
     return _then(_$SavedWordImpl(
       id: null == id
@@ -159,14 +226,38 @@ class __$$SavedWordImplCopyWithImpl<$Res>
           ? _value.language
           : language // ignore: cast_nullable_to_non_nullable
               as String,
-      examples: freezed == examples
+      examples: null == examples
           ? _value._examples
           : examples // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
+              as List<String>,
       savedAt: null == savedAt
           ? _value.savedAt
           : savedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      progress: null == progress
+          ? _value.progress
+          : progress // ignore: cast_nullable_to_non_nullable
+              as int,
+      difficulty: null == difficulty
+          ? _value.difficulty
+          : difficulty // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastReviewed: freezed == lastReviewed
+          ? _value.lastReviewed
+          : lastReviewed // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      repetitions: null == repetitions
+          ? _value.repetitions
+          : repetitions // ignore: cast_nullable_to_non_nullable
+              as int,
+      easeFactor: null == easeFactor
+          ? _value.easeFactor
+          : easeFactor // ignore: cast_nullable_to_non_nullable
+              as double,
+      interval: null == interval
+          ? _value.interval
+          : interval // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -179,9 +270,18 @@ class _$SavedWordImpl extends _SavedWord {
       required this.word,
       required this.definition,
       required this.language,
-      final List<String>? examples,
+      required final List<String> examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-      required this.savedAt})
+      required this.savedAt,
+      this.progress = 0,
+      this.difficulty = 0,
+      @JsonKey(
+          fromJson: _nullableTimestampToDateTime,
+          toJson: _nullableDateTimeToTimestamp)
+      this.lastReviewed,
+      this.repetitions = 0,
+      this.easeFactor = 2.5,
+      this.interval = 1})
       : _examples = examples,
         super._();
 
@@ -196,24 +296,41 @@ class _$SavedWordImpl extends _SavedWord {
   final String definition;
   @override
   final String language;
-  final List<String>? _examples;
+  final List<String> _examples;
   @override
-  List<String>? get examples {
-    final value = _examples;
-    if (value == null) return null;
+  List<String> get examples {
     if (_examples is EqualUnmodifiableListView) return _examples;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
+    return EqualUnmodifiableListView(_examples);
   }
 
   @override
   @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
   final DateTime savedAt;
-
   @override
-  String toString() {
-    return 'SavedWord(id: $id, word: $word, definition: $definition, language: $language, examples: $examples, savedAt: $savedAt)';
-  }
+  @JsonKey()
+  final int progress;
+// 0 = new, 1 = learning, 2 = learned
+  @override
+  @JsonKey()
+  final int difficulty;
+// 0 = hard, 1 = good, 2 = easy
+  @override
+  @JsonKey(
+      fromJson: _nullableTimestampToDateTime,
+      toJson: _nullableDateTimeToTimestamp)
+  final DateTime? lastReviewed;
+  @override
+  @JsonKey()
+  final int repetitions;
+// Number of times reviewed
+  @override
+  @JsonKey()
+  final double easeFactor;
+// SuperMemo easiness factor
+  @override
+  @JsonKey()
+  final int interval;
 
   @override
   bool operator ==(Object other) {
@@ -227,13 +344,37 @@ class _$SavedWordImpl extends _SavedWord {
             (identical(other.language, language) ||
                 other.language == language) &&
             const DeepCollectionEquality().equals(other._examples, _examples) &&
-            (identical(other.savedAt, savedAt) || other.savedAt == savedAt));
+            (identical(other.savedAt, savedAt) || other.savedAt == savedAt) &&
+            (identical(other.progress, progress) ||
+                other.progress == progress) &&
+            (identical(other.difficulty, difficulty) ||
+                other.difficulty == difficulty) &&
+            (identical(other.lastReviewed, lastReviewed) ||
+                other.lastReviewed == lastReviewed) &&
+            (identical(other.repetitions, repetitions) ||
+                other.repetitions == repetitions) &&
+            (identical(other.easeFactor, easeFactor) ||
+                other.easeFactor == easeFactor) &&
+            (identical(other.interval, interval) ||
+                other.interval == interval));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, word, definition, language,
-      const DeepCollectionEquality().hash(_examples), savedAt);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      word,
+      definition,
+      language,
+      const DeepCollectionEquality().hash(_examples),
+      savedAt,
+      progress,
+      difficulty,
+      lastReviewed,
+      repetitions,
+      easeFactor,
+      interval);
 
   /// Create a copy of SavedWord
   /// with the given fields replaced by the non-null parameter values.
@@ -257,9 +398,18 @@ abstract class _SavedWord extends SavedWord {
       required final String word,
       required final String definition,
       required final String language,
-      final List<String>? examples,
+      required final List<String> examples,
       @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
-      required final DateTime savedAt}) = _$SavedWordImpl;
+      required final DateTime savedAt,
+      final int progress,
+      final int difficulty,
+      @JsonKey(
+          fromJson: _nullableTimestampToDateTime,
+          toJson: _nullableDateTimeToTimestamp)
+      final DateTime? lastReviewed,
+      final int repetitions,
+      final double easeFactor,
+      final int interval}) = _$SavedWordImpl;
   const _SavedWord._() : super._();
 
   factory _SavedWord.fromJson(Map<String, dynamic> json) =
@@ -274,10 +424,25 @@ abstract class _SavedWord extends SavedWord {
   @override
   String get language;
   @override
-  List<String>? get examples;
+  List<String> get examples;
   @override
   @JsonKey(fromJson: _timestampToDateTime, toJson: _dateTimeToTimestamp)
   DateTime get savedAt;
+  @override
+  int get progress; // 0 = new, 1 = learning, 2 = learned
+  @override
+  int get difficulty; // 0 = hard, 1 = good, 2 = easy
+  @override
+  @JsonKey(
+      fromJson: _nullableTimestampToDateTime,
+      toJson: _nullableDateTimeToTimestamp)
+  DateTime? get lastReviewed;
+  @override
+  int get repetitions; // Number of times reviewed
+  @override
+  double get easeFactor; // SuperMemo easiness factor
+  @override
+  int get interval;
 
   /// Create a copy of SavedWord
   /// with the given fields replaced by the non-null parameter values.

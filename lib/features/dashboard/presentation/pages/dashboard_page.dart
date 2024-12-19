@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../widgets/circular_stats_card.dart';
+import '../widgets/study_progress_card.dart';
 import 'saved_words_page.dart';
+import 'study_session_page.dart';
+import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
+import '../../../../core/widgets/language_selector.dart';
+import '../../../../features/books/domain/models/book_language.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -12,8 +17,50 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveClientMixin {
+  final _navigatorKey = GlobalKey<NavigatorState>();
   @override
   bool get wantKeepAlive => true;
+
+  void _startStudySession(BuildContext context, BookLanguage? language) async {
+    final savedWordsRepo = context.read<SavedWordsRepository>();
+    print('Selected language: ${language?.code}');
+    final words = await savedWordsRepo.getSavedWordsList(
+      language: language?.code?.toLowerCase(),
+    );
+    print('Found ${words.length} words for language ${language?.code}');
+    
+    if (!context.mounted) return;
+    
+    if (words.isNotEmpty) {
+      print('Attempting to navigate to StudySessionPage');
+      try {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StudySessionPage(
+              words: words,
+            ),
+          ),
+        );
+        print('Navigation completed');
+      } catch (e) {
+        print('Navigation error: $e');
+        print(e.toString());
+      }
+    } else {
+      print('Showing no words snackbar');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            language == null
+                ? 'No words to study yet! Save some words first.'
+                : 'No ${language.displayName} words to study yet!',
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -203,6 +250,39 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                         ),
                                       ),
                                     ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+
+                              // Study Progress Section
+                              Column(
+                                children: [
+                                  StudyProgressCard(
+                                    onTap: () async {
+                                      showDialog(
+                                        context: context,
+                                        builder: (dialogContext) => AlertDialog(
+                                          title: const Text('Study Words'),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const Text('Select language to study:'),
+                                              const SizedBox(height: 16),
+                                              LanguageSelector(
+                                                currentLanguage: null,
+                                                onLanguageChanged: (language) {
+                                                  Navigator.pop(dialogContext);
+                                                  _startStudySession(context, language);
+                                                },
+                                                showAllOption: true,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),

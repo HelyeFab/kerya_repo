@@ -10,8 +10,9 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: lightColorScheme,
       textTheme: textTheme,
+      scaffoldBackgroundColor: lightColorScheme.background,
       appBarTheme: AppBarTheme(
-        backgroundColor: lightColorScheme.surface,
+        backgroundColor: lightColorScheme.background,
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: lightColorScheme.onSurface),
@@ -61,8 +62,9 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: darkColorScheme,
       textTheme: textTheme,
+      scaffoldBackgroundColor: darkColorScheme.background,
       appBarTheme: AppBarTheme(
-        backgroundColor: darkColorScheme.surface,
+        backgroundColor: darkColorScheme.background,
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: darkColorScheme.onSurface),

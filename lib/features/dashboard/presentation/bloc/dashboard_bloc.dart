@@ -56,38 +56,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       print('Loading dashboard stats for user: ${user.uid}');
       emit(const DashboardState.loading());
 
-      // Cancel any existing subscription
-      await _statsSubscription?.cancel();
-
       try {
-        // Always get fresh stats from Firestore first
-        final freshStats = await _userStatsRepository.getUserStats();
-        emit(DashboardState.loaded(
-          booksRead: freshStats.booksRead,
-          favoriteBooks: freshStats.favoriteBooks,
-          readingStreak: freshStats.readingStreak,
-          savedWords: freshStats.savedWords,
-        ));
-
-        // Then set up subscription for future updates
-        _statsSubscription = _userStatsRepository.streamUserStats().listen(
+        // Only set up the stream subscription if it doesn't exist
+        _statsSubscription ??= _userStatsRepository.streamUserStats().listen(
           (stats) {
             print('Received stats update: $stats');
-            // Verify the stats are different before emitting
-            if (state is _Loaded) {
-              final currentState = state as _Loaded;
-              if (currentState.booksRead != stats.booksRead ||
-                  currentState.favoriteBooks != stats.favoriteBooks ||
-                  currentState.readingStreak != stats.readingStreak ||
-                  currentState.savedWords != stats.savedWords) {
-                emit(DashboardState.loaded(
-                  booksRead: stats.booksRead,
-                  favoriteBooks: stats.favoriteBooks,
-                  readingStreak: stats.readingStreak,
-                  savedWords: stats.savedWords,
-                ));
-              }
-            } else {
+            if (!isClosed && !emit.isDone) {
               emit(DashboardState.loaded(
                 booksRead: stats.booksRead,
                 favoriteBooks: stats.favoriteBooks,
@@ -98,20 +72,39 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           },
           onError: (error) {
             print('Error in stats stream: $error');
-            emit(DashboardState.error(error.toString()));
+            if (!isClosed && !emit.isDone) {
+              emit(DashboardState.error(error.toString()));
+            }
           },
         );
+
+        // Get initial stats
+        final freshStats = await _userStatsRepository.getUserStats();
+        if (!emit.isDone) {
+          emit(DashboardState.loaded(
+            booksRead: freshStats.booksRead,
+            favoriteBooks: freshStats.favoriteBooks,
+            readingStreak: freshStats.readingStreak,
+            savedWords: freshStats.savedWords,
+          ));
+        }
       } catch (e) {
         print('Error getting user stats: $e');
-        emit(DashboardState.error('Failed to load stats: $e'));
+        if (!emit.isDone) {
+          emit(DashboardState.error('Failed to load stats: $e'));
+        }
         // Try to reinitialize after error
         Future.delayed(const Duration(seconds: 5), () {
-          loadDashboardStats();
+          if (!isClosed) {
+            loadDashboardStats();
+          }
         });
       }
     } catch (e) {
       print('Error in _onLoadDashboardStats: $e');
-      emit(DashboardState.error(e.toString()));
+      if (!emit.isDone) {
+        emit(DashboardState.error(e.toString()));
+      }
     }
   }
 
