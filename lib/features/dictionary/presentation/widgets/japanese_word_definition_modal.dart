@@ -320,34 +320,56 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (_definition?['reading'] != null)
-                RubyText(
-                  [RubyTextData(
-                    widget.word,
-                    ruby: _definition!['reading'],
-                  )],
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  if (_definition?['reading'] != null)
+                    RubyText(
+                      [RubyTextData(
+                        widget.word,
+                        ruby: _definition!['reading'],
+                      )],
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      rubyStyle: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  else
+                    Text(
+                      widget.word,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedVolumeMute01,
+                      color: theme.brightness == Brightness.dark
+                          ? theme.colorScheme.onSurface
+                          : Colors.black,
+                      size: 24.0,
+                    ),
+                    onPressed: () {
+                      DictionaryService().speakWord(widget.word, widget.language.code);
+                    },
                   ),
-                  rubyStyle: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                )
-              else
-                Text(
-                  widget.word,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                ],
+              ),
               if (_definition?['partsOfSpeech'] != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    (_definition!['partsOfSpeech'] as List).join(', '),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontStyle: FontStyle.italic,
-                      color: theme.colorScheme.onSurfaceVariant,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: Text(
+                      (_definition!['partsOfSpeech'] as List).join(', '),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
                     ),
                   ),
                 ),
@@ -377,16 +399,6 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
           ),
           Row(
             children: [
-              IconButton(
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedVolumeMute01,
-                  color: Colors.black,
-                  size: 24.0,
-                ),
-                onPressed: () {
-                  DictionaryService().speakWord(widget.word, widget.language.code);
-                },
-              ),
               Container(
                 decoration: BoxDecoration(
                   color: theme.brightness == Brightness.dark

@@ -1,7 +1,6 @@
 import 'package:Keyra/core/config/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:Keyra/core/config/app_strings.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});

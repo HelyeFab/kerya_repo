@@ -224,30 +224,44 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      widget.word,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
                     Row(
                       children: [
+                        Text(
+                          widget.word,
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         IconButton(
                           icon: HugeIcon(
                             icon: HugeIcons.strokeRoundedVolumeMute01,
-                            color: Colors.black,
+                            color: theme.brightness == Brightness.dark
+                                ? theme.colorScheme.onSurface
+                                : Colors.black,
                             size: 24.0,
                           ),
                           onPressed: () {
                             DictionaryService().speakWord(widget.word, widget.language.code);
                           },
                         ),
+                      ],
+                    ),
+                    Row(
+                      children: [
                         IconButton(
                           icon: Icon(
                             _isSaved ? Icons.bookmark : Icons.bookmark_border,
                             color: theme.colorScheme.primary,
                           ),
                           onPressed: _toggleSaveWord,
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       ],
                     ),

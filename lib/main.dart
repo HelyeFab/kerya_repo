@@ -37,8 +37,8 @@ void main() async {
   // Initialize theme bloc
   final themeBloc = await ThemeBloc.create();
 
-  // Initialize SharedPreferences for theme persistence
-  final sharedPreferences = await SharedPreferences.getInstance();
+  // Initialize language bloc
+  final languageBloc = await LanguageBloc.create();
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -102,6 +102,7 @@ void main() async {
     preferencesService: preferencesService,
     isFirstLaunch: isFirstLaunch,
     themeBloc: themeBloc,
+    languageBloc: languageBloc,
     dictionaryService: dictionaryService,
   ));
 }
@@ -110,6 +111,7 @@ class MyApp extends StatelessWidget {
   final PreferencesService preferencesService;
   final bool isFirstLaunch;
   final ThemeBloc themeBloc;
+  final LanguageBloc languageBloc;
   final DictionaryService dictionaryService;
 
   const MyApp({
@@ -117,6 +119,7 @@ class MyApp extends StatelessWidget {
     required this.preferencesService,
     required this.isFirstLaunch,
     required this.themeBloc,
+    required this.languageBloc,
     required this.dictionaryService,
   });
 
@@ -136,8 +139,8 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(
           value: themeBloc,
         ),
-        BlocProvider(
-          create: (context) => LanguageBloc(),
+        BlocProvider.value(
+          value: languageBloc,
         ),
       ],
       child: MultiRepositoryProvider(

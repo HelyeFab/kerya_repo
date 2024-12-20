@@ -10,9 +10,9 @@ class CreatePage extends StatelessWidget {
       appBar: AppBar(
         centerTitle: false,
         automaticallyImplyLeading: false,
-        actions: [
-          const MenuButton(),
-          const SizedBox(width: 16),
+        actions: const [
+          MenuButton(),
+          SizedBox(width: 16),
         ],
       ),
       body: const Center(

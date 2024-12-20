@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Keyra/features/dashboard/presentation/bloc/dashboard_bloc.dart';
-import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
-import 'package:Keyra/features/dashboard/domain/models/user_stats.dart';
 
 class MiniStatsDisplay extends StatefulWidget {
   const MiniStatsDisplay({super.key});

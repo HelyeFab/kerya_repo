@@ -83,9 +83,9 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
       appBar: AppBar(
         centerTitle: false,
         automaticallyImplyLeading: false,
-        actions: [
-          const MenuButton(),
-          const SizedBox(width: 16),
+        actions: const [
+          MenuButton(),
+          SizedBox(width: 16),
         ],
       ),
       body: SafeArea(
@@ -126,14 +126,14 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
+                            const Padding(
+                              padding: EdgeInsets.all(16.0),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const SizedBox(),
+                                  SizedBox(),
                                   Row(
-                                    children: const [
+                                    children: [
                                       SizedBox(),
                                       SizedBox(width: 8),
                                     ],

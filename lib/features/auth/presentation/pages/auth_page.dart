@@ -55,8 +55,8 @@ class _AuthPageState extends State<AuthPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Column(
-                    children: const [
+                  const Column(
+                    children: [
                       Text(
                         'Welcome to',
                         style: TextStyle(
