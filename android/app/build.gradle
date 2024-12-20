@@ -50,7 +50,7 @@ android {
 
     defaultConfig {
         applicationId "com.keyra.app"
-        minSdkVersion 21
+        minSdkVersion 21  // Updated for TTS support
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

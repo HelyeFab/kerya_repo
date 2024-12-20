@@ -36,9 +36,12 @@ class AppColors {
   static const Color focus = Color(0xFF0091EA);
 
   // Control colors for reader
+  static const Color readerControl = Color(0xFFF0EBFF); // Extremely light pastel purple for light theme
+  static const Color readerControlDark = Color(0xFFD7CFFF); // Light pastel purple for dark theme
   static const Color controlPurple = Color(0xFFBB86FC);
   static const Color controlPink = Color(0xFFF48FB1);
-  static const Color controlText = Color(0xFFFFFFFF);
+  static const Color controlText = Color(0xFF6750A4); // Dark purple for text in light theme
+  static const Color controlTextDark = Color(0xFFFFFFFF); // White text for dark theme
 
   // Icon colors for navigation
   static const Color icon = Color(0xFF1C1B1F);
