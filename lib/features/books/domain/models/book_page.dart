@@ -13,11 +13,11 @@ class BookPage extends Equatable {
   });
 
   String getText(BookLanguage language) {
-    return text[language] ?? text[BookLanguage.english] ?? '';
+    return text[language] ?? '';
   }
 
   String? getAudioPath(BookLanguage language) {
-    return audioPath[language] ?? audioPath[BookLanguage.english];
+    return audioPath[language];
   }
 
   BookPage copyWith({

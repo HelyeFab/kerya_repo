@@ -25,6 +25,8 @@ class ProgressStatsCard extends StatelessWidget {
     final int progressInCurrentLevel = value % maxValue;
     final double progressValue = progressInCurrentLevel == 0 ? 1.0 : progressInCurrentLevel / maxValue;
     
+    final theme = Theme.of(context);
+    
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -50,10 +52,8 @@ class ProgressStatsCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -66,10 +66,8 @@ class ProgressStatsCard extends StatelessWidget {
                       ),
                       child: Text(
                         'Level $currentLevel',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: color,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -83,9 +81,8 @@ class ProgressStatsCard extends StatelessWidget {
                 children: [
                   Text(
                     value.toString(),
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -138,18 +135,15 @@ class ProgressStatsCard extends StatelessWidget {
                       value >= maxValue
                           ? '${progressInCurrentLevel == 0 ? maxValue : progressInCurrentLevel} / $maxValue in current level'
                           : '$value / $maxValue',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     if (value >= maxValue)
                       Text(
                         'Target Achieved!',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: color,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                   ],

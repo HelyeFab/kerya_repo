@@ -10,6 +10,7 @@ import '../../../dashboard/data/repositories/user_stats_repository.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../library/presentation/pages/library_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../../core/presentation/bloc/language_bloc.dart';
 
 class NavigationPage extends StatefulWidget {
   const NavigationPage({super.key});
@@ -26,7 +27,6 @@ class _NavigationPageState extends State<NavigationPage> {
     LibraryPage(),
     CreatePage(),
     DashboardPage(),
-    ProfilePage(),
   ];
 
   void _onNavigationChanged(int index) {
@@ -43,6 +43,9 @@ class _NavigationPageState extends State<NavigationPage> {
           create: (context) => DashboardBloc(
             userStatsRepository: UserStatsRepository(),
           ),
+        ),
+        BlocProvider<LanguageBloc>(
+          create: (context) => LanguageBloc(),
         ),
       ],
       child: BlocListener<AuthBloc, AuthState>(

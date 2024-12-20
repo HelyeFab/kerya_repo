@@ -21,6 +21,7 @@ class AppColors {
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkSurfaceVariant = Color(0xFF373737);
+  static const Color darkSurfaceContainer = Color(0xFF383838);
   static const Color darkOnPrimary = Color(0xFF000000);
   static const Color darkOnSecondary = Color(0xFF000000);
   static const Color darkOnTertiary = Color(0xFFFFFFFF);
@@ -65,11 +66,9 @@ const lightColorScheme = ColorScheme(
   onTertiary: AppColors.lightOnTertiary,
   error: AppColors.error,
   onError: AppColors.onError,
-  background: AppColors.lightBackground,
-  onBackground: AppColors.lightOnBackground,
   surface: AppColors.lightSurface,
   onSurface: AppColors.lightOnSurface,
-  surfaceVariant: AppColors.lightSurfaceVariant,
+  surfaceContainerHighest: AppColors.lightSurfaceVariant,
 );
 
 const darkColorScheme = ColorScheme(
@@ -82,9 +81,8 @@ const darkColorScheme = ColorScheme(
   onTertiary: AppColors.darkOnTertiary,
   error: AppColors.error,
   onError: AppColors.onError,
-  background: AppColors.darkBackground,
-  onBackground: AppColors.darkOnBackground,
   surface: AppColors.darkSurface,
   onSurface: AppColors.darkOnSurface,
-  surfaceVariant: AppColors.darkSurfaceVariant,
+  surfaceContainerHighest: AppColors.darkSurfaceVariant,
+  surfaceContainerLowest: AppColors.darkSurfaceContainer, // New surface container color
 );

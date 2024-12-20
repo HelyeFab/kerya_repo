@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
+import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
+import 'package:Keyra/core/widgets/language_selector.dart';
+import 'package:Keyra/core/widgets/menu_button.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:Keyra/core/widgets/loading_indicator.dart';
+import 'package:Keyra/core/widgets/mini_stats_display.dart';
 import 'package:Keyra/features/books/domain/models/book.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/books/presentation/pages/book_reader_page.dart';
@@ -9,7 +15,7 @@ import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
-import 'package:Keyra/core/widgets/loading_animation.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,8 +28,7 @@ class _HomePageState extends State<HomePage> {
   final _bookRepository = BookRepository();
   final _userStatsRepository = UserStatsRepository();
   final _dictionaryService = DictionaryService();
-  List<Book> books = [];
-  BookLanguage _currentLanguage = BookLanguage.english;
+  List<Book> _books = [];
   bool _isLoading = true;
 
   @override
@@ -75,7 +80,7 @@ class _HomePageState extends State<HomePage> {
           } else {
             print('HomePage: Successfully loaded ${loadedBooks.length} books, updating state');
             setState(() {
-              books = loadedBooks;
+              _books = loadedBooks;
               _isLoading = false;
             });
           }
@@ -102,11 +107,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _toggleFavorite(int index) async {
-    final book = books[index];
+    final book = _books[index];
     final updatedBook = book.copyWith(isFavorite: !book.isFavorite);
     
     setState(() {
-      books[index] = updatedBook;
+      _books[index] = updatedBook;
     });
 
     try {
@@ -114,7 +119,7 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       // Revert on error
       setState(() {
-        books[index] = book;
+        _books[index] = book;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update favorite status')),
@@ -123,11 +128,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onBookTap(Book book) {
+    final selectedLanguage = context.read<LanguageBloc>().state.selectedLanguage;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BookReaderPage(
           book: book,
-          language: _currentLanguage,
+          language: selectedLanguage,
           userStatsRepository: _userStatsRepository,
           dictionaryService: _dictionaryService,
         ),
@@ -135,197 +141,165 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _onLanguageChanged(BookLanguage? language) {
-    if (language != null) {
-      setState(() {
-        _currentLanguage = language;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: AppSpacing.paddingLg,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Home',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, languageState) {
+        return Scaffold(
+          appBar: AppBar(
+            centerTitle: false,
+            automaticallyImplyLeading: false,
+            actions: [
+              const MenuButton(),
+              const SizedBox(width: 16),
+            ],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: AppSpacing.paddingLg,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const MiniStatsDisplay(),
+                    Row(
+                      children: [
+                        LanguageSelector(
+                          currentLanguage: languageState.selectedLanguage,
+                          onLanguageChanged: (language) {
+                            if (language != null) {
+                              context.read<LanguageBloc>().add(
+                                LanguageChanged(language),
+                              );
+                            }
+                          },
                         ),
-                  ),
-                  PopupMenuButton<BookLanguage>(
-                    initialValue: _currentLanguage,
-                    onSelected: _onLanguageChanged,
-                    itemBuilder: (context) => BookLanguage.values
-                        .map(
-                          (language) => PopupMenuItem(
-                            value: language,
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  language.flagAsset,
-                                  width: 24,
-                                  height: 24,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(language.displayName),
-                              ],
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            _currentLanguage.flagAsset,
-                            width: 24,
-                            height: 24,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _currentLanguage.code.toUpperCase(),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(width: 8),
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowDown01,
-                            color: Theme.of(context).colorScheme.onBackground,
-                            size: 24.0,
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: AppSpacing.lg),
-              child: Text(
-                'Recently Added Stories',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            SizedBox(
-              height: 280,
-              child: _isLoading
-                  ? const LoadingAnimation(size: 100)
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: books.length,
-                      itemBuilder: (context, index) {
-                        final book = books[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: AppSpacing.md),
-                          child: SizedBox(
-                            width: 180,
-                            child: BookCard(
-                              title: book.getTitle(_currentLanguage),
-                              coverImagePath: book.coverImage,
-                              isFavorite: book.isFavorite,
-                              onFavoriteTap: () => _toggleFavorite(index),
-                              onTap: () => _onBookTap(book),
-                            ),
-                          ),
-                        );
-                      },
+              Expanded(
+                child: ListView(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: AppSpacing.lg),
+                      child: Text(
+                        'Recently Added Stories',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
                     ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Text(
-                'Continue Reading',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: 280,
+                      child: _isLoading
+                          ? const Center(
+                              child: LoadingIndicator(size: 100),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _books.length,
+                              itemBuilder: (context, index) {
+                                final book = _books[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: AppSpacing.md),
+                                  child: SizedBox(
+                                    width: 180,
+                                    child: BookCard(
+                                      title: book.getTitle(languageState.selectedLanguage),
+                                      coverImagePath: book.coverImage,
+                                      isFavorite: book.isFavorite,
+                                      onFavoriteTap: () => _toggleFavorite(index),
+                                      onTap: () => _onBookTap(book),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: Text(
+                        'Continue Reading',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _isLoading
+                        ? const Center(
+                            child: LoadingIndicator(size: 100),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                            itemCount: _books.length,
+                            itemBuilder: (context, index) {
+                              final book = _books[index];
+                              return Card(
+                                elevation: 2,
+                                margin: const EdgeInsets.only(bottom: AppSpacing.md, left: AppSpacing.sm, right: AppSpacing.sm),
+                                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                    vertical: AppSpacing.sm,
+                                  ),
+                                  leading: SizedBox(
+                                    width: 50,
+                                    height: 50,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                                      child: Image.network(
+                                        book.coverImage,
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          print('Error loading cover image: $error');
+                                          return const Center(child: Icon(Icons.error));
+                                        },
+                                        loadingBuilder: (context, child, loadingProgress) {
+                                          if (loadingProgress == null) return child;
+                                          return const LoadingIndicator(size: 30);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    book.getTitle(languageState.selectedLanguage),
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  subtitle: Text(
+                                    'Page ${book.currentPage + 1} of ${book.pages.length}',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                    ),
+                                  ),
+                                  trailing: Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  ),
+                                  onTap: () => _onBookTap(book),
+                                ),
+                              );
+                            },
+                          ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Expanded(
-              child: _isLoading
-                  ? const LoadingAnimation(size: 100)
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                      itemCount: books.length,
-                      itemBuilder: (context, index) {
-                        final book = books[index];
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.only(bottom: AppSpacing.md, left: AppSpacing.sm, right: AppSpacing.sm),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md,
-                              vertical: AppSpacing.sm,
-                            ),
-                            leading: SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                                child: Image.network(
-                                  book.coverImage,
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    print('Error loading cover image: $error');
-                                    return const Center(child: Icon(Icons.error));
-                                  },
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const LoadingAnimation(size: 30);
-                                  },
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              book.getTitle(_currentLanguage),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            subtitle: Text(
-                              'Page ${book.currentPage + 1} of ${book.pages.length}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                              ),
-                            ),
-                            trailing: Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                            onTap: () => _onBookTap(book),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

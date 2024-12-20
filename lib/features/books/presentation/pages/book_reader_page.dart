@@ -10,7 +10,7 @@ import 'package:Keyra/core/theme/color_schemes.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/presentation/widgets/word_definition_modal.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
-import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart';
+import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart' show tokenize;
 import 'package:Keyra/core/widgets/loading_animation.dart';
 
 class BookReaderPage extends StatefulWidget {
@@ -50,14 +50,16 @@ class _BookReaderPageState extends State<BookReaderPage> {
     _pageController = PageController();
     _audioPlayer = AudioPlayer();
     _setupAudioPlayer();
-    _startReadingSession();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startReadingSession();
+    });
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
-    _audioPlayer.dispose();
     _endReadingSession();
+    _audioPlayer.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -101,9 +103,10 @@ class _BookReaderPageState extends State<BookReaderPage> {
       });
     });
 
-    _audioPlayer.onPlayerComplete.listen((event) {
+    _audioPlayer.onPlayerComplete.listen((_) {
       setState(() {
         _isPlaying = false;
+        _position = Duration.zero;
       });
     });
   }
@@ -112,9 +115,6 @@ class _BookReaderPageState extends State<BookReaderPage> {
     setState(() {
       _currentPage = page;
     });
-    if (page == widget.book.pages.length - 1) {
-      _markBookAsRead();
-    }
   }
 
   Widget _buildFontSizeButton({
@@ -124,91 +124,102 @@ class _BookReaderPageState extends State<BookReaderPage> {
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: isDecrease 
-            ? AppColors.controlPurple
-            : AppColors.controlPink,
+        color: AppColors.controlPurple,
       ),
       child: IconButton(
-        icon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: AppColors.controlText),
-            Text(
-              isDecrease ? '-' : '+',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.controlText,
-              ),
-            ),
-          ],
+        icon: Icon(
+          icon,
+          color: AppColors.controlText,
+          size: isDecrease ? 20.0 : 24.0,
         ),
         onPressed: onPressed,
-        tooltip: isDecrease ? 'Decrease font size' : 'Increase font size',
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      body: _isLoading
-          ? const LoadingAnimation(size: 100)
-          : PageView.builder(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              itemCount: widget.book.pages.length,
-              itemBuilder: (context, index) {
-                final page = widget.book.pages[index];
-                return _buildPage(context, page);
-              },
-            ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: AppSpacing.paddingMd,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(left: 8),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.controlPurple,
-                ),
-                child: IconButton(
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    color: AppColors.controlText,
-                    size: 24.0,
-                  ),
-                  onPressed: () {
-                    _endReadingSession();
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                '${_currentPage + 1} / ${widget.book.pages.length}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(width: 16),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward),
-                onPressed: _currentPage < widget.book.pages.length - 1
-                    ? () {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    : null,
-              ),
-            ],
+      body: Stack(
+        children: [
+          // Book content
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            itemCount: widget.book.pages.length,
+            itemBuilder: (context, index) {
+              return _buildPage(context, widget.book.pages[index]);
+            },
           ),
-        ),
+
+          // Bottom navigation
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Material(
+              type: MaterialType.transparency,
+              child: SafeArea(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.controlPurple,
+                      ),
+                      child: IconButton(
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowLeft01,
+                          color: AppColors.controlText,
+                          size: 24.0,
+                        ),
+                        onPressed: _currentPage > 0
+                            ? () {
+                                _pageController.previousPage(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '${_currentPage + 1} / ${widget.book.pages.length}',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(width: 16),
+                    Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.controlPurple,
+                      ),
+                      child: IconButton(
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowRight01,
+                          color: AppColors.controlText,
+                          size: 24.0,
+                        ),
+                        onPressed: _currentPage < widget.book.pages.length - 1
+                            ? () {
+                                _pageController.nextPage(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -276,7 +287,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
                       color: AppColors.controlPurple,
                     ),
                     child: IconButton(
-                      icon: HugeIcon(
+                      icon: const HugeIcon(
                         icon: HugeIcons.strokeRoundedArrowLeft01,
                         color: AppColors.controlText,
                         size: 24.0,
@@ -317,6 +328,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
   }
 
   Widget _buildTextContent(BuildContext context, String content) {
+    final theme = Theme.of(context);
     return FutureBuilder<List<WordReading>>(
       future: widget.language.code == 'ja'
           ? _processJapaneseText(content)
@@ -347,19 +359,14 @@ class _BookReaderPageState extends State<BookReaderPage> {
                     widget.language,
                   );
                 },
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontSize: _baseFontSize * _textScale,
-                height: 1.5,
-              ),
             ),
           );
         }
 
         return SelectableText.rich(
           TextSpan(children: textSpans),
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontSize: _baseFontSize * _textScale,
-            height: 1.5,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontSize: theme.textTheme.bodyMedium!.fontSize! * _textScale,
           ),
           textAlign: TextAlign.justify,
         );

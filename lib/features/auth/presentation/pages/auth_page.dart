@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/keyra_logo.dart';
+import '../../../../core/widgets/loading_animation.dart';
 import '../../../navigation/presentation/pages/navigation_page.dart';
 import '../bloc/auth_bloc.dart';
 import '../widgets/login_form.dart';
@@ -54,29 +55,52 @@ class _AuthPageState extends State<AuthPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Welcome to Keyra',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                  Column(
+                    children: const [
+                      Text(
+                        'Welcome to',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Keyra',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontFamily: 'FascinateInline',
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   TabBar(
-                    tabs: const [
+                    tabs: [
                       Tab(
-                        icon: Icon(Icons.login),
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedLogin01,
+                          size: 24.0,
+                          color: Theme.of(context).primaryColor,
+                        ),
                         text: 'Login',
                       ),
                       Tab(
-                        icon: Icon(Icons.person_add),
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedUser,
+                          size: 24.0,
+                          color: Theme.of(context).primaryColor,
+                        ),
                         text: 'Register',
                       ),
                     ],
                     labelColor: Theme.of(context).primaryColor,
                     unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                     indicatorColor: Theme.of(context).primaryColor,
+                    indicatorWeight: 3.0,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   const Expanded(
@@ -87,7 +111,8 @@ class _AuthPageState extends State<AuthPage> {
                       ],
                     ),
                   ),
-                  const Center(child: KeyraLogo(height: 48)),
+                  const SizedBox(height: AppSpacing.lg),
+                  const Center(child: LoadingAnimation(size: 48)),
                   const SizedBox(height: AppSpacing.lg),
                 ],
               ),

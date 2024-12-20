@@ -68,6 +68,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -92,15 +93,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 onPressed: _skipToEnd,
                 style: TextButton.styleFrom(
                   backgroundColor:
-                      Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                      theme.colorScheme.surface.withOpacity(0.8),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: Text(
                   'Skip',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -139,8 +139,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           width: _currentPage == index ? 24 : 8,
                           decoration: BoxDecoration(
                             color: _currentPage == index
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.surface,
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.surface,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -154,19 +154,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ElevatedButton(
                       onPressed: _onGetStarted,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor: theme.colorScheme.primary,
                         foregroundColor:
-                            Theme.of(context).colorScheme.onPrimary,
+                            theme.colorScheme.onPrimary,
                         minimumSize: const Size(double.infinity, 56),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Get Started',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ),

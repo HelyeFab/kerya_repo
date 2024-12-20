@@ -30,6 +30,7 @@ class KeyraBottomNavBar extends StatelessWidget {
     final isSelected = currentIndex == index;
     final primaryColor = Theme.of(context).colorScheme.primary;
     final iconColor = _getIconColor(context, isSelected);
+    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () => onTap(index),
@@ -50,10 +51,8 @@ class KeyraBottomNavBar extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(
-                color: iconColor,
-                fontSize: 9,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -73,11 +72,13 @@ class KeyraBottomNavBar extends StatelessWidget {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black.withOpacity(0.2)
+                  : Colors.black.withOpacity(0.08),
               blurRadius: 16,
               offset: const Offset(0, 4),
               spreadRadius: 0,
@@ -111,12 +112,6 @@ class KeyraBottomNavBar extends StatelessWidget {
               icon: HugeIcons.strokeRoundedDashboardBrowsing,
               label: 'Dashboard',
               index: 3,
-            ),
-            _buildNavItem(
-              context: context,
-              icon: HugeIcons.strokeRoundedUserCircle,
-              label: 'Profile',
-              index: 4,
             ),
           ],
         ),

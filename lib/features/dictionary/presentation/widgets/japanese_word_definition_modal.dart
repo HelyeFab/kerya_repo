@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:ruby_text/ruby_text.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
@@ -315,74 +316,81 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
       padding: const EdgeInsets.all(16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (_definition?['reading'] != null)
-                  RubyText(
-                    [RubyTextData(
-                      widget.word,
-                      ruby: _definition!['reading'],
-                    )],
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    rubyStyle: theme.textTheme.bodySmall?.copyWith(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_definition?['reading'] != null)
+                RubyText(
+                  [RubyTextData(
+                    widget.word,
+                    ruby: _definition!['reading'],
+                  )],
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  rubyStyle: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                )
+              else
+                Text(
+                  widget.word,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              if (_definition?['partsOfSpeech'] != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    (_definition!['partsOfSpeech'] as List).join(', '),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontStyle: FontStyle.italic,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                  )
-                else
-                  Text(
-                    widget.word,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
                   ),
-                if (_definition?['partsOfSpeech'] != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
+                ),
+              if (_definition?['source'] == 'wanikani' && 
+                  _definition?['wanikani']?['level'] != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     child: Text(
-                      (_definition!['partsOfSpeech'] as List).join(', '),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: theme.colorScheme.onSurfaceVariant,
+                      'Level ${_definition!['wanikani']['level']}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                if (_definition?['source'] == 'wanikani' && 
-                    _definition?['wanikani']?['level'] != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Level ${_definition!['wanikani']['level']}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
           Row(
             children: [
+              IconButton(
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedVolumeMute01,
+                  color: Colors.black,
+                  size: 24.0,
+                ),
+                onPressed: () {
+                  DictionaryService().speakWord(widget.word, widget.language.code);
+                },
+              ),
               Container(
                 decoration: BoxDecoration(
                   color: theme.brightness == Brightness.dark
-                      ? theme.colorScheme.surfaceVariant
+                      ? theme.colorScheme.surfaceContainerHighest
                       : const Color(0xFFFFF9C4),
                   shape: BoxShape.circle,
                 ),
@@ -415,7 +423,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -489,7 +497,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
           margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant,
+            color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Column(

@@ -6,7 +6,6 @@ import 'package:Keyra/core/config/api_keys.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/services/local_dictionary_service.dart';
 import 'package:Keyra/features/dictionary/data/services/japanese_dictionary_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class _CacheEntry<T> {
   final T value;
@@ -46,12 +45,21 @@ class DictionaryService {
   static const Duration _cacheTimeout = Duration(minutes: 30);
   static const int _maxCacheSize = 1000;
 
+  static final DictionaryService _instance = DictionaryService._internal();
   final _dio = Dio();
-  final _audioPlayer = AudioPlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   final LocalDictionaryService _localDictionary = LocalDictionaryService();
   final JapaneseDictionaryService _japaneseDictionary = JapaneseDictionaryService();
+  String? _currentAudioUrl;
+  bool _isPaused = false;
 
   final _definitionCache = <String, _CacheEntry<Map<String, dynamic>>>{};
+
+  factory DictionaryService() {
+    return _instance;
+  }
+
+  DictionaryService._internal();
 
   bool get isDictionaryInitialized => _japaneseDictionary.isInitialized;
 
@@ -156,6 +164,15 @@ class DictionaryService {
     }
   }
 
+  Future<void> stopSpeaking() async {
+    await _audioPlayer.stop();
+  }
+
+  Future<void> pauseSpeaking() async {
+    _isPaused = true;
+    await _audioPlayer.pause();
+  }
+
   Future<void> speakWord(String word, String language) async {
     try {
       final url = Uri.parse(
@@ -166,7 +183,16 @@ class DictionaryService {
         '&client=tw-ob'
       ).toString();
 
-      await _audioPlayer.play(UrlSource(url));
+      if (_isPaused && url == _currentAudioUrl) {
+        _isPaused = false;
+        await _audioPlayer.resume();
+      } else {
+        _currentAudioUrl = url;
+        _isPaused = false;
+        await _audioPlayer.play(UrlSource(url));
+      }
+      await _audioPlayer.onPlayerComplete.first;
+      _isPaused = false;
     } catch (e) {
       debugPrint('Error playing audio: $e');
     }

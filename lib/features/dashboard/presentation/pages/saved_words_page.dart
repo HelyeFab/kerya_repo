@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../../../../core/services/firestore_service.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../features/dictionary/domain/models/saved_word.dart';
 import '../../../../features/books/domain/models/book_language.dart';
@@ -95,10 +94,8 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                     Expanded(
                       child: Text(
                         word.word,
-                        style: const TextStyle(
-                          fontFamily: 'Noto Sans',
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -118,33 +115,29 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                     children: [
                       Text(
                         'Definition:',
-                        style: TextStyle(
-                          fontFamily: 'Noto Sans',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         word.definition,
-                        style: const TextStyle(fontFamily: 'Noto Sans'),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                      if (word.examples?.isNotEmpty ?? false) ...[
+                      if (word.examples.isNotEmpty ?? false) ...[
                         const SizedBox(height: 16),
                         Text(
                           'Examples:',
-                          style: TextStyle(
-                            fontFamily: 'Noto Sans',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 4),
-                        ...(word.examples?.take(2) ?? []).map((example) => Padding(
+                        ...(word.examples.take(2) ?? []).map((example) => Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Text(
                             '• $example',
-                            style: const TextStyle(fontFamily: 'Noto Sans'),
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         )),
                       ],
@@ -161,6 +154,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -170,10 +164,10 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
         ),
         title: Text(
           'Saved Words',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           Padding(
@@ -204,7 +198,9 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                     _selectedLanguage == null
                         ? 'No saved words found.'
                         : 'No saved words found for ${_selectedLanguage!.displayName}.',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
                   if (_selectedLanguage != null) ...[
                     const SizedBox(height: 16),
@@ -259,10 +255,8 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                                 children: [
                                   Text(
                                     word.word,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Noto Sans',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -276,11 +270,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                                       const SizedBox(width: 8),
                                       Text(
                                         BookLanguage.fromCode(word.language).displayName,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
-                                          fontFamily: 'Noto Sans',
-                                        ),
+                                        style: theme.textTheme.bodyMedium,
                                       ),
                                     ],
                                   ),

@@ -9,6 +9,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../dictionary/presentation/pages/saved_words_page.dart';
 import 'privacy_policy_page.dart';
 import 'terms_of_service_page.dart';
+import 'acknowledgments_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -39,6 +40,35 @@ class ProfilePage extends StatelessWidget {
         : AppColors.iconDark;
   }
 
+  Future<void> _showLogoutConfirmation(BuildContext context) async {
+    final bool? shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Log Out?'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Log Out'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout == true) {
+      context.read<AuthBloc>().add(const AuthBlocEvent.signOutRequested());
+    }
+  }
+
   Widget _buildProfileContent(BuildContext context, User user) {
     final theme = Theme.of(context);
     final iconColor = _getIconColor(context);
@@ -46,6 +76,21 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        leading: Container(
+          margin: const EdgeInsets.only(left: 8),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.controlPurple,
+          ),
+          child: IconButton(
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              color: AppColors.controlText,
+              size: 24.0,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         actions: [
           IconButton(
             icon: HugeIcon(
@@ -53,9 +98,7 @@ class ProfilePage extends StatelessWidget {
               color: iconColor,
               size: 24.0,
             ),
-            onPressed: () {
-              context.read<AuthBloc>().add(const AuthBlocEvent.signOutRequested());
-            },
+            onPressed: () => _showLogoutConfirmation(context),
           ),
         ],
       ),
@@ -135,17 +178,25 @@ class ProfilePage extends StatelessWidget {
                     style: theme.textTheme.titleLarge,
                   ),
                 ),
-                SwitchListTile(
-                  secondary: HugeIcon(
+                ListTile(
+                  leading: HugeIcon(
                     icon: HugeIcons.strokeRoundedMoon,
                     color: iconColor,
                     size: 24.0,
                   ),
                   title: const Text('Dark Mode'),
-                  value: Theme.of(context).brightness == Brightness.dark,
-                  onChanged: (bool value) {
-                    context.read<ThemeBloc>().add(const ThemeEvent.toggleTheme());
-                  },
+                  trailing: GestureDetector(
+                    onTap: () {
+                      context.read<ThemeBloc>().add(const ThemeEvent.toggleTheme());
+                    },
+                    child: HugeIcon(
+                      icon: Theme.of(context).brightness == Brightness.dark 
+                        ? HugeIcons.strokeRoundedToggleOn 
+                        : HugeIcons.strokeRoundedToggleOff,
+                      color: iconColor,
+                      size: 32.0,
+                    ),
+                  ),
                 ),
                 const Divider(),
                 ListTile(
@@ -186,6 +237,24 @@ class ProfilePage extends StatelessWidget {
                   ),
                   title: const Text('Version'),
                   trailing: const Text('1.0.0'),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedStar,
+                    color: iconColor,
+                    size: 24.0,
+                  ),
+                  title: const Text('Acknowledgments'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AcknowledgmentsPage(),
+                      ),
+                    );
+                  },
                 ),
                 ListTile(
                   leading: HugeIcon(

@@ -12,6 +12,7 @@ class LanguageSelection {
     this.isAll = false,
   });
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is LanguageSelection &&
@@ -91,11 +92,15 @@ class LanguageSelector extends StatelessWidget {
         return items;
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
+        ),
         decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -117,7 +122,7 @@ class LanguageSelector extends StatelessWidget {
               Icon(
                 Icons.language,
                 size: 24,
-                color: Theme.of(context).colorScheme.onBackground,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               const SizedBox(width: 8),
               Text(
@@ -128,7 +133,7 @@ class LanguageSelector extends StatelessWidget {
             const SizedBox(width: 8),
             HugeIcon(
               icon: HugeIcons.strokeRoundedArrowDown01,
-              color: Theme.of(context).colorScheme.onBackground,
+              color: Theme.of(context).colorScheme.onSurface,
               size: 24.0,
             ),
           ],

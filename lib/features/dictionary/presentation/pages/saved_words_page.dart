@@ -95,10 +95,10 @@ class SavedWordsPage extends StatelessWidget {
                           word.definition,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        if (word.examples?.isNotEmpty ?? false) ...[
+                        if (word.examples.isNotEmpty ?? false) ...[
                           const SizedBox(height: 8),
                           Text(
-                            'Example: "${word.examples?.first}"',
+                            'Example: "${word.examples.first}"',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontStyle: FontStyle.italic,
                             ),

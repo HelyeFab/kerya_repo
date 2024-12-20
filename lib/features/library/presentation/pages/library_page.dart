@@ -1,15 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
+import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
+import 'package:Keyra/core/widgets/language_selector.dart';
+import 'package:Keyra/core/widgets/loading_indicator.dart';
+import 'package:Keyra/core/widgets/loading_animation.dart';
+import 'package:Keyra/core/widgets/mini_stats_display.dart';
+import 'package:Keyra/core/widgets/menu_button.dart';
 import 'package:Keyra/features/books/domain/models/book.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/books/presentation/pages/book_reader_page.dart';
-import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
 import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
-import 'package:Keyra/core/widgets/loading_animation.dart';
+import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
+import 'package:provider/provider.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -19,21 +26,30 @@ class LibraryPage extends StatefulWidget {
 }
 
 class _LibraryPageState extends State<LibraryPage> {
-  final TextEditingController _searchController = TextEditingController();
-  final _bookRepository = BookRepository();
-  final _userStatsRepository = UserStatsRepository();
-  final _dictionaryService = DictionaryService();
-  List<Book> _filteredBooks = [];
-  List<Book> _allBooks = [];
+  late TextEditingController _searchController;
+  late BookRepository _bookRepository;
+  late UserStatsRepository _userStatsRepository;
+  late DictionaryService _dictionaryService;
+  late List<Book> _filteredBooks;
+  late List<Book> _allBooks;
   Timer? _debounce;
-  bool _isSearching = false;
-  bool _isLoading = true;
-  String _activeFilter = 'All';
-  BookLanguage _currentLanguage = BookLanguage.english;
+  late bool _isSearching;
+  late bool _isLoading;
+  late String _activeFilter;
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
+    _bookRepository = BookRepository();
+    _userStatsRepository = UserStatsRepository();
+    _dictionaryService = DictionaryService();
+    _filteredBooks = [];
+    _allBooks = [];
+    _debounce = null;
+    _isSearching = false;
+    _isLoading = true;
+    _activeFilter = 'All';
     _loadBooks();
     _searchController.addListener(_onSearchChanged);
   }
@@ -76,7 +92,7 @@ class _LibraryPageState extends State<LibraryPage> {
     final searchTerm = _searchController.text.toLowerCase();
     setState(() {
       var filtered = _allBooks.where((book) {
-        final matchesSearch = book.getTitle(_currentLanguage).toLowerCase().contains(searchTerm);
+        final matchesSearch = book.getTitle(context.read<LanguageBloc>().state.selectedLanguage).toLowerCase().contains(searchTerm);
         
         switch (_activeFilter) {
           case 'All':
@@ -93,15 +109,6 @@ class _LibraryPageState extends State<LibraryPage> {
       _filteredBooks = filtered;
       _isSearching = false;
     });
-  }
-
-  void _onLanguageChanged(BookLanguage? language) {
-    if (language != null) {
-      setState(() {
-        _currentLanguage = language;
-      });
-      _filterBooks(); // Refresh the filtered books with new language
-    }
   }
 
   void _onFilterChanged(String filter) {
@@ -139,17 +146,22 @@ class _LibraryPageState extends State<LibraryPage> {
     }
   }
 
-  void _onBookTap(Book book) {
+  void _navigateToBookReader(BuildContext context, Book book) {
+    final selectedLanguage = context.read<LanguageBloc>().state.selectedLanguage;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BookReaderPage(
           book: book,
-          language: _currentLanguage,
+          language: selectedLanguage,
           userStatsRepository: _userStatsRepository,
           dictionaryService: _dictionaryService,
         ),
       ),
     );
+  }
+
+  void _onBookTap(Book book) {
+    _navigateToBookReader(context, book);
   }
 
   Widget _buildFilterChip(String label) {
@@ -190,7 +202,7 @@ class _LibraryPageState extends State<LibraryPage> {
       itemBuilder: (context, index) {
         final book = books[index];
         return BookCard(
-          title: book.getTitle(_currentLanguage),
+          title: book.getTitle(context.read<LanguageBloc>().state.selectedLanguage),
           coverImagePath: book.coverImage,
           isFavorite: book.isFavorite,
           onFavoriteTap: () => _toggleFavorite(index),
@@ -200,140 +212,114 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
+  Widget _buildLanguageSelector() {
+    return LanguageSelector(
+      currentLanguage: context.read<LanguageBloc>().state.selectedLanguage,
+      onLanguageChanged: (language) {
+        if (language != null) {
+          context.read<LanguageBloc>().add(
+            LanguageChanged(language),
+          );
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: AppSpacing.paddingLg,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, languageState) {
+        return Scaffold(
+          appBar: AppBar(
+            centerTitle: false,
+            automaticallyImplyLeading: false,
+            actions: [
+              const MenuButton(),
+              const SizedBox(width: 16),
+            ],
+          ),
+          body: Column(
             children: [
-              Text(
-                'Library',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+              Padding(
+                padding: AppSpacing.paddingLg,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const MiniStatsDisplay(),
+                    Row(
+                      children: [
+                        _buildLanguageSelector(),
+                      ],
                     ),
+                  ],
+                ),
               ),
-              PopupMenuButton<BookLanguage>(
-                initialValue: _currentLanguage,
-                onSelected: _onLanguageChanged,
-                itemBuilder: (context) => BookLanguage.values
-                    .map(
-                      (language) => PopupMenuItem(
-                        value: language,
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              language.flagAsset,
-                              width: 24,
-                              height: 24,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search your books...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _isSearching
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: LoadingIndicator(size: 24),
                             ),
-                            const SizedBox(width: 12),
-                            Text(language.displayName),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                      width: 1,
+                          )
+                        : _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                },
+                              )
+                            : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide.none,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        _currentLanguage.flagAsset,
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _currentLanguage.code.toUpperCase(),
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(width: 8),
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedArrowDown01,
-                        color: Theme.of(context).colorScheme.onBackground,
-                        size: 24.0,
-                      ),
-                    ],
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.md,
-            AppSpacing.lg,
-            AppSpacing.md,
-          ),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search your books...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _isSearching
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: LoadingAnimation(size: 24),
-                      ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Row(
+                  children: [
+                    _buildFilterChip('All'),
+                    _buildFilterChip('Favorites'),
+                    _buildFilterChip('Recents'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                      child: LoadingIndicator(size: 100),
                     )
-                  : _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                          },
-                        )
-                      : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                borderSide: BorderSide.none,
+                    : RefreshIndicator(
+                        onRefresh: () async {
+                          _loadBooks();
+                        },
+                        child: _buildBookGrid(_filteredBooks),
+                      ),
               ),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-            ),
-          ),
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Row(
-            children: [
-              _buildFilterChip('All'),
-              _buildFilterChip('Favorites'),
-              _buildFilterChip('Recents'),
             ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Expanded(
-          child: _isLoading
-              ? const LoadingAnimation(size: 100)
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    _loadBooks();
-                  },
-                  child: _buildBookGrid(_filteredBooks),
-                ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

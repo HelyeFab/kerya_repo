@@ -1,9 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
+import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
 import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dart';
 import 'package:Keyra/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
@@ -22,6 +22,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'splash_screen.dart';
 import 'dart:async';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
+import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 
 // Create a stream controller for dictionary initialization status
 final _dictionaryInitController = StreamController<bool>.broadcast();
@@ -101,6 +102,7 @@ void main() async {
     preferencesService: preferencesService,
     isFirstLaunch: isFirstLaunch,
     themeBloc: themeBloc,
+    dictionaryService: dictionaryService,
   ));
 }
 
@@ -108,12 +110,14 @@ class MyApp extends StatelessWidget {
   final PreferencesService preferencesService;
   final bool isFirstLaunch;
   final ThemeBloc themeBloc;
+  final DictionaryService dictionaryService;
 
   const MyApp({
     super.key,
     required this.preferencesService,
     required this.isFirstLaunch,
     required this.themeBloc,
+    required this.dictionaryService,
   });
 
   @override
@@ -132,11 +136,20 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(
           value: themeBloc,
         ),
+        BlocProvider(
+          create: (context) => LanguageBloc(),
+        ),
       ],
       child: MultiRepositoryProvider(
         providers: [
           RepositoryProvider<SavedWordsRepository>(
             create: (context) => SavedWordsRepository(),
+          ),
+          RepositoryProvider<UserStatsRepository>(
+            create: (context) => UserStatsRepository(),
+          ),
+          RepositoryProvider<DictionaryService>(
+            create: (context) => dictionaryService,
           ),
         ],
         child: BlocBuilder<ThemeBloc, ThemeState>(

@@ -13,6 +13,7 @@ class StudyProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final savedWordsRepo = context.read<SavedWordsRepository>();
+    final theme = Theme.of(context);
 
     return StreamBuilder<Map<String, int>>(
       stream: savedWordsRepo.getWordProgressCounts(),
@@ -22,6 +23,7 @@ class StudyProgressCard extends StatelessWidget {
 
         return Card(
           elevation: 4,
+          color: Theme.of(context).colorScheme.surfaceContainerLowest,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -39,15 +41,13 @@ class StudyProgressCard extends StatelessWidget {
                       Icon(
                         Icons.school,
                         size: 24,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: theme.colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'Study Progress',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const Spacer(),
@@ -63,9 +63,9 @@ class StudyProgressCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildProgressItem('New', counts['new'] ?? 0, Colors.blue),
-                      _buildProgressItem('Learning', counts['learning'] ?? 0, Colors.orange),
-                      _buildProgressItem('Learned', counts['learned'] ?? 0, Colors.green),
+                      _buildProgressItem('New', counts['new'] ?? 0, Colors.blue, theme),
+                      _buildProgressItem('Learning', counts['learning'] ?? 0, Colors.orange, theme),
+                      _buildProgressItem('Learned', counts['learned'] ?? 0, Colors.green, theme),
                     ],
                   ),
                   if (total > 0) ...[
@@ -81,10 +81,8 @@ class StudyProgressCard extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 16.0),
                     child: Text(
                       '$total Total Words',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -97,21 +95,19 @@ class StudyProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressItem(String label, int count, Color color) {
+  Widget _buildProgressItem(String label, int count, Color color, ThemeData theme) {
     return Column(
       children: [
         Text(
           count.toString(),
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.headlineMedium?.copyWith(
             color: color,
           ),
         ),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.grey[600],
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ],

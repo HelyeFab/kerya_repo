@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
 
 class LoginForm extends StatefulWidget {
@@ -48,7 +49,11 @@ class _LoginFormState extends State<LoginForm> {
                   controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
+                    prefixIcon: Icon(
+                      HugeIcons.strokeRoundedMailAtSign01,
+                      color: Colors.black,
+                      size: 24.0,
+                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -63,10 +68,18 @@ class _LoginFormState extends State<LoginForm> {
                   controller: _passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock),
+                    prefixIcon: const Icon(
+                      HugeIcons.strokeRoundedLockPassword,
+                      color: Colors.black,
+                      size: 24.0,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword 
+                          ? HugeIcons.strokeRoundedMonocle01
+                          : HugeIcons.strokeRoundedView,
+                        color: Colors.black,
+                        size: 24.0,
                       ),
                       onPressed: () {
                         setState(() {
@@ -84,7 +97,7 @@ class _LoginFormState extends State<LoginForm> {
                   },
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: state.maybeWhen(
                     loading: () => null,
                     orElse: () => _onLoginPressed,
@@ -92,7 +105,11 @@ class _LoginFormState extends State<LoginForm> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: state.maybeWhen(
+                  icon: const Icon(
+                    HugeIcons.strokeRoundedLogin01,
+                    size: 24.0,
+                  ),
+                  label: state.maybeWhen(
                     loading: () => const CircularProgressIndicator(),
                     orElse: () => const Text('Login'),
                   ),
@@ -102,7 +119,11 @@ class _LoginFormState extends State<LoginForm> {
                   onPressed: () => context.read<AuthBloc>().add(
                         const AuthBlocEvent.googleSignInRequested(),
                       ),
-                  icon: const Icon(Icons.login),
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedLogin01,
+                    color: Colors.black,
+                    size: 24.0,
+                  ),
                   label: const Text('Sign in with Google'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

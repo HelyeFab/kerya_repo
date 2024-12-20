@@ -167,9 +167,7 @@ class JapaneseDictionaryService {
         }
       }
       
-      if (reading == null) {
-        reading = await _getReading(word);
-      }
+      reading ??= await _getReading(word);
 
       // Extract meanings with their metadata
       final meaningsData = wanikaniData['meanings'];

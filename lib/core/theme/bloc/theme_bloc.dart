@@ -11,7 +11,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   static const String _themePreferenceKey = 'theme_mode';
   final SharedPreferences _prefs;
 
-  ThemeBloc(this._prefs) : super(ThemeState(themeMode: ThemeMode.system)) {
+  ThemeBloc(this._prefs) : super(const ThemeState(themeMode: ThemeMode.system)) {
     on<ThemeEvent>((event, emit) {
       event.when(
         toggleTheme: () {

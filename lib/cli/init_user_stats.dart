@@ -26,14 +26,14 @@ Future<void> main() async {
             .collection('saved_words')
             .get();
         final savedWordsCount = savedWordsSnapshot.docs.length;
-        print('Found ${savedWordsCount} saved words');
+        print('Found $savedWordsCount saved words');
 
         // Get favorites count
         final favoritesSnapshot = await userDoc.reference
             .collection('favorites')
             .get();
         final favoritesCount = favoritesSnapshot.docs.length;
-        print('Found ${favoritesCount} favorites');
+        print('Found $favoritesCount favorites');
 
         // Get current stats
         final userData = userDoc.data();

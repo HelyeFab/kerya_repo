@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Keyra/core/config/app_strings.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool isInitialized;
@@ -38,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _currentMessage = AppStrings.splashMessages[0][AppStrings.englishIndex];
 
     // Update message every 2 seconds
-    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (mounted) {
         setState(() {
           // Update language index first
@@ -56,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Navigate after delay - now 10 seconds for both cases
     Future.delayed(
-      Duration(seconds: 10),
+      const Duration(seconds: 10),
       () async {
         if (mounted) {
           _timer?.cancel();
@@ -97,24 +95,27 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA), // Pastel light purple
+      backgroundColor: const Color(0xFFE6E6FA), // Pastel light purple
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               AppStrings.appName,
-              style: GoogleFonts.fascinateInline(
-                fontSize: 48,
-                color: Theme.of(context).colorScheme.primary,
+              style: TextStyle(
+                fontFamily: 'FascinateInline',
+                fontSize: 57,
+                fontWeight: FontWeight.w400,
+                color: theme.colorScheme.primary,
+                letterSpacing: -0.25,
               ),
             ),
             Text(
               AppStrings.appTagline,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.primary.withOpacity(0.8),
                 letterSpacing: 1.2,
               ),
             ),
@@ -124,17 +125,15 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 200,
               height: 200,
             ),
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32.0),
               child: Text(
                 _currentMessage,
-                style: TextStyle(
-                  fontSize: 16, // Reduced from 18
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
                 textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ),
           ],

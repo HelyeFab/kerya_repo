@@ -150,6 +150,7 @@ class UserStatsRepository {
       throw Exception('User not authenticated');
     }
 
+    print('[UserStatsRepository] Starting markBookAsRead');
     final docRef = _firestore.collection('users').doc(user.uid);
     final stats = await getUserStats();
     
@@ -174,12 +175,26 @@ class UserStatsRepository {
       }
     }
 
+    print('[UserStatsRepository] Updating Firestore with new stats');
     await docRef.set(
       {
         'booksRead': FieldValue.increment(1),
         'readingStreak': newStreak,
         'lastReadDate': Timestamp.fromDate(today),
         'readDates': FieldValue.arrayUnion([Timestamp.fromDate(today)]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    // Get and emit the updated stats immediately
+    print('[UserStatsRepository] Getting updated stats after marking book as read');
+    final updatedStats = await getUserStats();
+    print('[UserStatsRepository] Updated stats: $updatedStats');
+
+    // Update the document again to trigger the stream
+    await docRef.set(
+      {
         'lastUpdated': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),

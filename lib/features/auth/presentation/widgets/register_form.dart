@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
 
 class RegisterForm extends StatefulWidget {
@@ -89,7 +90,11 @@ class _RegisterFormState extends State<RegisterForm> {
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person),
+                    prefixIcon: Icon(
+                      HugeIcons.strokeRoundedAddTeam,
+                      color: Colors.black,
+                      size: 24.0,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -103,8 +108,11 @@ class _RegisterFormState extends State<RegisterForm> {
                   controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                    hintText: 'example@email.com',
+                    prefixIcon: Icon(
+                      HugeIcons.strokeRoundedMailAtSign01,
+                      color: Colors.black,
+                      size: 24.0,
+                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -122,11 +130,18 @@ class _RegisterFormState extends State<RegisterForm> {
                   controller: _passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock),
-                    hintText: 'Min. 6 characters',
+                    prefixIcon: const Icon(
+                      HugeIcons.strokeRoundedLockPassword,
+                      color: Colors.black,
+                      size: 24.0,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword 
+                          ? HugeIcons.strokeRoundedMonocle01
+                          : HugeIcons.strokeRoundedView,
+                        color: Colors.black,
+                        size: 24.0,
                       ),
                       onPressed: () {
                         setState(() {
@@ -147,7 +162,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   },
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: state.maybeWhen(
                     loading: () => null,
                     orElse: () => _onRegisterPressed,
@@ -155,7 +170,11 @@ class _RegisterFormState extends State<RegisterForm> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: state.maybeWhen(
+                  icon: const Icon(
+                    HugeIcons.strokeRoundedUser,
+                    size: 24.0,
+                  ),
+                  label: state.maybeWhen(
                     loading: () => const CircularProgressIndicator(),
                     orElse: () => const Text('Register'),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
@@ -61,7 +62,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
   final SavedWordsRepository _savedWordsRepository = SavedWordsRepository();
   Map<String, dynamic>? _definition;
   bool _isLoading = true;
-  bool _isSaving = false;
+  final bool _isSaving = false;
   bool _isSaved = false;
   String? _error;
   String? _savedWordId;
@@ -177,9 +178,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
         const SizedBox(height: 16),
         Text(
           AppStrings.findingExamplesFor(widget.word),
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Colors.grey[600],
-          ),
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ],
     );
@@ -222,11 +221,37 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.word,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.word,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedVolumeMute01,
+                            color: Colors.black,
+                            size: 24.0,
+                          ),
+                          onPressed: () {
+                            DictionaryService().speakWord(widget.word, widget.language.code);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            _isSaved ? Icons.bookmark : Icons.bookmark_border,
+                            color: theme.colorScheme.primary,
+                          ),
+                          onPressed: _toggleSaveWord,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 if (_definition?['partsOfSpeech'] != null)
                   Padding(
@@ -246,35 +271,11 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                       "/${_definition!['reading']}/",
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontFamily: 'NotoSans',
-                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
               ],
             ),
-          ),
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: theme.brightness == Brightness.dark
-                      ? theme.colorScheme.surfaceVariant
-                      : const Color(0xFFFFF9C4),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    _isSaved ? Icons.bookmark : Icons.bookmark_border,
-                    color: _isSaved ? theme.colorScheme.primary : null,
-                  ),
-                  onPressed: _toggleSaveWord,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
           ),
         ],
       ),
@@ -291,7 +292,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -316,9 +317,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
                         Expanded(
                           child: Text(
                             meaning.toString(),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                            style: theme.textTheme.bodyMedium,
                           ),
                         ),
                       ],
@@ -340,7 +339,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -356,9 +355,7 @@ class _WordDefinitionModalState extends State<WordDefinitionModal> {
           const SizedBox(height: 8),
           Text(
             _definition!['etymology'],
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodyMedium,
           ),
         ],
       ),

@@ -19,6 +19,7 @@ class CircularStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -35,9 +36,8 @@ class CircularStatsCard extends StatelessWidget {
             Flexible(
               child: Text(
                 title,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[700],
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -52,7 +52,7 @@ class CircularStatsCard extends StatelessWidget {
           height: 85,
           child: CustomPaint(
             painter: CircularProgressPainter(
-              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
               valueColor: color,
               value: value / maxValue,
             ),
@@ -62,16 +62,14 @@ class CircularStatsCard extends StatelessWidget {
                 children: [
                   Text(
                     value.toString(),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                   Text(
                     '$value / $maxValue',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey[600],
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
