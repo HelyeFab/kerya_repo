@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import '../../../../core/theme/color_schemes.dart';
@@ -6,7 +6,7 @@ import '../../../../features/dictionary/domain/models/saved_word.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../features/dictionary/domain/services/spaced_repetition_service.dart';
 import '../widgets/flashcard.dart';
-import '../../../../core/config/ui_translations.dart';
+import '../../../../core/ui_language/translations/ui_translations.dart';
 import '../../../../core/ui_language/bloc/ui_language_bloc.dart';
 import '../../../../core/ui_language/service/ui_translation_service.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -107,7 +107,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
               ),
             ),
             title: Text(
-              '${UiTranslationService.translate(context, 'study_session')} (${_currentIndex + 1}/${widget.words.length})',
+              '${UiTranslationService.translate(context, 'flashcard_study_session')} (${_currentIndex + 1}/${widget.words.length})',
             ),
             actions: [
               IconButton(
@@ -171,7 +171,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
                             ? AppColors.flashcardHardLight
                             : AppColors.flashcardHardDark,
                       ),
-                      child: Text(UiTranslationService.translate(context, 'difficulty_hard')),
+                      child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_hard')),
                     ),
                     ElevatedButton(
                       onPressed: () => _markWord(1),
@@ -180,7 +180,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
                             ? AppColors.flashcardGoodLight
                             : AppColors.flashcardGoodDark,
                       ),
-                      child: Text(UiTranslationService.translate(context, 'difficulty_good')),
+                      child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_good')),
                     ),
                     ElevatedButton(
                       onPressed: () => _markWord(2),
@@ -189,7 +189,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
                             ? AppColors.flashcardEasyLight
                             : AppColors.flashcardEasyDark,
                       ),
-                      child: Text(UiTranslationService.translate(context, 'difficulty_easy')),
+                      child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_easy')),
                     ),
                   ],
                 ),

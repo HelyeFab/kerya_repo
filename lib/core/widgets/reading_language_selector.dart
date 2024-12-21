@@ -29,12 +29,12 @@ class LanguageSelection {
       LanguageSelection(language: language);
 }
 
-class LanguageSelector extends StatelessWidget {
+class ReadingLanguageSelector extends StatelessWidget {
   final BookLanguage? currentLanguage;
   final void Function(BookLanguage?) onLanguageChanged;
   final bool showAllOption;
 
-  const LanguageSelector({
+  const ReadingLanguageSelector({
     Key? key,
     required this.currentLanguage,
     required this.onLanguageChanged,
@@ -45,6 +45,7 @@ class LanguageSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get translations upfront
     final allLanguagesText = UiTranslationService.translate(context, 'common_all_languages');
+    final selectLanguageText = UiTranslationService.translate(context, 'select reading language');
     
     // Convert current language to LanguageSelection
     final currentSelection = currentLanguage == null
@@ -52,6 +53,7 @@ class LanguageSelector extends StatelessWidget {
         : LanguageSelection.specific(currentLanguage!);
 
     return PopupMenuButton<LanguageSelection>(
+      tooltip: selectLanguageText,
       initialValue: currentSelection,
       onSelected: (selection) {
         onLanguageChanged(selection.language);

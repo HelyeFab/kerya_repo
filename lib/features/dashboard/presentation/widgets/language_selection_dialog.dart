@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/config/ui_translations.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/ui_language/translations/ui_translations.dart';
 import '../../../../core/ui_language/service/ui_translation_service.dart';
 import '../../../../features/books/domain/models/book_language.dart';
+import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
+import 'no_saved_words_dialog.dart';
 
 class LanguageSelectionDialog extends StatelessWidget {
   final List<String> languages;
@@ -50,8 +53,39 @@ class LanguageSelectionDialog extends StatelessWidget {
                 ),
                 title: Text(bookLanguage.displayName),
                 onTap: () {
-                  Navigator.pop(context);
-                  onLanguageSelected(language);
+                  final savedWordsRepo = context.read<SavedWordsRepository>();
+                  savedWordsRepo.getWordProgressCounts().first.then((counts) {
+                    final total = counts.values.fold(0, (sum, count) => sum + count);
+                    
+                    if (total == 0) {
+                      // Case 1: No saved words at all
+                      Navigator.pop(context);
+                      showDialog(
+                        context: context,
+                        builder: (context) => NoSavedWordsDialog(
+                          showLanguageSpecific: false,
+                          languageCode: language,
+                        ),
+                      );
+                    } else {
+                      // Check if there are words in the selected language
+                      final wordsInLanguage = counts[language] ?? 0;
+                      if (wordsInLanguage == 0) {
+                        // Case 2: Has words but not in this language
+                        Navigator.pop(context);
+                        showDialog(
+                          context: context,
+                        builder: (context) => NoSavedWordsDialog(
+                          showLanguageSpecific: true,
+                          languageCode: language,
+                        ),
+                        );
+                      } else {
+                        Navigator.pop(context);
+                        onLanguageSelected(language);
+                      }
+                    }
+                  });
                 },
               );
             }),

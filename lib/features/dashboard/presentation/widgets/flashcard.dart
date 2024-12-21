@@ -37,6 +37,8 @@ class Flashcard extends StatelessWidget {
   }
 
   Widget _buildFrontCard(BuildContext context, String languageCode) {
+    // Get translations upfront
+    final tapToSeeDefinitionText = UiTranslationService.translate(context, 'tap_to_see_definition');
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -57,14 +59,14 @@ class Flashcard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              '${UiTranslationService.translate(context, 'flashcard_language')}: $language',
+              UiTranslationService.translate(context, 'language_${language.toLowerCase()}'),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Colors.grey[600],
                   ),
             ),
             const SizedBox(height: 24),
             Text(
-              UiTranslationService.translate(context, 'flashcard_tap_to_see_definition'),
+              UiTranslationService.translate(context, 'tap_to_see_definition'),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.grey[400],
                   ),
@@ -76,6 +78,10 @@ class Flashcard extends StatelessWidget {
   }
 
   Widget _buildBackCard(BuildContext context, String languageCode) {
+    // Get translations upfront
+    final definitionText = UiTranslationService.translate(context, 'definition');
+    final examplesText = UiTranslationService.translate(context, 'examples');
+    final tapToSeeWordText = UiTranslationService.translate(context, 'tap_to_see_word');
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -89,7 +95,7 @@ class Flashcard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${UiTranslationService.translate(context, 'flashcard_definition')}:',
+              '$definitionText:',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary,
@@ -104,7 +110,7 @@ class Flashcard extends StatelessWidget {
             if (examples != null && examples!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
-                '${UiTranslationService.translate(context, 'flashcard_examples')}:',
+                '$examplesText:',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
@@ -122,7 +128,7 @@ class Flashcard extends StatelessWidget {
             const Spacer(),
             Center(
               child: Text(
-                UiTranslationService.translate(context, 'flashcard_tap_to_see_word'),
+                tapToSeeWordText,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey[400],
                     ),

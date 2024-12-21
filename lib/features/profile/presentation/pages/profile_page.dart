@@ -47,19 +47,19 @@ class ProfilePage extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(UiTranslationService.translate(context, 'profile_logout')),
-          content: Text(UiTranslationService.translate(context, 'profile_logout_confirm')),
+          title: Text(UiTranslationService.translate(context, 'logout')),
+          content: Text(UiTranslationService.translate(context, 'logout_confirm')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(UiTranslationService.translate(context, 'profile_cancel')),
+              child: Text(UiTranslationService.translate(context, 'cancel')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: Text(UiTranslationService.translate(context, 'profile_logout')),
+              child: Text(UiTranslationService.translate(context, 'logout')),
             ),
           ],
         );
@@ -146,9 +146,9 @@ class ProfilePage extends StatelessWidget {
                 color: iconColor,
                 size: 24.0,
               ),
-              title: Text(UiTranslationService.translate(context, 'profile_saved_words')),
+              title: Text(UiTranslationService.translate(context, 'saved words')),
               subtitle: Text(
-                UiTranslationService.translate(context, 'profile_saved_words_subtitle'),
+                UiTranslationService.translate(context, 'saved words subtitle'),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -175,7 +175,7 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    UiTranslationService.translate(context, 'profile_settings'),
+                    UiTranslationService.translate(context, 'settings'),
                     style: theme.textTheme.titleLarge,
                   ),
                 ),
@@ -186,7 +186,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_dark_mode')),
+                  title: Text(UiTranslationService.translate(context, 'dark mode')),
                   trailing: BlocBuilder<ThemeBloc, ThemeState>(
                     builder: (context, state) {
                       return Switch(
@@ -204,7 +204,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_notifications')),
+                  title: Text(UiTranslationService.translate(context, 'notifications')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {},
                 ),
@@ -214,7 +214,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_app_language')),
+                  title: Text(UiTranslationService.translate(context, 'app language')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showLanguageDialog(context),
                 ),
@@ -222,7 +222,7 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    UiTranslationService.translate(context, 'profile_information'),
+                    UiTranslationService.translate(context, 'information'),
                     style: theme.textTheme.titleLarge,
                   ),
                 ),
@@ -233,7 +233,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_version')),
+                  title: Text(UiTranslationService.translate(context, 'version')),
                   trailing: const Text('1.0.0'),
                 ),
                 ListTile(
@@ -242,7 +242,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_acknowledgments')),
+                  title: Text(UiTranslationService.translate(context, 'acknowledgments')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -259,7 +259,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_privacy_policy')),
+                  title: Text(UiTranslationService.translate(context, 'privacy policy')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -276,7 +276,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_terms_of_service')),
+                  title: Text(UiTranslationService.translate(context, 'terms of service')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -293,7 +293,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_developer')),
+                  title: Text(UiTranslationService.translate(context, 'developer')),
                   subtitle: const Text('Emmanuel Fabiani'),
                 ),
                 ListTile(
@@ -302,7 +302,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'profile_contact_us')),
+                  title: Text(UiTranslationService.translate(context, 'contact us')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final Uri emailLaunchUri = Uri(

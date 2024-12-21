@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
 import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
-import 'package:Keyra/core/widgets/language_selector.dart';
+import 'package:Keyra/core/widgets/reading_language_selector.dart';
 import 'package:Keyra/core/widgets/loading_indicator.dart';
 import 'package:Keyra/core/widgets/loading_animation.dart';
 import 'package:Keyra/core/widgets/mini_stats_display.dart';
@@ -144,7 +144,7 @@ class _LibraryPageState extends State<LibraryPage> {
           _filteredBooks[index] = book;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(UiTranslationService.translate(context, 'library_error_favorite'))),
+          SnackBar(content: Text('Error updating favorite status')),
         );
       }
     }
@@ -171,11 +171,11 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildFilterChip(String label) {
     bool isSelected;
-    if (label == UiTranslationService.translate(context, 'library_filter_all')) {
+    if (label == UiTranslationService.translate(context, 'all')) {
       isSelected = _activeFilter == 'All';
-    } else if (label == UiTranslationService.translate(context, 'library_filter_favorites')) {
+    } else if (label == UiTranslationService.translate(context, 'favorites')) {
       isSelected = _activeFilter == 'Favorites';
-    } else if (label == UiTranslationService.translate(context, 'library_filter_recents')) {
+    } else if (label == UiTranslationService.translate(context, 'recents')) {
       isSelected = _activeFilter == 'Recents';
     } else {
       isSelected = false;
@@ -196,11 +196,11 @@ class _LibraryPageState extends State<LibraryPage> {
         onSelected: (selected) {
           setState(() {
             String filterValue;
-            if (label == UiTranslationService.translate(context, 'library_filter_all')) {
+            if (label == UiTranslationService.translate(context, 'all')) {
               filterValue = 'All';
-            } else if (label == UiTranslationService.translate(context, 'library_filter_favorites')) {
+            } else if (label == UiTranslationService.translate(context, 'favorites')) {
               filterValue = 'Favorites';
-            } else if (label == UiTranslationService.translate(context, 'library_filter_recents')) {
+            } else if (label == UiTranslationService.translate(context, 'recents')) {
               filterValue = 'Recents';
             } else {
               filterValue = 'All';
@@ -238,7 +238,7 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Widget _buildLanguageSelector() {
-    return LanguageSelector(
+    return ReadingLanguageSelector(
       currentLanguage: context.read<LanguageBloc>().state.selectedLanguage,
       onLanguageChanged: (language) {
         if (language != null) {
@@ -290,7 +290,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText:
-                        UiTranslationService.translate(context, 'library_search_books'),
+                        UiTranslationService.translate(context, 'search books'),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _isSearching
                         ? const SizedBox(
@@ -327,11 +327,11 @@ class _LibraryPageState extends State<LibraryPage> {
                 child: Row(
                   children: [
                     _buildFilterChip(
-                        UiTranslationService.translate(context, 'library_filter_all')),
+                        UiTranslationService.translate(context, 'all')),
                     _buildFilterChip(
-                        UiTranslationService.translate(context, 'library_filter_favorites')),
+                        UiTranslationService.translate(context, 'favorites')),
                     _buildFilterChip(
-                        UiTranslationService.translate(context, 'library_filter_recents')),
+                        UiTranslationService.translate(context, 'recents')),
                   ],
                 ),
               ),

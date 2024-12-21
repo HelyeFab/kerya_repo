@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:Keyra/core/theme/app_spacing.dart';
-import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
-import 'package:Keyra/core/widgets/language_selector.dart';
-import 'package:Keyra/core/widgets/menu_button.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/presentation/bloc/language_bloc.dart';
+import '../../../../core/widgets/reading_language_selector.dart';
+import '../../../../core/widgets/menu_button.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:Keyra/core/widgets/loading_indicator.dart';
-import 'package:Keyra/core/widgets/mini_stats_display.dart';
-import 'package:Keyra/features/books/domain/models/book.dart';
-import 'package:Keyra/features/books/domain/models/book_language.dart';
-import 'package:Keyra/features/books/presentation/pages/book_reader_page.dart';
-import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
-import 'package:Keyra/features/books/data/repositories/book_repository.dart';
-import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
-import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
-import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
+import '../../../../core/widgets/loading_indicator.dart';
+import '../../../../core/widgets/mini_stats_display.dart';
+import '../../../../features/books/domain/models/book.dart';
+import '../../../../features/books/domain/models/book_language.dart';
+import '../../../../features/books/presentation/pages/book_reader_page.dart';
+import '../widgets/book_card.dart';
+import '../../../../features/books/data/repositories/book_repository.dart';
+import '../../../../features/books/data/repositories/firestore_populator.dart';
+import '../../../../features/dashboard/data/repositories/user_stats_repository.dart';
+import '../../../../features/dictionary/data/services/dictionary_service.dart';
 import 'package:provider/provider.dart';
-import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
+import '../../../../core/ui_language/service/ui_translation_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -166,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                     const MiniStatsDisplay(),
                     Row(
                       children: [
-                        LanguageSelector(
+                        ReadingLanguageSelector(
                           currentLanguage: languageState.selectedLanguage,
                           onLanguageChanged: (language) {
                             if (language != null) {

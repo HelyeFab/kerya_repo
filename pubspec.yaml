@@ -92,6 +92,7 @@ flutter:
     - assets/flags/
     - assets/loader/
     - assets/audio/
+    - assets/badge/
     - assets/audio/books/
     - assets/audio/books/magic_forest/
     - assets/audio/books/magic_forest/de/

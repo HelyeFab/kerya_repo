@@ -1,18 +1,20 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'features/badges/domain/repositories/badge_repository.dart';
+import 'features/badges/data/repositories/mock_badge_repository.dart';
+import 'features/dictionary/data/repositories/saved_words_repository.dart';
+import 'features/home/presentation/pages/home_page.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
 import 'package:Keyra/core/ui_language/bloc/ui_language_bloc.dart';
-import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dart';
-import 'package:Keyra/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:Keyra/features/auth/data/repositories/firebase_auth_repository.dart';
 import 'package:Keyra/core/theme/app_theme.dart';
 import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
-import 'package:Keyra/features/home/presentation/pages/home_page.dart';
 import 'package:Keyra/features/library/presentation/pages/library_page.dart';
 import 'package:Keyra/features/create/presentation/pages/create_page.dart';
 import 'package:Keyra/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -22,8 +24,8 @@ import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart'
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'splash_screen.dart';
 import 'dart:async';
-import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
-import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
+import 'package:Keyra/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dart';
 
 // Create a stream controller for dictionary initialization status
 final _dictionaryInitController = StreamController<bool>.broadcast();
@@ -159,6 +161,9 @@ class MyApp extends StatelessWidget {
         providers: [
           RepositoryProvider<SavedWordsRepository>(
             create: (context) => SavedWordsRepository(),
+          ),
+          RepositoryProvider<BadgeRepository>(
+            create: (context) => MockBadgeRepository(),
           ),
           RepositoryProvider<UserStatsRepository>(
             create: (context) => UserStatsRepository(),

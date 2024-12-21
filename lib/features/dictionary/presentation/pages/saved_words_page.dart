@@ -12,7 +12,7 @@ class SavedWordsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Saved Words'),
+        
       ),
       body: StreamBuilder<List<SavedWord>>(
         stream: _repository.getSavedWords(),

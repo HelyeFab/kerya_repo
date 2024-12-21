@@ -3,7 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../features/dictionary/domain/models/saved_word.dart';
 import '../../../../features/books/domain/models/book_language.dart';
-import '../../../../core/widgets/language_selector.dart';
+import '../../../../core/widgets/study_language_selector.dart';
 
 class SavedWordsPage extends StatefulWidget {
   const SavedWordsPage({Key? key}) : super(key: key);
@@ -172,7 +172,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: LanguageSelector(
+            child: StudyLanguageSelector(
               currentLanguage: _selectedLanguage,
               onLanguageChanged: _onLanguageChanged,
               showAllOption: true,

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:Keyra/core/widgets/loading_indicator.dart';
-import 'package:Keyra/core/widgets/menu_button.dart';
+import '../../../../core/widgets/loading_indicator.dart';
+import '../../../../core/widgets/menu_button.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../widgets/circular_stats_card.dart';
 import '../widgets/study_progress_card.dart';
+import '../widgets/no_saved_words_dialog.dart';
 import 'saved_words_page.dart';
 import 'study_session_page.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
-import '../../../../core/widgets/language_selector.dart';
+import '../../../../core/widgets/study_language_selector.dart';
 import '../../../../features/books/domain/models/book_language.dart';
 import '../../../../core/ui_language/service/ui_translation_service.dart';
+import '../../../badges/presentation/widgets/badge_display.dart';
+import '../../../badges/domain/models/badge_level.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -43,19 +46,13 @@ class _DashboardPageState extends State<DashboardPage>
         ),
       );
     } else {
-      print('Showing no words snackbar');
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            language == null
-                ? UiTranslationService.translate(context, 'dashboard_no_words')
-                : UiTranslationService.translate(
-                    context, 'dashboard_no_words_for_language', [
-                    UiTranslationService.translate(
-                        context, 'language ${language.code}')
-                  ]),
-          ),
+      
+      showDialog(
+        context: context,
+        builder: (context) => NoSavedWordsDialog(
+          showLanguageSpecific: language != null,
+          languageCode: language?.code,
         ),
       );
     }
@@ -80,6 +77,37 @@ class _DashboardPageState extends State<DashboardPage>
       appBar: AppBar(
         centerTitle: false,
         automaticallyImplyLeading: false,
+        leading: BadgeDisplay(
+          level: BadgeLevel.beginner,
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(UiTranslationService.translate(
+                  context,
+                  'badge_progress_title',
+                  null,
+                  false,
+                )),
+                content: BadgeDisplay(
+                  level: BadgeLevel.beginner,
+                  showName: true,
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(UiTranslationService.translate(
+                      context,
+                      'common_close',
+                      null,
+                      false,
+                    )),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
         actions: const [
           MenuButton(),
           SizedBox(width: 16),
@@ -105,7 +133,7 @@ class _DashboardPageState extends State<DashboardPage>
                                 Theme.of(context).colorScheme.error,
                             action: SnackBarAction(
                               label: UiTranslationService.translate(
-                                  context, 'common_retry'),
+                                  context, 'ok', null, false),
                               textColor: Colors.white,
                               onPressed: () {
                                 context
@@ -153,19 +181,7 @@ class _DashboardPageState extends State<DashboardPage>
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        UiTranslationService.translate(context,
-                                            'dashboard_track_progress'),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge
-                                            ?.copyWith(
-                                              color: Colors.grey[600],
-                                            ),
-                                      ),
-                                      const SizedBox(height: 32),
-
+                                   
                                       // Stats Content
                                       Column(
                                         children: [
@@ -178,7 +194,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                 child: CircularStatsCard(
                                                   title: UiTranslationService
                                                       .translate(context,
-                                                          'dashboard_books_read'),
+                                                          'books read'),
                                                   value: booksRead,
                                                   maxValue: 50,
                                                   icon: Icons.book,
@@ -189,7 +205,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                 child: CircularStatsCard(
                                                   title: UiTranslationService
                                                       .translate(context,
-                                                          'dashboard_favorite_books'),
+                                                          'favorite books'),
                                                   value: favoriteBooks,
                                                   maxValue: 20,
                                                   icon: Icons.favorite,
@@ -210,7 +226,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                 child: CircularStatsCard(
                                                   title: UiTranslationService
                                                       .translate(context,
-                                                          'dashboard_reading_streak'),
+                                                          'reading streak'),
                                                   value: readingStreak,
                                                   maxValue: 30,
                                                   icon: Icons
@@ -280,7 +296,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                                   UiTranslationService
                                                                       .translate(
                                                                           context,
-                                                                          'dashboard_saved_words'),
+                                                                          'saved words'),
                                                                   style:
                                                                       TextStyle(
                                                                     fontSize:
@@ -332,35 +348,8 @@ class _DashboardPageState extends State<DashboardPage>
                                           Column(
                                             children: [
                                               StudyProgressCard(
-                                                onTap: () async {
-                                                  // Get translations upfront
-                                                  final studyWordsText = UiTranslationService.translate(context, 'dashboard_study_words');
-                                                  final selectLanguageText = UiTranslationService.translate(context, 'dashboard_select_language_to_study');
-                                                  
-                                                  if (!context.mounted) return;
-                                                  
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (dialogContext) => AlertDialog(
-                                                      title: Text(studyWordsText),
-                                                      content: Column(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text(selectLanguageText),
-                                                          const SizedBox(height: 16),
-                                                          LanguageSelector(
-                                                            currentLanguage: null,
-                                                            onLanguageChanged: (language) {
-                                                              Navigator.pop(dialogContext);
-                                                              _startStudySession(context, language);
-                                                            },
-                                                            showAllOption: true,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
+                                                onLanguageSelected: (language) {
+                                                  _startStudySession(context, language);
                                                 },
                                               ),
                                             ],
@@ -403,7 +392,7 @@ class _DashboardPageState extends State<DashboardPage>
                                 },
                                 icon: const Icon(Icons.refresh),
                                 label: Text(UiTranslationService.translate(
-                                    context, 'common_retry')),
+                                    context, 'ok', null, false)),
                               ),
                             ],
                           ),

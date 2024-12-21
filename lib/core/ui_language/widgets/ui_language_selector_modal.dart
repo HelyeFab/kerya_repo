@@ -32,7 +32,7 @@ class UiLanguageSelectorModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      UiTranslationService.translate(context, 'profile_select_language'),
+                      UiTranslationService.translate(context, 'select language'),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     IconButton(

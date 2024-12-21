@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/config/ui_translations.dart';
+import '../../../../core/ui_language/translations/ui_translations.dart';
 import '../../../../core/ui_language/bloc/ui_language_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 
