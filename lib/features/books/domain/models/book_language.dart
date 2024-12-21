@@ -11,13 +11,6 @@ enum BookLanguage {
 
   const BookLanguage(this.code, this.displayName);
 
-  static BookLanguage fromCode(String code) {
-    return BookLanguage.values.firstWhere(
-      (lang) => lang.code == code,
-      orElse: () => BookLanguage.english,
-    );
-  }
-
   String get flagAsset {
     switch (this) {
       case BookLanguage.english:
@@ -33,5 +26,12 @@ enum BookLanguage {
       case BookLanguage.japanese:
         return 'assets/flags/japan.png';
     }
+  }
+
+  static BookLanguage fromCode(String code) {
+    return BookLanguage.values.firstWhere(
+      (lang) => lang.code == code,
+      orElse: () => BookLanguage.english,
+    );
   }
 }

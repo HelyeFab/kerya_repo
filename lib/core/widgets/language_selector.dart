@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../ui_language/service/ui_translation_service.dart';
 
 // Custom class to handle both language and "all" states
 class LanguageSelection {
@@ -42,6 +43,9 @@ class LanguageSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get translations upfront
+    final allLanguagesText = UiTranslationService.translate(context, 'common_all_languages');
+    
     // Convert current language to LanguageSelection
     final currentSelection = currentLanguage == null
         ? LanguageSelection.all()
@@ -59,11 +63,11 @@ class LanguageSelector extends StatelessWidget {
           items.add(
             PopupMenuItem(
               value: LanguageSelection.all(),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.language, size: 24),
-                  SizedBox(width: 12),
-                  Text('All Languages'),
+                  const Icon(Icons.language, size: 24),
+                  const SizedBox(width: 12),
+                  Text(allLanguagesText),
                 ],
               ),
             ),
@@ -107,7 +111,7 @@ class LanguageSelector extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (currentLanguage != null) ...[
+            if (currentLanguage != null) ... [
               Image.asset(
                 currentLanguage!.flagAsset,
                 width: 24,
@@ -118,7 +122,7 @@ class LanguageSelector extends StatelessWidget {
                 currentLanguage!.code.toUpperCase(),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ] else ...[
+            ] else ... [
               Icon(
                 Icons.language,
                 size: 24,
@@ -126,7 +130,7 @@ class LanguageSelector extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'All',
+                allLanguagesText,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],

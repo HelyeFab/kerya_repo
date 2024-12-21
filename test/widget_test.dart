@@ -6,9 +6,11 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
+import 'package:Keyra/core/ui_language/bloc/ui_language_bloc.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:Keyra/main.dart';
 
@@ -19,6 +21,8 @@ void main() {
     final themeBloc = await ThemeBloc.create();
     final languageBloc = await LanguageBloc.create();
     final dictionaryService = DictionaryService();
+    final prefs = await SharedPreferences.getInstance();
+    final uiLanguageBloc = UiLanguageBloc(prefs);
     
     // Build our app and trigger a frame
     await tester.pumpWidget(MyApp(
@@ -26,6 +30,7 @@ void main() {
       isFirstLaunch: true,
       themeBloc: themeBloc,
       languageBloc: languageBloc,
+      uiLanguageBloc: uiLanguageBloc,
       dictionaryService: dictionaryService,
     ));
   });

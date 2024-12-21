@@ -16,6 +16,7 @@ import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
+import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
 import 'package:provider/provider.dart';
 
 class LibraryPage extends StatefulWidget {
@@ -92,8 +93,11 @@ class _LibraryPageState extends State<LibraryPage> {
     final searchTerm = _searchController.text.toLowerCase();
     setState(() {
       var filtered = _allBooks.where((book) {
-        final matchesSearch = book.getTitle(context.read<LanguageBloc>().state.selectedLanguage).toLowerCase().contains(searchTerm);
-        
+        final matchesSearch = book
+            .getTitle(context.read<LanguageBloc>().state.selectedLanguage)
+            .toLowerCase()
+            .contains(searchTerm);
+
         switch (_activeFilter) {
           case 'All':
             return matchesSearch;
@@ -140,14 +144,15 @@ class _LibraryPageState extends State<LibraryPage> {
           _filteredBooks[index] = book;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update favorite status')),
+          SnackBar(content: Text(UiTranslationService.translate(context, 'library_error_favorite'))),
         );
       }
     }
   }
 
   void _navigateToBookReader(BuildContext context, Book book) {
-    final selectedLanguage = context.read<LanguageBloc>().state.selectedLanguage;
+    final selectedLanguage =
+        context.read<LanguageBloc>().state.selectedLanguage;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BookReaderPage(
@@ -165,7 +170,16 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Widget _buildFilterChip(String label) {
-    final isSelected = _activeFilter == label;
+    bool isSelected;
+    if (label == UiTranslationService.translate(context, 'library_filter_all')) {
+      isSelected = _activeFilter == 'All';
+    } else if (label == UiTranslationService.translate(context, 'library_filter_favorites')) {
+      isSelected = _activeFilter == 'Favorites';
+    } else if (label == UiTranslationService.translate(context, 'library_filter_recents')) {
+      isSelected = _activeFilter == 'Recents';
+    } else {
+      isSelected = false;
+    }
     return Padding(
       padding: const EdgeInsets.only(right: AppSpacing.sm),
       child: FilterChip(
@@ -173,7 +187,7 @@ class _LibraryPageState extends State<LibraryPage> {
         showCheckmark: false,
         label: Text(label),
         labelStyle: TextStyle(
-          color: isSelected 
+          color: isSelected
               ? Theme.of(context).colorScheme.onPrimary
               : Theme.of(context).colorScheme.onSurface,
         ),
@@ -181,7 +195,17 @@ class _LibraryPageState extends State<LibraryPage> {
         selectedColor: Theme.of(context).colorScheme.primary,
         onSelected: (selected) {
           setState(() {
-            _activeFilter = selected ? label : 'All';
+            String filterValue;
+            if (label == UiTranslationService.translate(context, 'library_filter_all')) {
+              filterValue = 'All';
+            } else if (label == UiTranslationService.translate(context, 'library_filter_favorites')) {
+              filterValue = 'Favorites';
+            } else if (label == UiTranslationService.translate(context, 'library_filter_recents')) {
+              filterValue = 'Recents';
+            } else {
+              filterValue = 'All';
+            }
+            _activeFilter = selected ? filterValue : 'All';
             _filterBooks();
           });
         },
@@ -202,7 +226,8 @@ class _LibraryPageState extends State<LibraryPage> {
       itemBuilder: (context, index) {
         final book = books[index];
         return BookCard(
-          title: book.getTitle(context.read<LanguageBloc>().state.selectedLanguage),
+          title: book
+              .getTitle(context.read<LanguageBloc>().state.selectedLanguage),
           coverImagePath: book.coverImage,
           isFavorite: book.isFavorite,
           onFavoriteTap: () => _toggleFavorite(index),
@@ -218,8 +243,8 @@ class _LibraryPageState extends State<LibraryPage> {
       onLanguageChanged: (language) {
         if (language != null) {
           context.read<LanguageBloc>().add(
-            LanguageChanged(language),
-          );
+                LanguageChanged(language),
+              );
         }
       },
     );
@@ -264,7 +289,8 @@ class _LibraryPageState extends State<LibraryPage> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search your books...',
+                    hintText:
+                        UiTranslationService.translate(context, 'library_search_books'),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _isSearching
                         ? const SizedBox(
@@ -288,7 +314,10 @@ class _LibraryPageState extends State<LibraryPage> {
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    fillColor: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withOpacity(0.3),
                   ),
                 ),
               ),
@@ -297,9 +326,12 @@ class _LibraryPageState extends State<LibraryPage> {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Row(
                   children: [
-                    _buildFilterChip('All'),
-                    _buildFilterChip('Favorites'),
-                    _buildFilterChip('Recents'),
+                    _buildFilterChip(
+                        UiTranslationService.translate(context, 'library_filter_all')),
+                    _buildFilterChip(
+                        UiTranslationService.translate(context, 'library_filter_favorites')),
+                    _buildFilterChip(
+                        UiTranslationService.translate(context, 'library_filter_recents')),
                   ],
                 ),
               ),
@@ -307,8 +339,8 @@ class _LibraryPageState extends State<LibraryPage> {
               Expanded(
                 child: _isLoading
                     ? const Center(
-                      child: LoadingIndicator(size: 100),
-                    )
+                        child: LoadingIndicator(size: 100),
+                      )
                     : RefreshIndicator(
                         onRefresh: () async {
                           _loadBooks();

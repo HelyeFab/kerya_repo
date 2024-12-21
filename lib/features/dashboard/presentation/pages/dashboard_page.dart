@@ -10,6 +10,7 @@ import 'study_session_page.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../core/widgets/language_selector.dart';
 import '../../../../features/books/domain/models/book_language.dart';
+import '../../../../core/ui_language/service/ui_translation_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -18,37 +19,29 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveClientMixin {
+class _DashboardPageState extends State<DashboardPage>
+    with AutomaticKeepAliveClientMixin {
   final _navigatorKey = GlobalKey<NavigatorState>();
   @override
   bool get wantKeepAlive => true;
 
   void _startStudySession(BuildContext context, BookLanguage? language) async {
     final savedWordsRepo = context.read<SavedWordsRepository>();
-    print('Selected language: ${language?.code}');
     final words = await savedWordsRepo.getSavedWordsList(
       language: language?.code.toLowerCase(),
     );
-    print('Found ${words.length} words for language ${language?.code}');
-    
+
     if (!context.mounted) return;
-    
+
     if (words.isNotEmpty) {
-      print('Attempting to navigate to StudySessionPage');
-      try {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => StudySessionPage(
-              words: words,
-            ),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StudySessionPage(
+            words: words,
           ),
-        );
-        print('Navigation completed');
-      } catch (e) {
-        print('Navigation error: $e');
-        print(e.toString());
-      }
+        ),
+      );
     } else {
       print('Showing no words snackbar');
       if (!context.mounted) return;
@@ -56,8 +49,12 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
         SnackBar(
           content: Text(
             language == null
-                ? 'No words to study yet! Save some words first.'
-                : 'No ${language.displayName} words to study yet!',
+                ? UiTranslationService.translate(context, 'dashboard_no_words')
+                : UiTranslationService.translate(
+                    context, 'dashboard_no_words_for_language', [
+                    UiTranslationService.translate(
+                        context, 'language ${language.code}')
+                  ]),
           ),
         ),
       );
@@ -78,7 +75,7 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
@@ -104,12 +101,16 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(message),
-                            backgroundColor: Theme.of(context).colorScheme.error,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.error,
                             action: SnackBarAction(
-                              label: 'Retry',
+                              label: UiTranslationService.translate(
+                                  context, 'common_retry'),
                               textColor: Colors.white,
                               onPressed: () {
-                                context.read<DashboardBloc>().loadDashboardStats();
+                                context
+                                    .read<DashboardBloc>()
+                                    .loadDashboardStats();
                               },
                             ),
                           ),
@@ -122,14 +123,16 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                     return state.when(
                       initial: () => const Center(child: SizedBox()),
                       loading: () => const Center(child: SizedBox()),
-                      loaded: (booksRead, favoriteBooks, readingStreak, savedWords) {
+                      loaded: (booksRead, favoriteBooks, readingStreak,
+                          savedWords) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Padding(
                               padding: EdgeInsets.all(16.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   SizedBox(),
                                   Row(
@@ -147,14 +150,19 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Track your reading progress',
-                                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                          color: Colors.grey[600],
-                                        ),
+                                        UiTranslationService.translate(context,
+                                            'dashboard_track_progress'),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.copyWith(
+                                              color: Colors.grey[600],
+                                            ),
                                       ),
                                       const SizedBox(height: 32),
 
@@ -163,11 +171,14 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                         children: [
                                           // First Row: Books Read and Favorite Books
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
                                             children: [
                                               Expanded(
                                                 child: CircularStatsCard(
-                                                  title: 'Books Read',
+                                                  title: UiTranslationService
+                                                      .translate(context,
+                                                          'dashboard_books_read'),
                                                   value: booksRead,
                                                   maxValue: 50,
                                                   icon: Icons.book,
@@ -176,7 +187,9 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                               ),
                                               Expanded(
                                                 child: CircularStatsCard(
-                                                  title: 'Favorite Books',
+                                                  title: UiTranslationService
+                                                      .translate(context,
+                                                          'dashboard_favorite_books'),
                                                   value: favoriteBooks,
                                                   maxValue: 20,
                                                   icon: Icons.favorite,
@@ -189,15 +202,19 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
 
                                           // Second Row: Reading Streak and Saved Words
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
                                             children: [
                                               // Reading Streak Circle
                                               Expanded(
                                                 child: CircularStatsCard(
-                                                  title: 'Reading Streak',
+                                                  title: UiTranslationService
+                                                      .translate(context,
+                                                          'dashboard_reading_streak'),
                                                   value: readingStreak,
                                                   maxValue: 30,
-                                                  icon: Icons.local_fire_department,
+                                                  icon: Icons
+                                                      .local_fire_department,
                                                   color: Colors.orange,
                                                 ),
                                               ),
@@ -205,64 +222,100 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                               Expanded(
                                                 child: Card(
                                                   elevation: 4,
-                                                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .surfaceContainerLowest,
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(16),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            16),
                                                   ),
                                                   child: InkWell(
                                                     onTap: () {
                                                       Navigator.push(
                                                         context,
                                                         MaterialPageRoute(
-                                                          builder: (context) => const SavedWordsPage(),
+                                                          builder: (context) =>
+                                                              const SavedWordsPage(),
                                                         ),
                                                       ).then((_) {
                                                         // Reload stats when returning from SavedWordsPage
                                                         if (mounted) {
-                                                          context.read<DashboardBloc>().loadDashboardStats();
+                                                          context
+                                                              .read<
+                                                                  DashboardBloc>()
+                                                              .loadDashboardStats();
                                                         }
                                                       });
                                                     },
-                                                    borderRadius: BorderRadius.circular(16),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            16),
                                                     child: Padding(
-                                                      padding: const EdgeInsets.all(16.0),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              16.0),
                                                       child: Column(
-                                                        mainAxisSize: MainAxisSize.min,
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
                                                         children: [
                                                           Row(
-                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                            mainAxisSize: MainAxisSize.min,
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
                                                             children: [
                                                               const Icon(
                                                                 Icons.bookmark,
                                                                 size: 20,
-                                                                color: Colors.purple,
+                                                                color: Colors
+                                                                    .purple,
                                                               ),
-                                                              const SizedBox(width: 8),
+                                                              const SizedBox(
+                                                                  width: 8),
                                                               Flexible(
                                                                 child: Text(
-                                                                  'Saved Words',
-                                                                  style: TextStyle(
-                                                                    fontSize: 16,
-                                                                    color: Colors.grey[700],
+                                                                  UiTranslationService
+                                                                      .translate(
+                                                                          context,
+                                                                          'dashboard_saved_words'),
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        700],
                                                                   ),
-                                                                  overflow: TextOverflow.ellipsis,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
                                                                 ),
                                                               ),
-                                                              const SizedBox(width: 4),
+                                                              const SizedBox(
+                                                                  width: 4),
                                                               Icon(
-                                                                Icons.chevron_right,
+                                                                Icons
+                                                                    .chevron_right,
                                                                 size: 20,
-                                                                color: Colors.grey[400],
+                                                                color: Colors
+                                                                    .grey[400],
                                                               ),
                                                             ],
                                                           ),
-                                                          const SizedBox(height: 8),
+                                                          const SizedBox(
+                                                              height: 8),
                                                           Text(
-                                                            savedWords.toString(),
-                                                            style: const TextStyle(
+                                                            savedWords
+                                                                .toString(),
+                                                            style:
+                                                                const TextStyle(
                                                               fontSize: 32,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
                                                             ),
                                                           ),
                                                         ],
@@ -280,15 +333,21 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                                             children: [
                                               StudyProgressCard(
                                                 onTap: () async {
+                                                  // Get translations upfront
+                                                  final studyWordsText = UiTranslationService.translate(context, 'dashboard_study_words');
+                                                  final selectLanguageText = UiTranslationService.translate(context, 'dashboard_select_language_to_study');
+                                                  
+                                                  if (!context.mounted) return;
+                                                  
                                                   showDialog(
                                                     context: context,
                                                     builder: (dialogContext) => AlertDialog(
-                                                      title: const Text('Study Words'),
+                                                      title: Text(studyWordsText),
                                                       content: Column(
                                                         mainAxisSize: MainAxisSize.min,
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
-                                                          const Text('Select language to study:'),
+                                                          Text(selectLanguageText),
                                                           const SizedBox(height: 16),
                                                           LanguageSelector(
                                                             currentLanguage: null,
@@ -338,10 +397,13 @@ class _DashboardPageState extends State<DashboardPage> with AutomaticKeepAliveCl
                               const SizedBox(height: 16),
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  context.read<DashboardBloc>().loadDashboardStats();
+                                  context
+                                      .read<DashboardBloc>()
+                                      .loadDashboardStats();
                                 },
                                 icon: const Icon(Icons.refresh),
-                                label: const Text('Retry'),
+                                label: Text(UiTranslationService.translate(
+                                    context, 'common_retry')),
                               ),
                             ],
                           ),

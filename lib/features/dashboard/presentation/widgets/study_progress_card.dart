@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
+import '../../../../core/ui_language/service/ui_translation_service.dart';
 
 class StudyProgressCard extends StatelessWidget {
   final VoidCallback onTap;
@@ -45,7 +46,7 @@ class StudyProgressCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Study Progress',
+                        UiTranslationService.translate(context, 'dashboard_study_progress'),
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: theme.colorScheme.onSurface,
                         ),
@@ -63,9 +64,24 @@ class StudyProgressCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildProgressItem('New', counts['new'] ?? 0, Colors.blue, theme),
-                      _buildProgressItem('Learning', counts['learning'] ?? 0, Colors.orange, theme),
-                      _buildProgressItem('Learned', counts['learned'] ?? 0, Colors.green, theme),
+                      _buildProgressItem(
+                        UiTranslationService.translate(context, 'dashboard_new'),
+                        counts['new'] ?? 0,
+                        Colors.blue,
+                        theme
+                      ),
+                      _buildProgressItem(
+                        UiTranslationService.translate(context, 'dashboard_learning'),
+                        counts['learning'] ?? 0,
+                        Colors.orange,
+                        theme
+                      ),
+                      _buildProgressItem(
+                        UiTranslationService.translate(context, 'dashboard_learned'),
+                        counts['learned'] ?? 0,
+                        Colors.green,
+                        theme
+                      ),
                     ],
                   ),
                   if (total > 0) ...[
@@ -80,7 +96,7 @@ class StudyProgressCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
                     child: Text(
-                      '$total Total Words',
+                      '${total} ${UiTranslationService.translate(context, 'dashboard_total_words')}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

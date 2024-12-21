@@ -16,6 +16,7 @@ import 'package:Keyra/features/books/data/repositories/firestore_populator.dart'
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 import 'package:provider/provider.dart';
+import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -74,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                 _isLoading = false;
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Failed to load books. Please try again later.')),
+                SnackBar(content: Text(UiTranslationService.translate(context, 'home_error_load_books'))),
               );
             });
           } else {
@@ -91,7 +92,7 @@ class _HomePageState extends State<HomePage> {
             _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to load books. Please try again later.')),
+                SnackBar(content: Text(UiTranslationService.translate(context, 'home_error_load_books'))),
           );
         },
       );
@@ -101,7 +102,7 @@ class _HomePageState extends State<HomePage> {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load books. Please try again later.')),
+                SnackBar(content: Text(UiTranslationService.translate(context, 'home_error_load_books'))),
       );
     }
   }
@@ -122,7 +123,7 @@ class _HomePageState extends State<HomePage> {
         _books[index] = book;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update favorite status')),
+        SnackBar(content: Text(UiTranslationService.translate(context, 'home_error_favorite'))),
       );
     }
   }
@@ -186,7 +187,7 @@ class _HomePageState extends State<HomePage> {
                     Padding(
                       padding: const EdgeInsets.only(left: AppSpacing.lg),
                       child: Text(
-                        'Recently Added Stories',
+                        UiTranslationService.translate(context, 'home_recently_added_stories'),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
@@ -225,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                       child: Text(
-                        'Continue Reading',
+                        UiTranslationService.translate(context, 'home_continue_reading'),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
@@ -278,7 +279,9 @@ class _HomePageState extends State<HomePage> {
                                     style: Theme.of(context).textTheme.titleMedium,
                                   ),
                                   subtitle: Text(
-                                    'Page ${book.currentPage + 1} of ${book.pages.length}',
+                                    UiTranslationService.translate(context, 'home_page_progress')
+                                        .replaceAll('{0}', (book.currentPage + 1).toString())
+                                        .replaceAll('{1}', book.pages.length.toString()),
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                     ),

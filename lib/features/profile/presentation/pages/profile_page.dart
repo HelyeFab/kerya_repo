@@ -5,6 +5,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:Keyra/core/theme/color_schemes.dart';
 import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
+import 'package:Keyra/core/ui_language/widgets/ui_language_selector_modal.dart';
+import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../dictionary/presentation/pages/saved_words_page.dart';
 import 'privacy_policy_page.dart';
@@ -45,19 +47,19 @@ class ProfilePage extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Log Out?'),
-          content: const Text('Are you sure you want to log out?'),
+          title: Text(UiTranslationService.translate(context, 'profile_logout')),
+          content: Text(UiTranslationService.translate(context, 'profile_logout_confirm')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(UiTranslationService.translate(context, 'profile_cancel')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: const Text('Log Out'),
+              child: Text(UiTranslationService.translate(context, 'profile_logout')),
             ),
           ],
         );
@@ -75,21 +77,14 @@ class ProfilePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
-        leading: Container(
-          margin: const EdgeInsets.only(left: 8),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.controlPurple,
+        centerTitle: false,
+        leading: IconButton(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: iconColor,
+            size: 24.0,
           ),
-          child: IconButton(
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              color: AppColors.controlText,
-              size: 24.0,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           IconButton(
@@ -100,6 +95,7 @@ class ProfilePage extends StatelessWidget {
             ),
             onPressed: () => _showLogoutConfirmation(context),
           ),
+          const SizedBox(width: 16),
         ],
       ),
       body: ListView(
@@ -150,8 +146,13 @@ class ProfilePage extends StatelessWidget {
                 color: iconColor,
                 size: 24.0,
               ),
-              title: const Text('Saved Words'),
-              subtitle: const Text('View your saved word definitions'),
+              title: Text(UiTranslationService.translate(context, 'profile_saved_words')),
+              subtitle: Text(
+                UiTranslationService.translate(context, 'profile_saved_words_subtitle'),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(
@@ -174,78 +175,74 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'Settings',
+                    UiTranslationService.translate(context, 'profile_settings'),
                     style: theme.textTheme.titleLarge,
                   ),
                 ),
+                const SizedBox(height: 16),
                 ListTile(
                   leading: HugeIcon(
                     icon: HugeIcons.strokeRoundedMoon,
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Dark Mode'),
-                  trailing: GestureDetector(
-                    onTap: () {
-                      context.read<ThemeBloc>().add(const ThemeEvent.toggleTheme());
+                  title: Text(UiTranslationService.translate(context, 'profile_dark_mode')),
+                  trailing: BlocBuilder<ThemeBloc, ThemeState>(
+                    builder: (context, state) {
+                      return Switch(
+                        value: state.themeMode == ThemeMode.dark,
+                        onChanged: (bool value) {
+                          context.read<ThemeBloc>().add(ThemeEvent.toggleTheme());
+                        },
+                      );
                     },
-                    child: HugeIcon(
-                      icon: Theme.of(context).brightness == Brightness.dark 
-                        ? HugeIcons.strokeRoundedToggleOn 
-                        : HugeIcons.strokeRoundedToggleOff,
-                      color: iconColor,
-                      size: 32.0,
-                    ),
                   ),
                 ),
-                const Divider(),
                 ListTile(
                   leading: HugeIcon(
                     icon: HugeIcons.strokeRoundedNotificationBubble,
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Notifications'),
+                  title: Text(UiTranslationService.translate(context, 'profile_notifications')),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Navigate to notifications settings
-                  },
+                  onTap: () {},
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // About Section
-          Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                ListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedTranslate,
+                    color: iconColor,
+                    size: 24.0,
+                  ),
+                  title: Text(UiTranslationService.translate(context, 'profile_app_language')),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showLanguageDialog(context),
+                ),
+                const SizedBox(height: 32),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'About',
+                    UiTranslationService.translate(context, 'profile_information'),
                     style: theme.textTheme.titleLarge,
                   ),
                 ),
+                const SizedBox(height: 16),
                 ListTile(
                   leading: HugeIcon(
                     icon: HugeIcons.strokeRoundedClipboard,
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Version'),
+                  title: Text(UiTranslationService.translate(context, 'profile_version')),
                   trailing: const Text('1.0.0'),
                 ),
-                const Divider(),
                 ListTile(
                   leading: HugeIcon(
                     icon: HugeIcons.strokeRoundedStar,
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Acknowledgments'),
+                  title: Text(UiTranslationService.translate(context, 'profile_acknowledgments')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -262,7 +259,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Privacy Policy'),
+                  title: Text(UiTranslationService.translate(context, 'profile_privacy_policy')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -279,7 +276,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Terms of Service'),
+                  title: Text(UiTranslationService.translate(context, 'profile_terms_of_service')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -296,7 +293,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Developer'),
+                  title: Text(UiTranslationService.translate(context, 'profile_developer')),
                   subtitle: const Text('Emmanuel Fabiani'),
                 ),
                 ListTile(
@@ -305,7 +302,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: const Text('Contact Us'),
+                  title: Text(UiTranslationService.translate(context, 'profile_contact_us')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final Uri emailLaunchUri = Uri(
@@ -325,6 +322,18 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => const UiLanguageSelectorModal(),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
       ),
     );
   }

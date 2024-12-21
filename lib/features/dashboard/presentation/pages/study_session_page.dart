@@ -6,6 +6,10 @@ import '../../../../features/dictionary/domain/models/saved_word.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../features/dictionary/domain/services/spaced_repetition_service.dart';
 import '../widgets/flashcard.dart';
+import '../../../../core/config/ui_translations.dart';
+import '../../../../core/ui_language/bloc/ui_language_bloc.dart';
+import '../../../../core/ui_language/service/ui_translation_service.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class StudySessionPage extends StatefulWidget {
   final List<SavedWord> words;
@@ -79,8 +83,8 @@ class _StudySessionPageState extends State<StudySessionPage> {
       print('Error updating word: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update word progress. Please try again.'),
+          SnackBar(
+            content: Text(UiTranslationService.translate(context, 'study_session_error_update')),
           ),
         );
       }
@@ -89,94 +93,111 @@ class _StudySessionPageState extends State<StudySessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Study Session (${_currentIndex + 1}/${widget.words.length})',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('End Session'),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Progress indicator
-          LinearProgressIndicator(
-            value: ((_currentIndex + 1) / widget.words.length),
-            backgroundColor: Colors.grey[200],
-            valueColor: AlwaysStoppedAnimation<Color>(
-              Theme.of(context).colorScheme.primary,
+    return BlocBuilder<UiLanguageBloc, UiLanguageState>(
+      builder: (context, uiLanguageState) {
+        final languageCode = uiLanguageState.languageCode;
+        return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowLeft01,
+                color: Colors.black,
+                size: 24.0,
+              ),
             ),
+            title: Text(
+              '${UiTranslationService.translate(context, 'study_session')} (${_currentIndex + 1}/${widget.words.length})',
+            ),
+            actions: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedShare01,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  size: 24.0,
+                ),
+              ),
+            ],
           ),
+          body: Column(
+            children: [
+              // Progress indicator
+              LinearProgressIndicator(
+                value: ((_currentIndex + 1) / widget.words.length),
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.primary,
+                ),
+              ),
 
-          // Flashcards
-          Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemCount: widget.words.length,
-              itemBuilder: (context, index) {
-                final word = widget.words[index];
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Flashcard(
-                    word: word.word,
-                    definition: word.definition,
-                    examples: word.examples,
-                    controller: _flipControllers[index],
-                    language: word.language,
-                  ),
-                );
-              },
-            ),
-          ),
+              // Flashcards
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  itemCount: widget.words.length,
+                  itemBuilder: (context, index) {
+                    final word = widget.words[index];
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Flashcard(
+                        word: word.word,
+                        definition: word.definition,
+                        examples: word.examples,
+                        controller: _flipControllers[index],
+                        language: word.language,
+                      ),
+                    );
+                  },
+                ),
+              ),
 
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _markWord(0),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).brightness == Brightness.light
-                        ? AppColors.flashcardHardLight
-                        : AppColors.flashcardHardDark,
-                  ),
-                  child: const Text('Hard'),
+              // Action buttons
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => _markWord(0),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.flashcardHardLight
+                            : AppColors.flashcardHardDark,
+                      ),
+                      child: Text(UiTranslationService.translate(context, 'difficulty_hard')),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _markWord(1),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.flashcardGoodLight
+                            : AppColors.flashcardGoodDark,
+                      ),
+                      child: Text(UiTranslationService.translate(context, 'difficulty_good')),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _markWord(2),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.flashcardEasyLight
+                            : AppColors.flashcardEasyDark,
+                      ),
+                      child: Text(UiTranslationService.translate(context, 'difficulty_easy')),
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () => _markWord(1),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).brightness == Brightness.light
-                        ? AppColors.flashcardGoodLight
-                        : AppColors.flashcardGoodDark,
-                  ),
-                  child: const Text('Good'),
-                ),
-                ElevatedButton(
-                  onPressed: () => _markWord(2),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).brightness == Brightness.light
-                        ? AppColors.flashcardEasyLight
-                        : AppColors.flashcardEasyDark,
-                  ),
-                  child: const Text('Easy'),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

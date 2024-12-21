@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import '../../../../core/config/ui_translations.dart';
+import '../../../../core/ui_language/service/ui_translation_service.dart';
+import '../../../../features/books/domain/models/book_language.dart';
 
 class LanguageSelectionDialog extends StatelessWidget {
   final List<String> languages;
   final Function(String?) onLanguageSelected;
 
   const LanguageSelectionDialog({
-    super.key,
+    Key? key,
     required this.languages,
     required this.onLanguageSelected,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Get translations upfront
+    final studyWordsText = UiTranslationService.translate(context, 'dashboard_study_words');
+    final allLanguagesText = UiTranslationService.translate(context, 'common_all_languages');
+
     return AlertDialog(
-      title: const Text('Select Language'),
+      title: Text(studyWordsText),
       content: SizedBox(
         width: double.maxFinite,
         child: ListView(
@@ -22,7 +29,7 @@ class LanguageSelectionDialog extends StatelessWidget {
             // All languages option
             ListTile(
               leading: const Icon(Icons.language),
-              title: const Text('All Languages'),
+              title: Text(allLanguagesText),
               onTap: () {
                 Navigator.pop(context);
                 onLanguageSelected(null);
@@ -30,14 +37,24 @@ class LanguageSelectionDialog extends StatelessWidget {
             ),
             const Divider(),
             // Individual language options
-            ...languages.map((language) => ListTile(
-                  leading: const Icon(Icons.translate),
-                  title: Text(language),
-                  onTap: () {
-                    Navigator.pop(context);
-                    onLanguageSelected(language);
-                  },
-                )),
+            ...languages.map((language) {
+              final bookLanguage = BookLanguage.values.firstWhere(
+                (l) => l.code == language.toLowerCase(),
+                orElse: () => BookLanguage.english,
+              );
+              return ListTile(
+                leading: Image.asset(
+                  bookLanguage.flagAsset,
+                  width: 24,
+                  height: 24,
+                ),
+                title: Text(bookLanguage.displayName),
+                onTap: () {
+                  Navigator.pop(context);
+                  onLanguageSelected(language);
+                },
+              );
+            }),
           ],
         ),
       ),

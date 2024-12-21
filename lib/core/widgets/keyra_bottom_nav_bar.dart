@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../ui_language/service/ui_translation_service.dart';
 import '../theme/color_schemes.dart';
 
 class KeyraBottomNavBar extends StatelessWidget {
@@ -12,58 +13,12 @@ class KeyraBottomNavBar extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _getIconColor(BuildContext context, bool isSelected) {
-    if (isSelected) {
-      return Theme.of(context).colorScheme.primary;
-    }
-    return Theme.of(context).brightness == Brightness.light
-        ? AppColors.icon
-        : AppColors.iconDark;
-  }
-
-  Widget _buildNavItem({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
-    final isSelected = currentIndex == index;
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final iconColor = _getIconColor(context, isSelected);
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: () => onTap(index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: icon,
-              color: iconColor,
-              size: 20.0,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final iconColor = theme.colorScheme.onSurface;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(
         left: 8,
@@ -86,32 +41,45 @@ class KeyraBottomNavBar extends StatelessWidget {
           ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              context: context,
-              icon: HugeIcons.strokeRoundedHome13,
-              label: 'Home',
-              index: 0,
+        child: NavigationBar(
+          selectedIndex: currentIndex,
+          onDestinationSelected: onTap,
+          backgroundColor: Colors.transparent,
+          indicatorColor: isDark
+              ? AppColors.controlPurple.withOpacity(0.7)
+              : AppColors.readerControl.withOpacity(0.7),
+          destinations: [
+            NavigationDestination(
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedHome13,
+                size: 24.0,
+                color: iconColor,
+              ),
+              label: UiTranslationService.translate(context, 'nav_home'),
             ),
-            _buildNavItem(
-              context: context,
-              icon: HugeIcons.strokeRoundedBook02,
-              label: 'Library',
-              index: 1,
+            NavigationDestination(
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedBook02,
+                size: 24.0,
+                color: iconColor,
+              ),
+              label: UiTranslationService.translate(context, 'nav_library'),
             ),
-            _buildNavItem(
-              context: context,
-              icon: HugeIcons.strokeRoundedIdea01,
-              label: 'Create',
-              index: 2,
+            NavigationDestination(
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedIdea01,
+                size: 24.0,
+                color: iconColor,
+              ),
+              label: UiTranslationService.translate(context, 'nav_create'),
             ),
-            _buildNavItem(
-              context: context,
-              icon: HugeIcons.strokeRoundedDashboardBrowsing,
-              label: 'Dashboard',
-              index: 3,
+            NavigationDestination(
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedDashboardBrowsing,
+                size: 24.0,
+                color: iconColor,
+              ),
+              label: UiTranslationService.translate(context, 'nav_dashboard'),
             ),
           ],
         ),

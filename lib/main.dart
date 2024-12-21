@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
+import 'package:Keyra/core/ui_language/bloc/ui_language_bloc.dart';
 import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dart';
 import 'package:Keyra/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
@@ -39,6 +40,11 @@ void main() async {
 
   // Initialize language bloc
   final languageBloc = await LanguageBloc.create();
+
+  // Initialize UI language bloc
+  final prefs = await SharedPreferences.getInstance();
+  final uiLanguageBloc = UiLanguageBloc(prefs);
+  uiLanguageBloc.add(LoadSavedUiLanguageEvent());
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -103,6 +109,7 @@ void main() async {
     isFirstLaunch: isFirstLaunch,
     themeBloc: themeBloc,
     languageBloc: languageBloc,
+    uiLanguageBloc: uiLanguageBloc,
     dictionaryService: dictionaryService,
   ));
 }
@@ -112,6 +119,7 @@ class MyApp extends StatelessWidget {
   final bool isFirstLaunch;
   final ThemeBloc themeBloc;
   final LanguageBloc languageBloc;
+  final UiLanguageBloc uiLanguageBloc;
   final DictionaryService dictionaryService;
 
   const MyApp({
@@ -120,6 +128,7 @@ class MyApp extends StatelessWidget {
     required this.isFirstLaunch,
     required this.themeBloc,
     required this.languageBloc,
+    required this.uiLanguageBloc,
     required this.dictionaryService,
   });
 
@@ -141,6 +150,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider.value(
           value: languageBloc,
+        ),
+        BlocProvider.value(
+          value: uiLanguageBloc,
         ),
       ],
       child: MultiRepositoryProvider(
