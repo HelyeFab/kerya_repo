@@ -4,6 +4,7 @@ import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import '../../../../core/ui_language/bloc/ui_language_bloc.dart';
 import '../../../../core/ui_language/service/ui_translation_service.dart';
+import '../../../../features/books/domain/models/book_language.dart';
 
 class Flashcard extends StatelessWidget {
   final String word;
@@ -38,7 +39,6 @@ class Flashcard extends StatelessWidget {
 
   Widget _buildFrontCard(BuildContext context, String languageCode) {
     // Get translations upfront
-    final tapToSeeDefinitionText = UiTranslationService.translate(context, 'tap_to_see_definition');
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -59,7 +59,7 @@ class Flashcard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              UiTranslationService.translate(context, 'language_${language.toLowerCase()}'),
+              UiTranslationService.translate(context, 'language_${BookLanguage.fromCode(language).name.toLowerCase()}'),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Colors.grey[600],
                   ),

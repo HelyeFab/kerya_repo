@@ -84,7 +84,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(UiTranslationService.translate(context, 'study_session_error_update')),
+            content: Text(UiTranslationService.translate(context, 'flashcard_error_update')),
           ),
         );
       }
