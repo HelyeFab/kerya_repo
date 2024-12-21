@@ -5,7 +5,9 @@ import '../bloc/ui_language_bloc.dart';
 
 class UiTranslationService {
   static String translate(BuildContext context, String key, [List<String>? args, bool listen = true]) {
-    final langCode = context.watch<UiLanguageBloc>().state.languageCode;
+    final langCode = listen 
+        ? context.watch<UiLanguageBloc>().state.languageCode
+        : context.read<UiLanguageBloc>().state.languageCode;
     final translations = UiTranslations.translations[langCode] ?? UiTranslations.translations['en']!;
     var text = translations[key] ?? key;
     

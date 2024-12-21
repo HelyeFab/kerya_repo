@@ -1,49 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+
+import '../../../../core/theme/color_schemes.dart';
+import '../../../../core/ui_language/service/ui_translation_service.dart';
+import '../../../../features/books/domain/models/book_language.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../features/dictionary/domain/models/saved_word.dart';
-import '../../../../features/books/domain/models/book_language.dart';
-import '../../../../core/widgets/study_language_selector.dart';
 
-class SavedWordsPage extends StatefulWidget {
-  const SavedWordsPage({Key? key}) : super(key: key);
+class StudyWordsPage extends StatefulWidget {
+  const StudyWordsPage({super.key});
 
   @override
-  _SavedWordsPageState createState() => _SavedWordsPageState();
+  State<StudyWordsPage> createState() => _StudyWordsPageState();
 }
 
-class _SavedWordsPageState extends State<SavedWordsPage> {
+class _StudyWordsPageState extends State<StudyWordsPage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   final SavedWordsRepository _repository = SavedWordsRepository();
   BookLanguage? _selectedLanguage;
   
-  // List of pastel colors to cycle through
-  final List<Color> pastelColors = [
-    const Color(0xFFFFE5E5), // Pastel Pink
-    const Color(0xFFE5FFE5), // Pastel Green
-    const Color(0xFFE5E5FF), // Pastel Blue
-    const Color(0xFFFFE5FF), // Pastel Purple
-    const Color(0xFFFFFFE5), // Pastel Yellow
-    const Color(0xFFE5FFFF), // Pastel Cyan
-  ];
-
   Future<void> _deleteWord(String wordId, String word) async {
     final bool? shouldDelete = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Word?'),
-          content: Text('Are you sure you want to delete "$word" from your saved words?'),
+          title: Text(UiTranslationService.translate(context, 'delete_word_title', null, false)),
+          content: Text(UiTranslationService.translate(context, 'delete_word_confirm', [word], false)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(UiTranslationService.translate(context, 'common_cancel', null, false)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: const Text('Delete'),
+              child: Text(UiTranslationService.translate(context, 'common_delete', null, false)),
             ),
           ],
         );
@@ -56,7 +50,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting word: $e')),
+            SnackBar(content: Text(UiTranslationService.translate(context, 'error_deleting_word', [e.toString()], false))),
           );
         }
       }
@@ -64,9 +58,11 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
   }
 
   void _onLanguageChanged(BookLanguage? language) {
-    setState(() {
-      _selectedLanguage = language;
-    });
+    if (mounted) {
+      setState(() {
+        _selectedLanguage = language;
+      });
+    }
   }
 
   void _showWordDetails(SavedWord word) {
@@ -100,7 +96,12 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(context).colorScheme.onSurface
+                            : Colors.black,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
@@ -114,7 +115,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Definition:',
+                        UiTranslationService.translate(context, 'common_definition', null, false),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 4),
@@ -127,7 +128,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                       if (word.examples.isNotEmpty ?? false) ...[
                         const SizedBox(height: 16),
                         Text(
-                          'Examples:',
+                          UiTranslationService.translate(context, 'common_examples', null, false),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 4),
@@ -154,30 +155,87 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
+    final iconColor = Theme.of(context).brightness == Brightness.dark
+        ? Theme.of(context).colorScheme.onSurface
+        : Colors.black;
+
     return Scaffold(
       appBar: AppBar(
-        centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: iconColor,
+            size: 24.0,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          'Saved Words',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: StudyLanguageSelector(
-              currentLanguage: _selectedLanguage,
-              onLanguageChanged: _onLanguageChanged,
-              showAllOption: true,
+          PopupMenuButton<BookLanguage?>(
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_selectedLanguage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Image.asset(
+                      _selectedLanguage!.flagAsset,
+                      width: 24,
+                      height: 24,
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.language,
+                      color: iconColor,
+                    ),
+                  ),
+              ],
             ),
+            onSelected: _onLanguageChanged,
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<BookLanguage?>(
+                value: null,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.language,
+                      color: iconColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(UiTranslationService.translate(context, 'common_all_languages', null, false)),
+                  ],
+                ),
+              ),
+              ...BookLanguage.values.map(
+                (language) => PopupMenuItem<BookLanguage?>(
+                  value: language,
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        language.flagAsset,
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(UiTranslationService.translate(
+                        context,
+                        'language_${language.name.toLowerCase()}',
+                        null,
+                        false,
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: StreamBuilder<List<SavedWord>>(
@@ -188,7 +246,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text(UiTranslationService.translate(context, 'common_error', [snapshot.error.toString()], false)));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Column(
@@ -196,8 +254,8 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                 children: [
                   Text(
                     _selectedLanguage == null
-                        ? 'No saved words found.'
-                        : 'No saved words found for ${_selectedLanguage!.displayName}.',
+                        ? UiTranslationService.translate(context, 'no_saved_words_message', null, false)
+                        : UiTranslationService.translate(context, 'no_saved_words_language_message', [_selectedLanguage!.displayName], false),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurface,
                     ),
@@ -210,8 +268,11 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                           _selectedLanguage = null;
                         });
                       },
-                      icon: const Icon(Icons.language),
-                      label: const Text('Show all languages'),
+                      icon: Icon(
+                        Icons.language,
+                        color: iconColor,
+                      ),
+                      label: Text(UiTranslationService.translate(context, 'common_show_all_languages', null, false)),
                     ),
                   ],
                 ],
@@ -226,7 +287,7 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                 final word = words[index];
                 
                 // Cycle through pastel colors
-                final color = pastelColors[index % pastelColors.length];
+                final color = AppColors.wordCardColors[index % AppColors.wordCardColors.length];
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -279,15 +340,16 @@ class _SavedWordsPageState extends State<SavedWordsPage> {
                             ),
                             IconButton(
                               onPressed: () => _deleteWord(word.id, word.word),
-                              icon: const HugeIcon(
+                              icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedDeletePutBack,
-                                color: Colors.black,
+                                color: iconColor,
                                 size: 24.0,
                               ),
                             ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: Colors.grey[400],
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedArrowRight01,
+                              color: iconColor,
+                              size: 24.0,
                             ),
                           ],
                         ),

@@ -6,7 +6,7 @@ import '../bloc/dashboard_bloc.dart';
 import '../widgets/circular_stats_card.dart';
 import '../widgets/study_progress_card.dart';
 import '../widgets/no_saved_words_dialog.dart';
-import 'saved_words_page.dart';
+import 'study_words_page.dart';
 import 'study_session_page.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../core/widgets/study_language_selector.dart';
@@ -248,11 +248,10 @@ class _DashboardPageState extends State<DashboardPage>
                                                   ),
                                                   child: InkWell(
                                                     onTap: () {
-                                                      Navigator.push(
-                                                        context,
+                                                      Navigator.of(context).push(
                                                         MaterialPageRoute(
                                                           builder: (context) =>
-                                                              const SavedWordsPage(),
+                                                              const StudyWordsPage(),
                                                         ),
                                                       ).then((_) {
                                                         // Reload stats when returning from SavedWordsPage

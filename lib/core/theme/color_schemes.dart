@@ -50,6 +50,23 @@ class AppColors {
   // For backward compatibility
   static const Color primary = lightPrimary;
 
+  // Pastel colors for word cards
+  static const Color pastelPink = Color(0xFFFFE5E5);
+  static const Color pastelGreen = Color(0xFFE5FFE5);
+  static const Color pastelBlue = Color(0xFFE5E5FF);
+  static const Color pastelPurple = Color(0xFFFFE5FF);
+  static const Color pastelYellow = Color(0xFFFFFFE5);
+  static const Color pastelCyan = Color(0xFFE5FFFF);
+
+  static const List<Color> wordCardColors = [
+    pastelPink,
+    pastelGreen,
+    pastelBlue,
+    pastelPurple,
+    pastelYellow,
+    pastelCyan,
+  ];
+
   // Flashcard colors
   static const flashcardHardLight = Color(0xFFCF6679);
   static const flashcardHardDark = Color(0xFF8E0031);
