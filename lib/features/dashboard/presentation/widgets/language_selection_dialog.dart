@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/ui_language/translations/ui_translations.dart';
 import '../../../../core/ui_language/service/ui_translation_service.dart';
 import '../../../../features/books/domain/models/book_language.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';

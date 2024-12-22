@@ -4,13 +4,14 @@ import '../../domain/models/badge_level.dart';
 import '../../domain/models/badge_progress.dart';
 import '../../domain/repositories/badge_repository.dart';
 import '../../../dictionary/data/repositories/saved_words_repository.dart';
+import '../../../dictionary/domain/models/saved_word.dart';
 import 'badge_event.dart';
 import 'badge_state.dart';
 
 class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
   final BadgeRepository _badgeRepository;
   final SavedWordsRepository _savedWordsRepository;
-  StreamSubscription<BadgeProgress>? _progressSubscription;
+  StreamSubscription<List<SavedWord>>? _progressSubscription;
 
   BadgeBloc({
     required BadgeRepository badgeRepository,
@@ -26,16 +27,21 @@ class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
       );
     });
 
-    // Subscribe to badge progress changes
-    _progressSubscription =
-        _badgeRepository.getBadgeProgress().listen((progress) {
-      add(BadgeEvent.wordsUpdated(
-          progress.booksRead * 100)); // Rough estimate back to words
+    // Subscribe to saved words changes
+    _progressSubscription = _savedWordsRepository.getSavedWords().listen((words) {
+      add(BadgeEvent.wordsUpdated(words.length));
     });
   }
 
   Future<void> _onStarted(Emitter<BadgeState> emit) async {
-    final progress = await _badgeRepository.getBadgeProgress().first;
+    final words = await _savedWordsRepository.getSavedWordsList();
+    final progress = BadgeProgress(
+      currentLevel: _calculateBadgeLevel(words.length),
+      booksRead: 0,
+      favoriteBooks: 0,
+      readingStreak: 0,
+      lastUpdated: DateTime.now(),
+    );
     emit(BadgeState.loaded(progress));
   }
 
@@ -72,7 +78,7 @@ class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
 
     final newProgress = currentProgress.copyWith(
       currentLevel: newLevel,
-      booksRead: wordCount ~/ 100, // Rough estimate
+      booksRead: wordCount ~/ 10, // Rough estimate
       lastUpdated: DateTime.now(),
     );
 
@@ -114,9 +120,9 @@ class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
   }
 
   BadgeLevel _calculateBadgeLevel(int wordCount) {
-    if (wordCount >= 1000) return BadgeLevel.master;
-    if (wordCount >= 500) return BadgeLevel.advanced;
-    if (wordCount >= 100) return BadgeLevel.intermediate;
+    if (wordCount >= 100) return BadgeLevel.master;
+    if (wordCount >= 50) return BadgeLevel.advanced;
+    if (wordCount >= 20) return BadgeLevel.intermediate;
     return BadgeLevel.beginner;
   }
 

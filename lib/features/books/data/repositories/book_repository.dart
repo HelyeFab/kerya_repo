@@ -4,14 +4,17 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/models/book.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
+import '../services/book_cache_service.dart';
 
 class BookRepository {
+  final BookCacheService _cacheService;
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
   final FirebaseAuth _auth;
   final UserStatsRepository _userStatsRepository;
 
   BookRepository({
+    BookCacheService? cacheService,
     FirebaseFirestore? firestore,
     FirebaseStorage? storage,
     FirebaseAuth? auth,
@@ -19,32 +22,37 @@ class BookRepository {
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
         _storage = storage ?? FirebaseStorage.instance,
         _auth = auth ?? FirebaseAuth.instance,
-        _userStatsRepository = userStatsRepository ?? UserStatsRepository();
+        _userStatsRepository = userStatsRepository ?? UserStatsRepository(),
+        _cacheService = cacheService ?? BookCacheService();
 
   // Get all books
-  Stream<List<Book>> getAllBooks() {
+  Stream<List<Book>> getAllBooks() async* {
+    print('BookRepository: Checking cache');
+    if (_cacheService.hasCache) {
+      print('BookRepository: Returning cached books');
+      yield _cacheService.getCachedBooks();
+    }
+    
     print('BookRepository: Getting all books from Firestore');
     final user = _auth.currentUser;
+    
     if (user == null) {
       print('BookRepository: No user logged in, getting books without favorites');
-      return _firestore
-          .collection('books')
-          .snapshots()
-          .map((snapshot) {
-            print('BookRepository: Retrieved ${snapshot.docs.length} books from Firestore');
-            final books = snapshot.docs
-                .map((doc) {
-                  print('BookRepository: Converting Firestore doc ${doc.id} to Book');
-                  return Book.fromMap(doc.data(), docId: doc.id);
-                })
-                .toList();
-            print('BookRepository: Returning ${books.length} books');
-            return books;
-          });
-    }
-
-    print('BookRepository: User ${user.uid} logged in, getting books with favorites');
-    return _firestore.collection('books').snapshots().asyncMap((booksSnapshot) async {
+      await for (final snapshot in _firestore.collection('books').snapshots()) {
+        print('BookRepository: Retrieved ${snapshot.docs.length} books from Firestore');
+        final books = snapshot.docs
+            .map((doc) {
+              print('BookRepository: Converting Firestore doc ${doc.id} to Book');
+              return Book.fromMap(doc.data(), docId: doc.id);
+            })
+            .toList();
+        print('BookRepository: Returning ${books.length} books');
+        await _cacheService.cacheBooks(books);
+        yield books;
+      }
+    } else {
+      print('BookRepository: User ${user.uid} logged in, getting books with favorites');
+      await for (final booksSnapshot in _firestore.collection('books').snapshots()) {
       print('BookRepository: Retrieved ${booksSnapshot.docs.length} books from Firestore');
       Set<String> favoriteBookIds = {};
       try {
@@ -69,8 +77,10 @@ class BookRepository {
       }).toList();
       
       print('BookRepository: Returning ${books.length} books with favorites');
-      return books;
-    });
+        await _cacheService.cacheBooks(books);
+        yield books;
+      }
+    }
   }
 
   // Get a single book by ID

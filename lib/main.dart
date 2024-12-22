@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:Keyra/features/books/data/models/book_model.g.dart';
+import 'package:Keyra/features/books/data/services/book_cache_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/badges/domain/repositories/badge_repository.dart';
 import 'features/badges/data/repositories/mock_badge_repository.dart';
+import 'features/badges/presentation/bloc/badge_bloc.dart';
 import 'features/dictionary/data/repositories/saved_words_repository.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -30,7 +34,65 @@ import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dar
 // Create a stream controller for dictionary initialization status
 final _dictionaryInitController = StreamController<bool>.broadcast();
 
+class App extends StatelessWidget {
+  final bool isFirstLaunch;
+  final PreferencesService preferencesService;
+  final DictionaryService dictionaryService;
+  final Stream<bool> dictionaryInitStream;
+
+  const App({
+    super.key,
+    required this.isFirstLaunch,
+    required this.preferencesService,
+    required this.dictionaryService,
+    required this.dictionaryInitStream,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Keyra',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeState.themeMode,
+          home: StreamBuilder<bool>(
+            stream: dictionaryInitStream,
+            initialData: !isFirstLaunch,
+            builder: (context, snapshot) {
+              return SplashScreen(
+                isInitialized: snapshot.data ?? false,
+                isFirstLaunch: isFirstLaunch,
+                preferencesService: preferencesService,
+              );
+            },
+          ),
+          routes: {
+            '/home': (context) => const HomePage(),
+            '/library': (context) => const LibraryPage(),
+            '/create': (context) => const CreatePage(),
+            '/dashboard': (context) => const DashboardPage(),
+            '/profile': (context) => const ProfilePage(),
+            '/onboarding': (context) => OnboardingPage(preferencesService: preferencesService),
+            '/navigation': (context) => const NavigationPage(),
+          },
+        );
+      },
+    );
+  }
+}
+
+Future<void> initHive() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(BookAdapter());
+  final bookCacheService = BookCacheService();
+  await bookCacheService.init();
+}
+
 void main() async {
+  await initHive();
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
 
@@ -106,70 +168,44 @@ void main() async {
     _dictionaryInitController.add(true);
   }
 
-  runApp(MyApp(
-    preferencesService: preferencesService,
-    isFirstLaunch: isFirstLaunch,
-    themeBloc: themeBloc,
-    languageBloc: languageBloc,
-    uiLanguageBloc: uiLanguageBloc,
-    dictionaryService: dictionaryService,
-  ));
-}
-
-class MyApp extends StatelessWidget {
-  final PreferencesService preferencesService;
-  final bool isFirstLaunch;
-  final ThemeBloc themeBloc;
-  final LanguageBloc languageBloc;
-  final UiLanguageBloc uiLanguageBloc;
-  final DictionaryService dictionaryService;
-
-  const MyApp({
-    super.key,
-    required this.preferencesService,
-    required this.isFirstLaunch,
-    required this.themeBloc,
-    required this.languageBloc,
-    required this.uiLanguageBloc,
-    required this.dictionaryService,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
+  runApp(
+    MultiRepositoryProvider(
       providers: [
-        BlocProvider(
-          create: (context) {
-            final bloc = AuthBloc(
-              authRepository: FirebaseAuthRepository(),
-            );
-            bloc.add(const AuthBlocEvent.startAuthListening());
-            return bloc;
-          },
+        RepositoryProvider<SavedWordsRepository>(
+          create: (context) => SavedWordsRepository(),
         ),
-        BlocProvider.value(
-          value: themeBloc,
+        RepositoryProvider<BadgeRepository>(
+          create: (context) => MockBadgeRepository(),
         ),
-        BlocProvider.value(
-          value: languageBloc,
+        RepositoryProvider<UserStatsRepository>(
+          create: (context) => UserStatsRepository(),
         ),
-        BlocProvider.value(
-          value: uiLanguageBloc,
+        RepositoryProvider<DictionaryService>(
+          create: (context) => dictionaryService,
+        ),
+        RepositoryProvider<BookCacheService>(
+          create: (context) => BookCacheService(),
         ),
       ],
-      child: MultiRepositoryProvider(
+      child: MultiBlocProvider(
         providers: [
-          RepositoryProvider<SavedWordsRepository>(
-            create: (context) => SavedWordsRepository(),
+          BlocProvider<ThemeBloc>.value(value: themeBloc),
+          BlocProvider<LanguageBloc>.value(value: languageBloc),
+          BlocProvider<UiLanguageBloc>.value(value: uiLanguageBloc),
+          BlocProvider(
+            create: (context) {
+              final bloc = AuthBloc(
+                authRepository: FirebaseAuthRepository(),
+              );
+              bloc.add(const AuthBlocEvent.startAuthListening());
+              return bloc;
+            },
           ),
-          RepositoryProvider<BadgeRepository>(
-            create: (context) => MockBadgeRepository(),
-          ),
-          RepositoryProvider<UserStatsRepository>(
-            create: (context) => UserStatsRepository(),
-          ),
-          RepositoryProvider<DictionaryService>(
-            create: (context) => dictionaryService,
+          BlocProvider(
+            create: (context) => BadgeBloc(
+              badgeRepository: context.read<BadgeRepository>(),
+              savedWordsRepository: context.read<SavedWordsRepository>(),
+            ),
           ),
         ],
         child: BlocBuilder<ThemeBloc, ThemeState>(
@@ -204,6 +240,6 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
+    ),
+  );
 }

@@ -12,7 +12,6 @@ import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
 import 'package:Keyra/core/ui_language/bloc/ui_language_bloc.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
-import 'package:Keyra/main.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {

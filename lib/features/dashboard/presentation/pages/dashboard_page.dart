@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/widgets/loading_indicator.dart';
-import '../../../../core/widgets/menu_button.dart';
-import '../bloc/dashboard_bloc.dart';
-import '../widgets/circular_stats_card.dart';
-import '../widgets/study_progress_card.dart';
-import '../widgets/no_saved_words_dialog.dart';
-import 'study_words_page.dart';
-import 'study_session_page.dart';
-import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
-import '../../../../core/widgets/study_language_selector.dart';
-import '../../../../features/books/domain/models/book_language.dart';
-import '../../../../core/ui_language/service/ui_translation_service.dart';
-import '../../../badges/presentation/widgets/badge_display.dart';
-import '../../../badges/domain/models/badge_level.dart';
+import 'package:Keyra/core/widgets/menu_button.dart';
+import 'package:Keyra/features/books/domain/models/book_language.dart';
+import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
+import 'package:Keyra/features/badges/presentation/widgets/badge_display.dart';
+import 'package:Keyra/features/badges/presentation/bloc/badge_bloc.dart';
+import 'package:Keyra/features/badges/presentation/bloc/badge_state.dart';
+import 'package:Keyra/features/badges/presentation/bloc/badge_event.dart';
+import 'package:Keyra/features/navigation/presentation/widgets/app_drawer.dart';
+import 'package:Keyra/core/widgets/page_header.dart';
+import 'package:Keyra/core/extensions/context_extensions.dart';
+import 'package:Keyra/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:Keyra/features/dashboard/presentation/pages/study_session_page.dart';
+import 'package:Keyra/features/dashboard/presentation/pages/study_words_page.dart';
+import 'package:Keyra/features/dashboard/presentation/widgets/circular_stats_card.dart';
+import 'package:Keyra/features/dashboard/presentation/widgets/study_progress_card.dart';
+import 'package:Keyra/features/dashboard/presentation/widgets/no_saved_words_dialog.dart';
+import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
+import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -25,6 +29,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage>
     with AutomaticKeepAliveClientMixin {
   final _navigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   bool get wantKeepAlive => true;
 
@@ -47,7 +52,7 @@ class _DashboardPageState extends State<DashboardPage>
       );
     } else {
       if (!context.mounted) return;
-      
+
       showDialog(
         context: context,
         builder: (context) => NoSavedWordsDialog(
@@ -65,6 +70,7 @@ class _DashboardPageState extends State<DashboardPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<DashboardBloc>().loadDashboardStats();
+        context.read<BadgeBloc>().add(const BadgeEvent.started());
       }
     });
   }
@@ -74,39 +80,26 @@ class _DashboardPageState extends State<DashboardPage>
     super.build(context);
 
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: const AppDrawer(),
       appBar: AppBar(
         centerTitle: false,
         automaticallyImplyLeading: false,
-        leading: BadgeDisplay(
-          level: BadgeLevel.beginner,
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(UiTranslationService.translate(
-                  context,
-                  'badge_progress_title',
-                  null,
-                  false,
-                )),
-                content: BadgeDisplay(
-                  level: BadgeLevel.beginner,
-                  showName: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: BlocBuilder<BadgeBloc, BadgeState>(
+            builder: (context, state) {
+              return state.map(
+                initial: (_) => const SizedBox.shrink(),
+                loaded: (loaded) => BadgeDisplay(
+                  level: loaded.progress.currentLevel,
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(UiTranslationService.translate(
-                      context,
-                      'common_close',
-                      null,
-                      false,
-                    )),
-                  ),
-                ],
-              ),
-            );
-          },
+                levelingUp: (levelingUp) => BadgeDisplay(
+                  level: levelingUp.progress.currentLevel,
+                ),
+              );
+            },
+          ),
         ),
         actions: const [
           MenuButton(),
@@ -117,6 +110,11 @@ class _DashboardPageState extends State<DashboardPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            PageHeader(
+              title: context.tr.dashboard,
+              actions: const [],
+              showBadge: false,
+            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
@@ -181,7 +179,6 @@ class _DashboardPageState extends State<DashboardPage>
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                   
                                       // Stats Content
                                       Column(
                                         children: [
@@ -248,12 +245,14 @@ class _DashboardPageState extends State<DashboardPage>
                                                   ),
                                                   child: InkWell(
                                                     onTap: () {
-                                                      Navigator.of(context).push(
+                                                      Navigator.of(context)
+                                                          .push(
                                                         MaterialPageRoute(
                                                           builder: (context) =>
                                                               const StudyWordsPage(),
                                                         ),
-                                                      ).then((_) {
+                                                      )
+                                                          .then((_) {
                                                         // Reload stats when returning from SavedWordsPage
                                                         if (mounted) {
                                                           context
@@ -348,7 +347,8 @@ class _DashboardPageState extends State<DashboardPage>
                                             children: [
                                               StudyProgressCard(
                                                 onLanguageSelected: (language) {
-                                                  _startStudySession(context, language);
+                                                  _startStudySession(
+                                                      context, language);
                                                 },
                                               ),
                                             ],

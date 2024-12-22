@@ -100,7 +100,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
           appBar: AppBar(
             leading: IconButton(
               onPressed: () => Navigator.of(context).pop(),
-              icon: HugeIcon(
+              icon: const HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowLeft01,
                 color: Colors.black,
                 size: 24.0,

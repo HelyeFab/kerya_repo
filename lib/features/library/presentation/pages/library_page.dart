@@ -10,14 +10,22 @@ import 'package:Keyra/core/widgets/loading_animation.dart';
 import 'package:Keyra/core/widgets/mini_stats_display.dart';
 import 'package:Keyra/core/widgets/menu_button.dart';
 import 'package:Keyra/features/books/domain/models/book.dart';
+import 'package:Keyra/features/books/presentation/widgets/book_card.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/books/presentation/pages/book_reader_page.dart';
 import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
-import 'package:Keyra/features/home/presentation/widgets/book_card.dart';
-import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
 import 'package:provider/provider.dart';
+import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
+import 'package:Keyra/features/badges/presentation/widgets/badge_display.dart';
+import 'package:Keyra/features/badges/presentation/widgets/badge_progress_dialog.dart';
+import 'package:Keyra/features/badges/presentation/bloc/badge_bloc.dart';
+import 'package:Keyra/features/badges/presentation/bloc/badge_state.dart';
+import 'package:Keyra/features/badges/presentation/bloc/badge_event.dart';
+import 'package:Keyra/features/navigation/presentation/widgets/app_drawer.dart';
+import 'package:Keyra/core/widgets/page_header.dart';
+import 'package:Keyra/core/extensions/context_extensions.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -37,6 +45,7 @@ class _LibraryPageState extends State<LibraryPage> {
   late bool _isSearching;
   late bool _isLoading;
   late String _activeFilter;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -50,9 +59,15 @@ class _LibraryPageState extends State<LibraryPage> {
     _debounce = null;
     _isSearching = false;
     _isLoading = true;
-    _activeFilter = 'All';
+    _activeFilter = 'all';
     _loadBooks();
     _searchController.addListener(_onSearchChanged);
+    // Initialize badge bloc
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<BadgeBloc>().add(const BadgeEvent.started());
+      }
+    });
   }
 
   void _loadBooks() {
@@ -99,11 +114,11 @@ class _LibraryPageState extends State<LibraryPage> {
             .contains(searchTerm);
 
         switch (_activeFilter) {
-          case 'All':
+          case 'all':
             return matchesSearch;
-          case 'Favorites':
+          case 'favorites':
             return matchesSearch && book.isFavorite;
-          case 'Recents':
+          case 'recents':
             return matchesSearch && book.categories.contains('Recents');
           default:
             return matchesSearch && book.categories.contains(_activeFilter);
@@ -144,7 +159,7 @@ class _LibraryPageState extends State<LibraryPage> {
           _filteredBooks[index] = book;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating favorite status')),
+          const SnackBar(content: Text('Error updating favorite status')),
         );
       }
     }
@@ -170,22 +185,15 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Widget _buildFilterChip(String label) {
-    bool isSelected;
-    if (label == UiTranslationService.translate(context, 'all')) {
-      isSelected = _activeFilter == 'All';
-    } else if (label == UiTranslationService.translate(context, 'favorites')) {
-      isSelected = _activeFilter == 'Favorites';
-    } else if (label == UiTranslationService.translate(context, 'recents')) {
-      isSelected = _activeFilter == 'Recents';
-    } else {
-      isSelected = false;
-    }
+    final translatedLabel = UiTranslationService.translate(context, label);
+    bool isSelected = _activeFilter == label;
+
     return Padding(
       padding: const EdgeInsets.only(right: AppSpacing.sm),
       child: FilterChip(
         selected: isSelected,
         showCheckmark: false,
-        label: Text(label),
+        label: Text(translatedLabel),
         labelStyle: TextStyle(
           color: isSelected
               ? Theme.of(context).colorScheme.onPrimary
@@ -194,20 +202,7 @@ class _LibraryPageState extends State<LibraryPage> {
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         selectedColor: Theme.of(context).colorScheme.primary,
         onSelected: (selected) {
-          setState(() {
-            String filterValue;
-            if (label == UiTranslationService.translate(context, 'all')) {
-              filterValue = 'All';
-            } else if (label == UiTranslationService.translate(context, 'favorites')) {
-              filterValue = 'Favorites';
-            } else if (label == UiTranslationService.translate(context, 'recents')) {
-              filterValue = 'Recents';
-            } else {
-              filterValue = 'All';
-            }
-            _activeFilter = selected ? filterValue : 'All';
-            _filterBooks();
-          });
+          _onFilterChanged(selected ? label : 'all');
         },
       ),
     );
@@ -255,16 +250,39 @@ class _LibraryPageState extends State<LibraryPage> {
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, languageState) {
         return Scaffold(
+          endDrawer: const AppDrawer(),
           appBar: AppBar(
             centerTitle: false,
             automaticallyImplyLeading: false,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: BlocBuilder<BadgeBloc, BadgeState>(
+                builder: (context, state) {
+                  return state.map(
+                    initial: (_) => const SizedBox.shrink(),
+                    loaded: (loaded) => BadgeDisplay(
+                      level: loaded.progress.currentLevel,
+                    ),
+                    levelingUp: (levelingUp) => BadgeDisplay(
+                      level: levelingUp.progress.currentLevel,
+                    ),
+                  );
+                },
+              ),
+            ),
             actions: const [
               MenuButton(),
               SizedBox(width: 16),
             ],
           ),
           body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              PageHeader(
+                title: context.tr.library,
+                actions: const [],
+                showBadge: false,
+              ),
               Padding(
                 padding: AppSpacing.paddingLg,
                 child: Row(
@@ -326,12 +344,9 @@ class _LibraryPageState extends State<LibraryPage> {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Row(
                   children: [
-                    _buildFilterChip(
-                        UiTranslationService.translate(context, 'all')),
-                    _buildFilterChip(
-                        UiTranslationService.translate(context, 'favorites')),
-                    _buildFilterChip(
-                        UiTranslationService.translate(context, 'recents')),
+                    _buildFilterChip('all'),
+                    _buildFilterChip('favorites'),
+                    _buildFilterChip('recents'),
                   ],
                 ),
               ),

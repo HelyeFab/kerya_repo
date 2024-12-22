@@ -192,7 +192,7 @@ class ProfilePage extends StatelessWidget {
                       return Switch(
                         value: state.themeMode == ThemeMode.dark,
                         onChanged: (bool value) {
-                          context.read<ThemeBloc>().add(ThemeEvent.toggleTheme());
+                          context.read<ThemeBloc>().add(const ThemeEvent.toggleTheme());
                         },
                       );
                     },

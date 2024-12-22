@@ -459,13 +459,11 @@ class _BookReaderPageState extends State<BookReaderPage> {
                 ),
                 iconSize: 48,
                 onPressed: () {
-                  if (pageText != null) {
-                    _ttsBloc.add(TTSStarted(
-                      text: pageText,
-                      language: widget.language,
-                    ));
-                  }
-                },
+                  _ttsBloc.add(TTSStarted(
+                    text: pageText,
+                    language: widget.language,
+                  ));
+                                },
               ),
             ),
           );

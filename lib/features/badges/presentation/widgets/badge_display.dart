@@ -1,54 +1,84 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
 import '../../domain/models/badge_level.dart';
-import '../bloc/badge_bloc.dart';
-import '../bloc/badge_state.dart';
-import '../../../../core/ui_language/service/ui_translation_service.dart';
+import 'animated_badge_tooltip.dart';
 
-class BadgeDisplay extends StatelessWidget {
+class BadgeDisplay extends StatefulWidget {
   final BadgeLevel level;
   final bool showName;
-  final double size;
   final VoidCallback? onTap;
+  static const double badgeSize = 36.0;
 
   const BadgeDisplay({
     super.key,
     required this.level,
     this.showName = false,
-    this.size = 24,
     this.onTap,
   });
 
   @override
+  State<BadgeDisplay> createState() => _BadgeDisplayState();
+}
+
+class _BadgeDisplayState extends State<BadgeDisplay> {
+  bool _showTooltip = false;
+  Timer? _tooltipTimer;
+
+  void _showTooltipTemporarily() {
+    setState(() {
+      _showTooltip = true;
+    });
+
+    // Cancel any existing timer
+    _tooltipTimer?.cancel();
+
+    // Start a new timer to hide the tooltip after 2 seconds
+    _tooltipTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _showTooltip = false;
+        });
+      }
+    });
+    widget.onTap?.call();
+  }
+
+  @override
+  void dispose() {
+    _tooltipTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<BadgeBloc, BadgeState>(
-      listenWhen: (previous, current) => current.map(
-        initial: (_) => false,
-        loaded: (_) => false,
-        levelingUp: (_) => true,
-      ),
-      listener: (context, state) {
-        state.map(
-          initial: (_) {},
-          loaded: (_) {},
-          levelingUp: (_) => _showLevelUpDialog(context),
-        );
-      },
+    return AnimatedBadgeTooltip(
+      tooltip: widget.level.displayName,
+      isVisible: _showTooltip,
+      badgeSize: BadgeDisplay.badgeSize,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: _showTooltipTemporarily,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              level.assetPath,
-              width: size,
-              height: size,
-              fit: BoxFit.contain,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                ),
+              ),
+              child: Image.asset(
+                widget.level.assetPath,
+                width: BadgeDisplay.badgeSize,
+                height: BadgeDisplay.badgeSize,
+                fit: BoxFit.contain,
+              ),
             ),
-            if (showName) ...[
+            if (widget.showName) ...[
               const SizedBox(width: 8),
               Text(
-                level.displayName,
+                widget.level.displayName,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 12,
@@ -57,39 +87,6 @@ class BadgeDisplay extends StatelessWidget {
             ],
           ],
         ),
-      ),
-    );
-  }
-
-  void _showLevelUpDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(UiTranslationService.translate(context, 'badge_unlocked')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              level.assetPath,
-              width: 48,
-              height: 48,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              UiTranslationService.translate(
-                context,
-                'badge_level_up_message',
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(UiTranslationService.translate(context, 'common_close')),
-          ),
-        ],
       ),
     );
   }

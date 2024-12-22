@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../features/books/domain/models/book_language.dart';
-import 'package:hugeicons/hugeicons.dart';
 import '../ui_language/service/ui_translation_service.dart';
 
 // Custom class to handle both language and "all" states

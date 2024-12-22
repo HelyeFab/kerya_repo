@@ -1,4 +1,10 @@
+import 'package:flutter/widgets.dart';
+
 class UiTranslations {
+  static UiTranslations of(BuildContext context) {
+    return UiTranslations();
+  }
+
   static const Map<String, Map<String, String>> translations = {
     'en': {
       // Legal Documents
@@ -302,7 +308,7 @@ Nous nous réservons le droit de modifier ces Conditions à tout moment. Nous vo
 
 Vous acceptez de ne pas :
 • Violer les lois ou règlements
-• Usurper l'identité d'autres personnes
+• Impersonner d'autres personnes
 • Partager du contenu inapproprié
 • Tenter d'accéder à des zones restreintes
 • Interférer avec le fonctionnement du service
@@ -1300,4 +1306,9 @@ Keyraにアクセスまたは使用することにより、お客様は本規約
       'common_delete': '削除',
     },
   };
+
+  String get appName => 'Keyra';
+  String get library => 'Library';
+  String get dashboard => 'Dashboard';
+  // Add more getters for other translations
 }
