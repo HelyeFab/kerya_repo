@@ -50,3 +50,10 @@ app.*.map.json
 scripts/service-account-key.json
 # Google Cloud credentials
 assets/config/google_tts_credentials.json
+
+# Keystore files
+*.keystore
+*.jks
+!debug.keystore
+/android/app/upload-keystore.jks
+/android/key.properties

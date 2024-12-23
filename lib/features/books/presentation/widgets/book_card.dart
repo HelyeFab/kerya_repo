@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:Keyra/core/theme/app_spacing.dart';
 import 'package:Keyra/core/widgets/loading_indicator.dart';
+import 'package:Keyra/features/books/data/services/book_cover_cache_manager.dart';
 
 class BookCard extends StatelessWidget {
   final String title;
@@ -41,21 +42,22 @@ class BookCard extends StatelessWidget {
                     topRight: Radius.circular(AppSpacing.radiusMd),
                   ),
                   child: CachedNetworkImage(
+                    cacheManager: BookCoverCacheManager.instance,
                     imageUrl: coverImagePath,
                     height: 160,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => const SizedBox(
-                      height: 160,
-                      child: Center(
-                        child: LoadingIndicator(size: 30),
-                      ),
+                    placeholder: (context, url) => const Center(
+                      child: LoadingIndicator(size: 30),
                     ),
                     errorWidget: (context, url, error) {
                       print('Error loading cover image: $error');
-                      return const SizedBox(
+                      return Container(
                         height: 160,
-                        child: Center(child: Icon(Icons.error)),
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: const Center(
+                          child: Icon(Icons.broken_image_outlined, size: 40),
+                        ),
                       );
                     },
                   ),

@@ -21,30 +21,30 @@ class BadgeRequirements with _$BadgeRequirements {
       case BadgeLevel.beginner:
         return const BadgeRequirements(
           level: BadgeLevel.beginner,
-          requiredBooksRead: 5,
-          requiredFavoriteBooks: 3,
-          requiredReadingStreak: 3,
-        );
-      case BadgeLevel.intermediate:
-        return const BadgeRequirements(
-          level: BadgeLevel.intermediate,
           requiredBooksRead: 20,
           requiredFavoriteBooks: 10,
           requiredReadingStreak: 15,
         );
-      case BadgeLevel.advanced:
+      case BadgeLevel.intermediate:
         return const BadgeRequirements(
-          level: BadgeLevel.advanced,
+          level: BadgeLevel.intermediate,
           requiredBooksRead: 40,
           requiredFavoriteBooks: 18,
           requiredReadingStreak: 25,
         );
-      case BadgeLevel.master:
+      case BadgeLevel.advanced:
         return const BadgeRequirements(
-          level: BadgeLevel.master,
+          level: BadgeLevel.advanced,
           requiredBooksRead: 50,
           requiredFavoriteBooks: 20,
           requiredReadingStreak: 30,
+        );
+      case BadgeLevel.master:
+        return const BadgeRequirements(
+          level: BadgeLevel.master,
+          requiredBooksRead: 75,
+          requiredFavoriteBooks: 25,
+          requiredReadingStreak: 40,
         );
     }
   }

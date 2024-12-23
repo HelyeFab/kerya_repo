@@ -13,7 +13,6 @@ import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart'
 import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart' show tokenize;
 import 'package:Keyra/core/widgets/loading_animation.dart';
 import 'package:Keyra/features/books/presentation/bloc/tts_bloc.dart';
-import 'package:Keyra/core/services/tts_service.dart';
 
 class BookReaderPage extends StatefulWidget {
   final Book book;
@@ -246,13 +245,22 @@ class _BookReaderPageState extends State<BookReaderPage> {
             child: Image.network(
               page.imagePath!,
               fit: BoxFit.cover,
+              cacheWidth: 1080, // Full screen width for high quality
+              cacheHeight: 1080,
               errorBuilder: (context, error, stackTrace) {
                 debugPrint('Error loading image: $error');
-                return const Center(child: Icon(Icons.error));
+                return Container(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: const Center(
+                    child: Icon(Icons.broken_image_outlined, size: 48),
+                  ),
+                );
               },
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
-                return const LoadingAnimation(size: 100);
+                return const Center(
+                  child: LoadingAnimation(size: 100),
+                );
               },
             ),
           ),

@@ -1,9 +1,16 @@
 import 'package:equatable/equatable.dart';
+import 'package:hive/hive.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 
+part 'book_page.g.dart';
+
+@HiveType(typeId: 2, adapterName: 'BookPageAdapter')
 class BookPage extends Equatable {
+  @HiveField(0)
   final Map<BookLanguage, String> text;
+  @HiveField(1)
   final Map<BookLanguage, String> audioPath;
+  @HiveField(2)
   final String? imagePath;
 
   const BookPage({

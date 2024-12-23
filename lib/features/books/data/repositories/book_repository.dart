@@ -13,7 +13,25 @@ class BookRepository {
   final FirebaseAuth _auth;
   final UserStatsRepository _userStatsRepository;
 
-  BookRepository({
+  static Future<BookRepository> create({
+    BookCacheService? cacheService,
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+    FirebaseAuth? auth,
+    UserStatsRepository? userStatsRepository,
+  }) async {
+    final repo = BookRepository._(
+      cacheService: cacheService,
+      firestore: firestore,
+      storage: storage,
+      auth: auth,
+      userStatsRepository: userStatsRepository,
+    );
+    await repo._initCacheService();
+    return repo;
+  }
+
+  BookRepository._({
     BookCacheService? cacheService,
     FirebaseFirestore? firestore,
     FirebaseStorage? storage,
@@ -25,60 +43,98 @@ class BookRepository {
         _userStatsRepository = userStatsRepository ?? UserStatsRepository(),
         _cacheService = cacheService ?? BookCacheService();
 
+  Future<void> _initCacheService() async {
+    try {
+      print('BookRepository: Initializing cache service...');
+      await _cacheService.init();
+      print('BookRepository: Cache service initialized successfully');
+    } catch (e, stackTrace) {
+      print('BookRepository: Error initializing cache service: $e');
+      print('Stack trace: $stackTrace');
+      // Continue without cache if initialization fails
+    }
+  }
+
   // Get all books
   Stream<List<Book>> getAllBooks() async* {
-    print('BookRepository: Checking cache');
-    if (_cacheService.hasCache) {
-      print('BookRepository: Returning cached books');
-      yield _cacheService.getCachedBooks();
-    }
+    print('BookRepository: Starting getAllBooks');
     
-    print('BookRepository: Getting all books from Firestore');
-    final user = _auth.currentUser;
-    
-    if (user == null) {
-      print('BookRepository: No user logged in, getting books without favorites');
-      await for (final snapshot in _firestore.collection('books').snapshots()) {
-        print('BookRepository: Retrieved ${snapshot.docs.length} books from Firestore');
-        final books = snapshot.docs
-            .map((doc) {
-              print('BookRepository: Converting Firestore doc ${doc.id} to Book');
-              return Book.fromMap(doc.data(), docId: doc.id);
-            })
-            .toList();
-        print('BookRepository: Returning ${books.length} books');
-        await _cacheService.cacheBooks(books);
-        yield books;
-      }
-    } else {
-      print('BookRepository: User ${user.uid} logged in, getting books with favorites');
-      await for (final booksSnapshot in _firestore.collection('books').snapshots()) {
-      print('BookRepository: Retrieved ${booksSnapshot.docs.length} books from Firestore');
-      Set<String> favoriteBookIds = {};
-      try {
-        final userFavoritesDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('favorites')
-            .get();
-        favoriteBookIds = userFavoritesDoc.docs.map((doc) => doc.id).toSet();
-        print('BookRepository: User has ${favoriteBookIds.length} favorite books');
-      } catch (e) {
-        print('BookRepository: Error fetching favorites: $e');
-        // Continue with empty favorites if there's an error
-      }
-
-      final books = booksSnapshot.docs.map((doc) {
-        print('BookRepository: Converting Firestore doc ${doc.id} to Book');
-        final book = Book.fromMap(doc.data(), docId: doc.id);
-        final isFavorite = favoriteBookIds.contains(book.id);
-        print('BookRepository: Book ${doc.id} isFavorite: $isFavorite');
-        return book.copyWith(isFavorite: isFavorite);
-      }).toList();
+    try {
+      // Ensure cache service is initialized
+      await _initCacheService();
       
-      print('BookRepository: Returning ${books.length} books with favorites');
-        await _cacheService.cacheBooks(books);
+      // First, check and return cached books if available
+      if (_cacheService.hasCache) {
+        print('BookRepository: Returning cached books');
+        yield _cacheService.getCachedBooks();
+      }
+    } catch (e) {
+      print('BookRepository: Error accessing cache: $e');
+      // Continue without cache
+    }
+
+    final user = _auth.currentUser;
+    print('BookRepository: User authentication status - ${user != null ? 'Logged in' : 'Not logged in'}');
+
+    try {
+      // Listen to Firestore updates
+      await for (final snapshot in _firestore.collection('books').snapshots()) {
+        print('BookRepository: Received Firestore update with ${snapshot.docs.length} books');
+        
+        List<Book> books = [];
+        Set<String> favoriteBookIds = {};
+
+        // If user is logged in, fetch their favorites
+        if (user != null) {
+          try {
+            final userFavoritesDoc = await _firestore
+                .collection('users')
+                .doc(user.uid)
+                .collection('favorites')
+                .get();
+            favoriteBookIds = userFavoritesDoc.docs.map((doc) => doc.id).toSet();
+            print('BookRepository: Fetched ${favoriteBookIds.length} favorites for user');
+          } catch (e) {
+            print('BookRepository: Error fetching favorites: $e');
+            // Continue with empty favorites
+          }
+        }
+
+        // Process each book document
+        for (var doc in snapshot.docs) {
+          try {
+            print('BookRepository: Processing book ${doc.id}');
+            final book = Book.fromMap(doc.data(), docId: doc.id);
+            final isFavorite = favoriteBookIds.contains(book.id);
+            
+            // Add to books list
+            books.add(book.copyWith(isFavorite: isFavorite));
+          } catch (e) {
+            print('BookRepository: Error processing book ${doc.id}: $e');
+            // Continue processing other books
+            continue;
+          }
+        }
+
+        // Update cache with new books
+        if (books.isNotEmpty) {
+          print('BookRepository: Caching ${books.length} books');
+          await _cacheService.cacheBooks(books);
+        }
+
+        // Yield the updated book list
+        print('BookRepository: Yielding ${books.length} books');
         yield books;
+      }
+    } catch (e) {
+      print('BookRepository: Error in getAllBooks: $e');
+      // If we have cached books, return them as fallback
+      if (_cacheService.hasCache) {
+        print('BookRepository: Returning cached books as fallback');
+        yield _cacheService.getCachedBooks();
+      } else {
+        print('BookRepository: No cached books available for fallback');
+        yield [];
       }
     }
   }

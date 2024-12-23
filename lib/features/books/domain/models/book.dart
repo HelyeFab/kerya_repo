@@ -1,26 +1,44 @@
 import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hive/hive.dart';
 import 'book_language.dart';
 import 'book_page.dart';
 
+part 'book.g.dart';
+
+@HiveType(typeId: 0, adapterName: 'BookAdapter')
 class Book extends Equatable {
+  @HiveField(0)
   final String id;
+  @HiveField(1)
   final Map<BookLanguage, String> title;
+  @HiveField(2)
   final String coverImage;
+  @HiveField(3)
   final List<BookPage> pages;
+  @HiveField(4)
   final BookLanguage defaultLanguage;
+  @HiveField(5)
   final DateTime createdAt;
+  @HiveField(6)
   final bool isFavorite;
+  @HiveField(7)
   final String author;
+  @HiveField(8)
   final String fileUrl;
+  @HiveField(9)
   final String description;
+  @HiveField(10)
   final List<String> categories;
-  
-  // Reading state
+  @HiveField(11)
   final BookLanguage currentLanguage;
+  @HiveField(12)
   final int currentPage;
+  @HiveField(13)
   final bool isAudioPlaying;
+  @HiveField(14)
   final DateTime? lastReadAt;
+  @HiveField(15)
   final double readingProgress;
 
   const Book({

@@ -10,10 +10,9 @@ class SavedWordsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        
-      ),
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(),
       body: StreamBuilder<List<SavedWord>>(
         stream: _repository.getSavedWords(),
         builder: (context, snapshot) {
@@ -113,6 +112,7 @@ class SavedWordsPage extends StatelessWidget {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 }

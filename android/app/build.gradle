@@ -17,7 +17,7 @@ if (localPropertiesFile.exists()) {
 
 def flutterRoot = localProperties.getProperty('flutter.sdk')
 if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+    throw new Exception("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -31,6 +31,15 @@ if (flutterVersionName == null) {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file("../../debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+    
     namespace "com.keyra.app"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
@@ -50,6 +59,7 @@ android {
 
     defaultConfig {
         applicationId "com.keyra.app"
+        signingConfig signingConfigs.debug
         minSdkVersion 21  // Updated for TTS support
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()

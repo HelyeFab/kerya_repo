@@ -17,7 +17,6 @@ import 'package:Keyra/features/dashboard/presentation/widgets/circular_stats_car
 import 'package:Keyra/features/dashboard/presentation/widgets/study_progress_card.dart';
 import 'package:Keyra/features/dashboard/presentation/widgets/no_saved_words_dialog.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
-import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -79,42 +78,37 @@ class _DashboardPageState extends State<DashboardPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Scaffold(
-      key: _scaffoldKey,
-      endDrawer: const AppDrawer(),
-      appBar: AppBar(
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: BlocBuilder<BadgeBloc, BadgeState>(
-            builder: (context, state) {
-              return state.map(
-                initial: (_) => const SizedBox.shrink(),
-                loaded: (loaded) => BadgeDisplay(
-                  level: loaded.progress.currentLevel,
-                ),
-                levelingUp: (levelingUp) => BadgeDisplay(
-                  level: levelingUp.progress.currentLevel,
-                ),
-              );
-            },
+    return SafeArea(
+      child: Scaffold(
+        key: _scaffoldKey,
+        endDrawer: const AppDrawer(),
+        appBar: AppBar(
+          centerTitle: false,
+          automaticallyImplyLeading: false,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: BlocBuilder<BadgeBloc, BadgeState>(
+              builder: (context, state) {
+                return state.map(
+                  initial: (_) => const SizedBox.shrink(),
+                  loaded: (loaded) => BadgeDisplay(
+                    level: loaded.progress.currentLevel,
+                  ),
+                  levelingUp: (levelingUp) => BadgeDisplay(
+                    level: levelingUp.progress.currentLevel,
+                  ),
+                );
+              },
+            ),
           ),
+          actions: const [
+            MenuButton(),
+            SizedBox(width: 16),
+          ],
         ),
-        actions: const [
-          MenuButton(),
-          SizedBox(width: 16),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
+        body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PageHeader(
-              title: context.tr.dashboard,
-              actions: const [],
-              showBadge: false,
-            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {

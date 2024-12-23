@@ -6,7 +6,6 @@ import '../../../../features/dictionary/domain/models/saved_word.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../features/dictionary/domain/services/spaced_repetition_service.dart';
 import '../widgets/flashcard.dart';
-import '../../../../core/ui_language/translations/ui_translations.dart';
 import '../../../../core/ui_language/bloc/ui_language_bloc.dart';
 import '../../../../core/ui_language/service/ui_translation_service.dart';
 import 'package:hugeicons/hugeicons.dart';

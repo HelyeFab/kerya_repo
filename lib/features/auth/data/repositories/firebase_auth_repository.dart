@@ -22,6 +22,13 @@ class FirebaseAuthRepository {
   Future<UserCredential> signInWithGoogle() async {
     try {
       print('Starting Google Sign In...');
+      // Check if a previous sign-in exists
+      final currentUser = await _googleSignIn.signInSilently();
+      if (currentUser != null) {
+        print('Found previous sign-in, signing out first...');
+        await _googleSignIn.signOut();
+      }
+      
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
       if (googleUser == null) {
@@ -29,10 +36,18 @@ class FirebaseAuthRepository {
         throw Exception('Sign in aborted by user');
       }
 
-      print('Getting Google Auth credentials...');
+      print('Getting Google Auth credentials for user: ${googleUser.email}');
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      print('Creating Firebase credential...');
+      if (googleAuth.accessToken == null) {
+        print('Error: No access token received from Google');
+        throw Exception('No access token received from Google');
+      }
+
+      print('Creating Firebase credential with tokens...');
+      print('Access Token available: ${googleAuth.accessToken != null}');
+      print('ID Token available: ${googleAuth.idToken != null}');
+      
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -41,12 +56,15 @@ class FirebaseAuthRepository {
       print('Signing in to Firebase...');
       final userCredential = await _firebaseAuth.signInWithCredential(credential);
       
+      print('Successfully signed in with Google. UID: ${userCredential.user?.uid}');
+      
       // Initialize user stats after successful sign in
       await _userStatsRepository.getUserStats();
       
       return userCredential;
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error during Google Sign In: $e');
+      print('Stack trace: $stackTrace');
       throw Exception('Failed to sign in with Google: ${e.toString()}');
     }
   }
