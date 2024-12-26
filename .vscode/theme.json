@@ -1,0 +1,49 @@
+{
+	"name": "Sidebar Matching Theme",
+	"type": "dark",
+	"colors": {
+	  "editor.background": "#1E1E1E",
+	  "editor.foreground": "#D4D4D4",
+	  "editorCursor.foreground": "#FFFFFF",
+	  "editor.lineHighlightBackground": "#2A2A2A",
+	  "editor.selectionBackground": "#264F78",
+	  "editor.selectionHighlightBackground": "#264F78",
+	  "editorIndentGuide.background": "#3B3B3B",
+	  "editorIndentGuide.activeBackground": "#707070"
+	},
+	"tokenColors": [
+	  {
+		"scope": ["comment"],
+		"settings": {
+		  "foreground": "#808080", // Gray for comments
+		  "fontStyle": "italic"
+		}
+	  },
+	  {
+		"scope": ["keyword", "storage.type"],
+		"settings": {
+		  "foreground": "#A97FFF" // Purple for keywords
+		}
+	  },
+	  {
+		"scope": ["variable", "string"],
+		"settings": {
+		  "foreground": "#A3E88E" // Green for variables
+		}
+	  },
+	  {
+		"scope": ["entity.name.function", "support.function"],
+		"settings": {
+		  "foreground": "#F1C40F" // Yellow for methods
+		}
+	  },
+	  {
+		"scope": ["support.class", "entity.name.class"],
+		"settings": {
+		  "foreground": "#5294E2" // Blue for classes and services
+		}
+	  }
+	]
+  }
+  
+  

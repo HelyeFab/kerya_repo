@@ -42,21 +42,21 @@ mixin _$BadgeEvent {
   TResult map<TResult extends Object?>({
     required TResult Function(_Started value) started,
     required TResult Function(_WordsUpdated value) wordsUpdated,
-    required TResult Function(_LevelingUp value) levelUp,
+    required TResult Function(_LevelUp value) levelUp,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Started value)? started,
     TResult? Function(_WordsUpdated value)? wordsUpdated,
-    TResult? Function(_LevelingUp value)? levelUp,
+    TResult? Function(_LevelUp value)? levelUp,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Started value)? started,
     TResult Function(_WordsUpdated value)? wordsUpdated,
-    TResult Function(_LevelingUp value)? levelUp,
+    TResult Function(_LevelUp value)? levelUp,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -160,7 +160,7 @@ class _$StartedImpl implements _Started {
   TResult map<TResult extends Object?>({
     required TResult Function(_Started value) started,
     required TResult Function(_WordsUpdated value) wordsUpdated,
-    required TResult Function(_LevelingUp value) levelUp,
+    required TResult Function(_LevelUp value) levelUp,
   }) {
     return started(this);
   }
@@ -170,7 +170,7 @@ class _$StartedImpl implements _Started {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Started value)? started,
     TResult? Function(_WordsUpdated value)? wordsUpdated,
-    TResult? Function(_LevelingUp value)? levelUp,
+    TResult? Function(_LevelUp value)? levelUp,
   }) {
     return started?.call(this);
   }
@@ -180,7 +180,7 @@ class _$StartedImpl implements _Started {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Started value)? started,
     TResult Function(_WordsUpdated value)? wordsUpdated,
-    TResult Function(_LevelingUp value)? levelUp,
+    TResult Function(_LevelUp value)? levelUp,
     required TResult orElse(),
   }) {
     if (started != null) {
@@ -299,7 +299,7 @@ class _$WordsUpdatedImpl implements _WordsUpdated {
   TResult map<TResult extends Object?>({
     required TResult Function(_Started value) started,
     required TResult Function(_WordsUpdated value) wordsUpdated,
-    required TResult Function(_LevelingUp value) levelUp,
+    required TResult Function(_LevelUp value) levelUp,
   }) {
     return wordsUpdated(this);
   }
@@ -309,7 +309,7 @@ class _$WordsUpdatedImpl implements _WordsUpdated {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Started value)? started,
     TResult? Function(_WordsUpdated value)? wordsUpdated,
-    TResult? Function(_LevelingUp value)? levelUp,
+    TResult? Function(_LevelUp value)? levelUp,
   }) {
     return wordsUpdated?.call(this);
   }
@@ -319,7 +319,7 @@ class _$WordsUpdatedImpl implements _WordsUpdated {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Started value)? started,
     TResult Function(_WordsUpdated value)? wordsUpdated,
-    TResult Function(_LevelingUp value)? levelUp,
+    TResult Function(_LevelUp value)? levelUp,
     required TResult orElse(),
   }) {
     if (wordsUpdated != null) {
@@ -342,20 +342,20 @@ abstract class _WordsUpdated implements BadgeEvent {
 }
 
 /// @nodoc
-abstract class _$$LevelingUpImplCopyWith<$Res> {
-  factory _$$LevelingUpImplCopyWith(
-          _$LevelingUpImpl value, $Res Function(_$LevelingUpImpl) then) =
-      __$$LevelingUpImplCopyWithImpl<$Res>;
+abstract class _$$LevelUpImplCopyWith<$Res> {
+  factory _$$LevelUpImplCopyWith(
+          _$LevelUpImpl value, $Res Function(_$LevelUpImpl) then) =
+      __$$LevelUpImplCopyWithImpl<$Res>;
   @useResult
   $Res call({BadgeLevel newLevel});
 }
 
 /// @nodoc
-class __$$LevelingUpImplCopyWithImpl<$Res>
-    extends _$BadgeEventCopyWithImpl<$Res, _$LevelingUpImpl>
-    implements _$$LevelingUpImplCopyWith<$Res> {
-  __$$LevelingUpImplCopyWithImpl(
-      _$LevelingUpImpl _value, $Res Function(_$LevelingUpImpl) _then)
+class __$$LevelUpImplCopyWithImpl<$Res>
+    extends _$BadgeEventCopyWithImpl<$Res, _$LevelUpImpl>
+    implements _$$LevelUpImplCopyWith<$Res> {
+  __$$LevelUpImplCopyWithImpl(
+      _$LevelUpImpl _value, $Res Function(_$LevelUpImpl) _then)
       : super(_value, _then);
 
   /// Create a copy of BadgeEvent
@@ -365,7 +365,7 @@ class __$$LevelingUpImplCopyWithImpl<$Res>
   $Res call({
     Object? newLevel = null,
   }) {
-    return _then(_$LevelingUpImpl(
+    return _then(_$LevelUpImpl(
       null == newLevel
           ? _value.newLevel
           : newLevel // ignore: cast_nullable_to_non_nullable
@@ -376,8 +376,8 @@ class __$$LevelingUpImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$LevelingUpImpl implements _LevelingUp {
-  const _$LevelingUpImpl(this.newLevel);
+class _$LevelUpImpl implements _LevelUp {
+  const _$LevelUpImpl(this.newLevel);
 
   @override
   final BadgeLevel newLevel;
@@ -391,7 +391,7 @@ class _$LevelingUpImpl implements _LevelingUp {
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$LevelingUpImpl &&
+            other is _$LevelUpImpl &&
             (identical(other.newLevel, newLevel) ||
                 other.newLevel == newLevel));
   }
@@ -404,8 +404,8 @@ class _$LevelingUpImpl implements _LevelingUp {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$LevelingUpImplCopyWith<_$LevelingUpImpl> get copyWith =>
-      __$$LevelingUpImplCopyWithImpl<_$LevelingUpImpl>(this, _$identity);
+  _$$LevelUpImplCopyWith<_$LevelUpImpl> get copyWith =>
+      __$$LevelUpImplCopyWithImpl<_$LevelUpImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -446,7 +446,7 @@ class _$LevelingUpImpl implements _LevelingUp {
   TResult map<TResult extends Object?>({
     required TResult Function(_Started value) started,
     required TResult Function(_WordsUpdated value) wordsUpdated,
-    required TResult Function(_LevelingUp value) levelUp,
+    required TResult Function(_LevelUp value) levelUp,
   }) {
     return levelUp(this);
   }
@@ -456,7 +456,7 @@ class _$LevelingUpImpl implements _LevelingUp {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_Started value)? started,
     TResult? Function(_WordsUpdated value)? wordsUpdated,
-    TResult? Function(_LevelingUp value)? levelUp,
+    TResult? Function(_LevelUp value)? levelUp,
   }) {
     return levelUp?.call(this);
   }
@@ -466,7 +466,7 @@ class _$LevelingUpImpl implements _LevelingUp {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_Started value)? started,
     TResult Function(_WordsUpdated value)? wordsUpdated,
-    TResult Function(_LevelingUp value)? levelUp,
+    TResult Function(_LevelUp value)? levelUp,
     required TResult orElse(),
   }) {
     if (levelUp != null) {
@@ -476,14 +476,14 @@ class _$LevelingUpImpl implements _LevelingUp {
   }
 }
 
-abstract class _LevelingUp implements BadgeEvent {
-  const factory _LevelingUp(final BadgeLevel newLevel) = _$LevelingUpImpl;
+abstract class _LevelUp implements BadgeEvent {
+  const factory _LevelUp(final BadgeLevel newLevel) = _$LevelUpImpl;
 
   BadgeLevel get newLevel;
 
   /// Create a copy of BadgeEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LevelingUpImplCopyWith<_$LevelingUpImpl> get copyWith =>
+  _$$LevelUpImplCopyWith<_$LevelUpImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

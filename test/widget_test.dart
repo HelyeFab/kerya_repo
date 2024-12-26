@@ -5,6 +5,7 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:Keyra/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
@@ -24,13 +25,11 @@ void main() {
     final uiLanguageBloc = UiLanguageBloc(prefs);
     
     // Build our app and trigger a frame
-    await tester.pumpWidget(MyApp(
+    await tester.pumpWidget(App(
       preferencesService: preferencesService,
       isFirstLaunch: true,
-      themeBloc: themeBloc,
-      languageBloc: languageBloc,
-      uiLanguageBloc: uiLanguageBloc,
       dictionaryService: dictionaryService,
+      dictionaryInitStream: Stream.value(true),
     ));
   });
 }

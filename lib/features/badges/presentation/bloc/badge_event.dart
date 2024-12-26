@@ -7,5 +7,5 @@ part 'badge_event.freezed.dart';
 class BadgeEvent with _$BadgeEvent {
   const factory BadgeEvent.started() = _Started;
   const factory BadgeEvent.wordsUpdated(int wordCount) = _WordsUpdated;
-  const factory BadgeEvent.levelUp(BadgeLevel newLevel) = _LevelingUp;
+  const factory BadgeEvent.levelUp(BadgeLevel newLevel) = _LevelUp;
 }

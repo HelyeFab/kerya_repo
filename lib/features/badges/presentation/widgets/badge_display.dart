@@ -7,6 +7,7 @@ class BadgeDisplay extends StatefulWidget {
   final BadgeLevel level;
   final bool showName;
   final VoidCallback? onTap;
+  final String? displayName;
   static const double badgeSize = 36.0;
 
   const BadgeDisplay({
@@ -14,6 +15,7 @@ class BadgeDisplay extends StatefulWidget {
     required this.level,
     this.showName = false,
     this.onTap,
+    this.displayName,
   });
 
   @override
@@ -52,7 +54,7 @@ class _BadgeDisplayState extends State<BadgeDisplay> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBadgeTooltip(
-      tooltip: widget.level.displayName,
+      tooltip: widget.displayName ?? '',
       isVisible: _showTooltip,
       badgeSize: BadgeDisplay.badgeSize,
       child: GestureDetector(
@@ -78,7 +80,7 @@ class _BadgeDisplayState extends State<BadgeDisplay> {
             if (widget.showName) ...[
               const SizedBox(width: 8),
               Text(
-                widget.level.displayName,
+                widget.displayName ?? '',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 12,

@@ -10,6 +10,8 @@ _$BadgeRequirementsImpl _$$BadgeRequirementsImplFromJson(
         Map<String, dynamic> json) =>
     _$BadgeRequirementsImpl(
       level: $enumDecode(_$BadgeLevelEnumMap, json['level']),
+      displayName: json['displayName'] as String,
+      assetPath: json['assetPath'] as String,
       requiredBooksRead: (json['requiredBooksRead'] as num).toInt(),
       requiredFavoriteBooks: (json['requiredFavoriteBooks'] as num).toInt(),
       requiredReadingStreak: (json['requiredReadingStreak'] as num).toInt(),
@@ -19,6 +21,8 @@ Map<String, dynamic> _$$BadgeRequirementsImplToJson(
         _$BadgeRequirementsImpl instance) =>
     <String, dynamic>{
       'level': _$BadgeLevelEnumMap[instance.level]!,
+      'displayName': instance.displayName,
+      'assetPath': instance.assetPath,
       'requiredBooksRead': instance.requiredBooksRead,
       'requiredFavoriteBooks': instance.requiredFavoriteBooks,
       'requiredReadingStreak': instance.requiredReadingStreak,

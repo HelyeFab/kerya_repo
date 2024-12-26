@@ -7,6 +7,7 @@ import '../../../badges/presentation/bloc/badge_bloc.dart';
 import '../../../badges/presentation/bloc/badge_state.dart';
 import '../../../badges/presentation/bloc/badge_event.dart';
 import '../../../dictionary/data/repositories/saved_words_repository.dart';
+import '../../../dashboard/data/repositories/user_stats_repository.dart';
 
 class CreatePage extends StatelessWidget {
   const CreatePage({super.key});
@@ -17,6 +18,7 @@ class CreatePage extends StatelessWidget {
       create: (context) => BadgeBloc(
         badgeRepository: context.read<BadgeRepository>(),
         savedWordsRepository: context.read<SavedWordsRepository>(),
+        userStatsRepository: context.read<UserStatsRepository>(),
       )..add(const BadgeEvent.started()),
       child: SafeArea(
         child: Scaffold(

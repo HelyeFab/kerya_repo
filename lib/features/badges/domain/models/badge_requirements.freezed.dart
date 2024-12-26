@@ -21,6 +21,8 @@ BadgeRequirements _$BadgeRequirementsFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$BadgeRequirements {
   BadgeLevel get level => throw _privateConstructorUsedError;
+  String get displayName => throw _privateConstructorUsedError;
+  String get assetPath => throw _privateConstructorUsedError;
   int get requiredBooksRead => throw _privateConstructorUsedError;
   int get requiredFavoriteBooks => throw _privateConstructorUsedError;
   int get requiredReadingStreak => throw _privateConstructorUsedError;
@@ -43,6 +45,8 @@ abstract class $BadgeRequirementsCopyWith<$Res> {
   @useResult
   $Res call(
       {BadgeLevel level,
+      String displayName,
+      String assetPath,
       int requiredBooksRead,
       int requiredFavoriteBooks,
       int requiredReadingStreak});
@@ -64,6 +68,8 @@ class _$BadgeRequirementsCopyWithImpl<$Res, $Val extends BadgeRequirements>
   @override
   $Res call({
     Object? level = null,
+    Object? displayName = null,
+    Object? assetPath = null,
     Object? requiredBooksRead = null,
     Object? requiredFavoriteBooks = null,
     Object? requiredReadingStreak = null,
@@ -73,6 +79,14 @@ class _$BadgeRequirementsCopyWithImpl<$Res, $Val extends BadgeRequirements>
           ? _value.level
           : level // ignore: cast_nullable_to_non_nullable
               as BadgeLevel,
+      displayName: null == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String,
+      assetPath: null == assetPath
+          ? _value.assetPath
+          : assetPath // ignore: cast_nullable_to_non_nullable
+              as String,
       requiredBooksRead: null == requiredBooksRead
           ? _value.requiredBooksRead
           : requiredBooksRead // ignore: cast_nullable_to_non_nullable
@@ -99,6 +113,8 @@ abstract class _$$BadgeRequirementsImplCopyWith<$Res>
   @useResult
   $Res call(
       {BadgeLevel level,
+      String displayName,
+      String assetPath,
       int requiredBooksRead,
       int requiredFavoriteBooks,
       int requiredReadingStreak});
@@ -118,6 +134,8 @@ class __$$BadgeRequirementsImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? level = null,
+    Object? displayName = null,
+    Object? assetPath = null,
     Object? requiredBooksRead = null,
     Object? requiredFavoriteBooks = null,
     Object? requiredReadingStreak = null,
@@ -127,6 +145,14 @@ class __$$BadgeRequirementsImplCopyWithImpl<$Res>
           ? _value.level
           : level // ignore: cast_nullable_to_non_nullable
               as BadgeLevel,
+      displayName: null == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String,
+      assetPath: null == assetPath
+          ? _value.assetPath
+          : assetPath // ignore: cast_nullable_to_non_nullable
+              as String,
       requiredBooksRead: null == requiredBooksRead
           ? _value.requiredBooksRead
           : requiredBooksRead // ignore: cast_nullable_to_non_nullable
@@ -148,6 +174,8 @@ class __$$BadgeRequirementsImplCopyWithImpl<$Res>
 class _$BadgeRequirementsImpl extends _BadgeRequirements {
   const _$BadgeRequirementsImpl(
       {required this.level,
+      required this.displayName,
+      required this.assetPath,
       required this.requiredBooksRead,
       required this.requiredFavoriteBooks,
       required this.requiredReadingStreak})
@@ -159,6 +187,10 @@ class _$BadgeRequirementsImpl extends _BadgeRequirements {
   @override
   final BadgeLevel level;
   @override
+  final String displayName;
+  @override
+  final String assetPath;
+  @override
   final int requiredBooksRead;
   @override
   final int requiredFavoriteBooks;
@@ -167,7 +199,7 @@ class _$BadgeRequirementsImpl extends _BadgeRequirements {
 
   @override
   String toString() {
-    return 'BadgeRequirements(level: $level, requiredBooksRead: $requiredBooksRead, requiredFavoriteBooks: $requiredFavoriteBooks, requiredReadingStreak: $requiredReadingStreak)';
+    return 'BadgeRequirements(level: $level, displayName: $displayName, assetPath: $assetPath, requiredBooksRead: $requiredBooksRead, requiredFavoriteBooks: $requiredFavoriteBooks, requiredReadingStreak: $requiredReadingStreak)';
   }
 
   @override
@@ -176,6 +208,10 @@ class _$BadgeRequirementsImpl extends _BadgeRequirements {
         (other.runtimeType == runtimeType &&
             other is _$BadgeRequirementsImpl &&
             (identical(other.level, level) || other.level == level) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.assetPath, assetPath) ||
+                other.assetPath == assetPath) &&
             (identical(other.requiredBooksRead, requiredBooksRead) ||
                 other.requiredBooksRead == requiredBooksRead) &&
             (identical(other.requiredFavoriteBooks, requiredFavoriteBooks) ||
@@ -186,8 +222,8 @@ class _$BadgeRequirementsImpl extends _BadgeRequirements {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, level, requiredBooksRead,
-      requiredFavoriteBooks, requiredReadingStreak);
+  int get hashCode => Object.hash(runtimeType, level, displayName, assetPath,
+      requiredBooksRead, requiredFavoriteBooks, requiredReadingStreak);
 
   /// Create a copy of BadgeRequirements
   /// with the given fields replaced by the non-null parameter values.
@@ -209,6 +245,8 @@ class _$BadgeRequirementsImpl extends _BadgeRequirements {
 abstract class _BadgeRequirements extends BadgeRequirements {
   const factory _BadgeRequirements(
       {required final BadgeLevel level,
+      required final String displayName,
+      required final String assetPath,
       required final int requiredBooksRead,
       required final int requiredFavoriteBooks,
       required final int requiredReadingStreak}) = _$BadgeRequirementsImpl;
@@ -219,6 +257,10 @@ abstract class _BadgeRequirements extends BadgeRequirements {
 
   @override
   BadgeLevel get level;
+  @override
+  String get displayName;
+  @override
+  String get assetPath;
   @override
   int get requiredBooksRead;
   @override

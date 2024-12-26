@@ -20,7 +20,6 @@ import 'package:Keyra/features/badges/presentation/bloc/badge_state.dart';
 import 'package:Keyra/features/badges/presentation/bloc/badge_event.dart';
 import 'package:Keyra/features/navigation/presentation/widgets/app_drawer.dart';
 import 'package:Keyra/core/widgets/page_header.dart';
-import 'package:Keyra/core/extensions/context_extensions.dart';
 import 'package:Keyra/features/books/data/services/book_cover_cache_manager.dart';
 
 class LibraryPage extends StatefulWidget {
@@ -320,7 +319,7 @@ class _LibraryPageState extends State<LibraryPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PageHeader(
-                  title: context.tr.library,
+                  title: UiTranslationService.translate(context, 'library'),
                   actions: const [],
                   showBadge: false,
                 ),

@@ -8,8 +8,5 @@ part 'badge_state.freezed.dart';
 class BadgeState with _$BadgeState {
   const factory BadgeState.initial() = _Initial;
   const factory BadgeState.loaded(BadgeProgress progress) = _Loaded;
-  const factory BadgeState.levelingUp(
-    BadgeProgress progress,
-    BadgeLevel newLevel,
-  ) = _LevelingUp;
+  const factory BadgeState.levelingUp(BadgeProgress progress, BadgeLevel newLevel) = _LevelingUp;
 }

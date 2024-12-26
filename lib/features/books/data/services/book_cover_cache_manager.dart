@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 /// A cache manager specifically designed for handling book cover images.

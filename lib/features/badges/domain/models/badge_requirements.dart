@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'badge_level.dart';
+import 'badge_requirements_config.dart';
 
 part 'badge_requirements.freezed.dart';
 part 'badge_requirements.g.dart';
@@ -8,6 +9,8 @@ part 'badge_requirements.g.dart';
 class BadgeRequirements with _$BadgeRequirements {
   const factory BadgeRequirements({
     required BadgeLevel level,
+    required String displayName,
+    required String assetPath,
     required int requiredBooksRead,
     required int requiredFavoriteBooks,
     required int requiredReadingStreak,
@@ -17,36 +20,7 @@ class BadgeRequirements with _$BadgeRequirements {
       _$BadgeRequirementsFromJson(json);
 
   static BadgeRequirements getRequirementsForLevel(BadgeLevel level) {
-    switch (level) {
-      case BadgeLevel.beginner:
-        return const BadgeRequirements(
-          level: BadgeLevel.beginner,
-          requiredBooksRead: 20,
-          requiredFavoriteBooks: 10,
-          requiredReadingStreak: 15,
-        );
-      case BadgeLevel.intermediate:
-        return const BadgeRequirements(
-          level: BadgeLevel.intermediate,
-          requiredBooksRead: 40,
-          requiredFavoriteBooks: 18,
-          requiredReadingStreak: 25,
-        );
-      case BadgeLevel.advanced:
-        return const BadgeRequirements(
-          level: BadgeLevel.advanced,
-          requiredBooksRead: 50,
-          requiredFavoriteBooks: 20,
-          requiredReadingStreak: 30,
-        );
-      case BadgeLevel.master:
-        return const BadgeRequirements(
-          level: BadgeLevel.master,
-          requiredBooksRead: 75,
-          requiredFavoriteBooks: 25,
-          requiredReadingStreak: 40,
-        );
-    }
+    return badgeRequirementsConfig[level]!;
   }
 
   const BadgeRequirements._();

@@ -13,6 +13,8 @@ abstract class TTSEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class TTSCompleted extends TTSEvent {}
+
 class TTSStarted extends TTSEvent {
   final String text;
   final BookLanguage language;
@@ -73,6 +75,7 @@ class TTSBloc extends Bloc<TTSEvent, TTSState> {
     on<TTSPauseRequested>(_onPauseRequested);
     on<TTSResumeRequested>(_onResumeRequested);
     on<TTSStopRequested>(_onStopRequested);
+    on<TTSCompleted>(_onCompleted);
     debugPrint('TTSBloc: Initialized');
   }
 
@@ -84,8 +87,16 @@ class TTSBloc extends Bloc<TTSEvent, TTSState> {
   Future<void> _onStarted(TTSStarted event, Emitter<TTSState> emit) async {
     debugPrint('TTSBloc: Received TTSStarted event with text: ${event.text.substring(0, min(50, event.text.length))}...');
     emit(TTSPlaying(text: event.text, language: event.language));
-    await _ttsService.speak(event.text, event.language);
+    await _ttsService.speak(event.text, event.language, onComplete: () {
+      add(TTSCompleted());
+    });
     debugPrint('TTSBloc: Emitted TTSPlaying state');
+  }
+
+  Future<void> _onCompleted(TTSCompleted event, Emitter<TTSState> emit) async {
+    debugPrint('TTSBloc: Received TTSCompleted event');
+    emit(TTSStoppedState());
+    debugPrint('TTSBloc: Emitted TTSStoppedState state');
   }
 
   Future<void> _onPauseRequested(TTSPauseRequested event, Emitter<TTSState> emit) async {

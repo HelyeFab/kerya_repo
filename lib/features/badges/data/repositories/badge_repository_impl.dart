@@ -3,11 +3,11 @@ import '../../domain/models/badge_level.dart';
 import '../../domain/models/badge_progress.dart';
 import '../../domain/repositories/badge_repository.dart';
 
-class MockBadgeRepository implements BadgeRepository {
+class BadgeRepositoryImpl implements BadgeRepository {
   final _progressController = StreamController<BadgeProgress>.broadcast();
   BadgeProgress _currentProgress = BadgeProgress.initial();
 
-  MockBadgeRepository() {
+  BadgeRepositoryImpl() {
     // Initialize with some mock data
     _currentProgress = BadgeProgress(
       currentLevel: BadgeLevel.beginner,

@@ -14,6 +14,18 @@ class TTSService {
   factory TTSService() => _instance;
   
   TTSService._internal() {
+    _setupAudioPlayer();
+  }
+
+  TexttospeechApi? _ttsApi;
+  AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+  String? _currentText;
+  BookLanguage? _currentLanguage;
+  File? _currentAudioFile;
+  Function? _onComplete;
+
+  void _setupAudioPlayer() {
     _audioPlayer.onPlayerStateChanged.listen((state) {
       switch (state) {
         case PlayerState.playing:
@@ -28,12 +40,6 @@ class TTSService {
       }
     });
   }
-
-  TexttospeechApi? _ttsApi;
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _isPlaying = false;
-  String? _currentText;
-  BookLanguage? _currentLanguage;
 
   Future<void> init() async {
     try {
@@ -69,26 +75,26 @@ class TTSService {
     );
   }
 
-  Future<void> speak(String text, BookLanguage language) async {
+  Future<void> speak(String text, BookLanguage language, {Function? onComplete}) async {
     try {
       if (_ttsApi == null) {
         debugPrint('TTS: Not initialized');
         return;
       }
 
-      debugPrint('TTS: Attempting to speak text: ${text.substring(0, min(50, text.length))}...');
+      _onComplete = onComplete;
+
+      final languageCode = _getLanguageCode(language);
+      debugPrint('TTS: Attempting to speak text in ${language.displayName} (${languageCode}): ${text.substring(0, min(50, text.length))}...');
       
-      if (_isPlaying && text == _currentText) {
-        debugPrint('TTS: Already playing this text, resuming...');
-        await resume();
-        return;
-      }
+      // Always stop current playback and cleanup before starting new audio
+      await stop();
 
       _currentText = text;
       _currentLanguage = language;
 
-      final languageCode = _getLanguageCode(language);
       final voice = await _getVoice(languageCode);
+      debugPrint('TTS: Selected voice ${voice} for ${language.displayName}');
       
       final input = SynthesisInput(text: text);
       final voiceParams = VoiceSelectionParams(
@@ -110,21 +116,53 @@ class TTSService {
       if (response.audioContent != null) {
         // Save audio content to temporary file
         final tempDir = await getTemporaryDirectory();
-        final tempFile = File('${tempDir.path}/tts_audio.mp3');
-        await tempFile.writeAsBytes(base64Decode(response.audioContent!));
+        _currentAudioFile = File('${tempDir.path}/tts_audio_${DateTime.now().millisecondsSinceEpoch}.mp3');
+        await _currentAudioFile!.writeAsBytes(base64Decode(response.audioContent!));
 
-        await _audioPlayer.play(DeviceFileSource(tempFile.path));
-        debugPrint('TTS: Started playing audio (${languageCode == 'ja-JP' ? '90% speed' : 'normal speed'})');
+        // Create a new player for each playback to avoid state issues
+        await _audioPlayer.dispose();
+        _audioPlayer = AudioPlayer();
+        _setupAudioPlayer();
+        await _audioPlayer.setVolume(1.0);
 
-        // Wait for completion and clean up
-        await _audioPlayer.onPlayerComplete.first;
-        await tempFile.delete();
-        debugPrint('TTS: Finished playing audio');
+        await _audioPlayer.play(DeviceFileSource(_currentAudioFile!.path));
+        debugPrint('TTS: Started playing audio in ${language.displayName} (${languageCode == 'ja-JP' ? '90% speed' : 'normal speed'})');
+
+        // Clean up when playback completes normally
+        _audioPlayer.onPlayerComplete.listen((_) async {
+          debugPrint('TTS: Finished playing audio in ${language.displayName}');
+          await _cleanupAudioFile();
+          _onComplete?.call();
+          _onComplete = null;
+        });
       } else {
         debugPrint('TTS: Failed to get audio content');
+        _onComplete?.call();
+        _onComplete = null;
       }
     } catch (e) {
       debugPrint('TTS Speak Error: $e');
+      // Reset state and cleanup on error
+      await _cleanupAudioFile();
+      _currentText = null;
+      _currentLanguage = null;
+      _isPlaying = false;
+      _onComplete?.call();
+      _onComplete = null;
+    }
+  }
+
+  Future<void> _cleanupAudioFile() async {
+    if (_currentAudioFile != null) {
+      try {
+        if (await _currentAudioFile!.exists()) {
+          await _currentAudioFile!.delete();
+          debugPrint('TTS: Cleaned up audio file');
+        }
+      } catch (e) {
+        debugPrint('TTS: Cleanup error: $e');
+      }
+      _currentAudioFile = null;
     }
   }
 
@@ -132,7 +170,7 @@ class TTSService {
     try {
       if (_isPlaying) {
         await _audioPlayer.pause();
-        debugPrint('TTS: Paused');
+        debugPrint('TTS: Paused playback in ${_currentLanguage?.displayName ?? "unknown language"}');
       }
     } catch (e) {
       debugPrint('TTS Pause Error: $e');
@@ -141,9 +179,9 @@ class TTSService {
 
   Future<void> resume() async {
     try {
-      if (!_isPlaying && _currentText != null) {
+      if (!_isPlaying && _currentText != null && _currentLanguage != null) {
         await _audioPlayer.resume();
-        debugPrint('TTS: Resumed');
+        debugPrint('TTS: Resumed playback in ${_currentLanguage?.displayName ?? "unknown language"}');
       }
     } catch (e) {
       debugPrint('TTS Resume Error: $e');
@@ -152,12 +190,38 @@ class TTSService {
 
   Future<void> stop() async {
     try {
+      final previousLanguage = _currentLanguage?.displayName;
+      
+      // Force stop any ongoing playback
       await _audioPlayer.stop();
+      
+      // Dispose the current player and create a new one
+      await _audioPlayer.dispose();
+      _audioPlayer = AudioPlayer();
+      _setupAudioPlayer();
+      await _audioPlayer.setVolume(1.0);
+      
+      // Clean up any existing audio file
+      await _cleanupAudioFile();
+      
+      // Reset all state
       _isPlaying = false;
       _currentText = null;
-      debugPrint('TTS: Stopped');
+      _currentLanguage = null;
+      
+      // Notify completion if there was a callback
+      _onComplete?.call();
+      _onComplete = null;
+      
+      debugPrint('TTS: Stopped playback${previousLanguage != null ? " in $previousLanguage" : ""} and reset state');
     } catch (e) {
       debugPrint('TTS Stop Error: $e');
+      // Ensure a new player is created even if there's an error
+      _audioPlayer = AudioPlayer();
+      _setupAudioPlayer();
+      await _audioPlayer.setVolume(1.0);
+      _onComplete?.call();
+      _onComplete = null;
     }
   }
 
@@ -187,14 +251,20 @@ class TTSService {
 
     final voices = await _ttsApi!.voices.list($fields: 'voices');
     
+    // Get all voices that exactly match the requested language code
     final matchingVoices = voices.voices?.where(
-      (v) => v.languageCodes?.contains(languageCode) ?? false
+      (v) => v.languageCodes != null && 
+             v.languageCodes!.contains(languageCode) && 
+             v.name != null &&
+             v.name!.startsWith(languageCode)  // Ensure voice name starts with correct language code
     ).toList() ?? [];
 
     if (matchingVoices.isEmpty) {
+      debugPrint('TTS: No voices found for language $languageCode');
       throw Exception('No voices found for language $languageCode');
     }
 
+    // Define preferred voices for each language
     final preferredVoices = {
       'en-GB': ['en-GB-Neural2-B', 'en-GB-Wavenet-B', 'en-GB-Standard-B'], // Male voice
       'ja-JP': ['ja-JP-Neural2-D', 'ja-JP-Wavenet-D', 'ja-JP-Standard-D'], // Male voice
@@ -217,31 +287,24 @@ class TTSService {
       }
     }
 
-    // If no preferred voice found, try to find a male voice for Japanese
-    if (languageCode == 'ja-JP') {
-      final maleVoice = matchingVoices.firstWhere(
-        (v) => v.ssmlGender == 'MALE' && (v.name?.contains('Neural2') ?? false),
-        orElse: () => matchingVoices.firstWhere(
-          (v) => v.ssmlGender == 'MALE' && (v.name?.contains('Wavenet') ?? false),
-          orElse: () => matchingVoices.firstWhere(
-            (v) => v.ssmlGender == 'MALE',
-            orElse: () => matchingVoices.first,
-          ),
-        ),
-      );
-      return maleVoice.name!;
-    }
-
-    // Fallback to best available voice
+    // Find the best quality voice for the language
+    // Priority: Neural2 > Wavenet > Standard
     final voice = matchingVoices.firstWhere(
-      (v) => v.name?.contains('Neural2') ?? false,
+      (v) => v.name != null && v.name!.contains('Neural2'),
       orElse: () => matchingVoices.firstWhere(
-        (v) => v.name?.contains('Wavenet') ?? false,
-        orElse: () => matchingVoices.first,
+        (v) => v.name != null && v.name!.contains('Wavenet'),
+        orElse: () => matchingVoices.firstWhere(
+          (v) => v.name != null && v.name!.startsWith(languageCode),
+          orElse: () {
+            debugPrint('TTS: No suitable voice found for $languageCode');
+            throw Exception('No suitable voice found for language $languageCode');
+          },
+        ),
       ),
     );
 
-    return voice.name ?? matchingVoices.first.name!;
+    debugPrint('TTS: Selected voice ${voice.name} for language $languageCode');
+    return voice.name!;
   }
 
   bool get isPlaying => _isPlaying;

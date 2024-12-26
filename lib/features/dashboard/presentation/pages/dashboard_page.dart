@@ -4,12 +4,11 @@ import 'package:Keyra/core/widgets/menu_button.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
 import 'package:Keyra/features/badges/presentation/widgets/badge_display.dart';
+import 'package:Keyra/features/badges/presentation/widgets/badges_overview_card.dart';
 import 'package:Keyra/features/badges/presentation/bloc/badge_bloc.dart';
 import 'package:Keyra/features/badges/presentation/bloc/badge_state.dart';
 import 'package:Keyra/features/badges/presentation/bloc/badge_event.dart';
 import 'package:Keyra/features/navigation/presentation/widgets/app_drawer.dart';
-import 'package:Keyra/core/widgets/page_header.dart';
-import 'package:Keyra/core/extensions/context_extensions.dart';
 import 'package:Keyra/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:Keyra/features/dashboard/presentation/pages/study_session_page.dart';
 import 'package:Keyra/features/dashboard/presentation/pages/study_words_page.dart';
@@ -85,6 +84,9 @@ class _DashboardPageState extends State<DashboardPage>
         appBar: AppBar(
           centerTitle: false,
           automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
           leading: Padding(
             padding: const EdgeInsets.only(left: 16.0),
             child: BlocBuilder<BadgeBloc, BadgeState>(
@@ -101,9 +103,9 @@ class _DashboardPageState extends State<DashboardPage>
               },
             ),
           ),
-          actions: const [
-            MenuButton(),
-            SizedBox(width: 16),
+          actions: [
+            const MenuButton(),
+            const SizedBox(width: 16),
           ],
         ),
         body: Column(
@@ -153,7 +155,7 @@ class _DashboardPageState extends State<DashboardPage>
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                children: [
+                                children: const [
                                   SizedBox(),
                                   Row(
                                     children: [
@@ -345,6 +347,8 @@ class _DashboardPageState extends State<DashboardPage>
                                                       context, language);
                                                 },
                                               ),
+                                              const SizedBox(height: 32),
+                                              const BadgesOverviewCard(),
                                             ],
                                           ),
                                         ],

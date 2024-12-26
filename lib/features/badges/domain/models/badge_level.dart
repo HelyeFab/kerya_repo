@@ -1,13 +1,33 @@
+import 'badge_requirements.dart';
+
 enum BadgeLevel {
-  beginner('Little Bookworm', 'assets/badge/caterpillar.png'),
-  intermediate('Page Turner', 'assets/badge/open-book.png'),
-  advanced('Chapter Champion', 'assets/badge/medal.png'),
-  master('Story Sage', 'assets/badge/wizard-hat.png');
+  beginner,
+  intermediate,
+  advanced,
+  master,
+  explorer,
+  voyager,
+  weaver,
+  navigator,
+  pioneer,
+  royalty,
+  baron,
+  legend,
+  wizard,
+  epic,
+  titan,
+  sovereign,
+  virtuoso,
+  luminary,
+  beacon,
+  radiant,
+  lighthouse,
+  infinite,
+  renaissance,
+  ultimate;
 
-  final String displayName;
-  final String assetPath;
-
-  const BadgeLevel(this.displayName, this.assetPath);
+  String get displayName => BadgeRequirements.getRequirementsForLevel(this).displayName;
+  String get assetPath => BadgeRequirements.getRequirementsForLevel(this).assetPath;
 
   static BadgeLevel fromDisplayName(String name) {
     return BadgeLevel.values.firstWhere(

@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/models/badge_level.dart';
 import '../../domain/models/badge_progress.dart';
+import '../../domain/models/badge_requirements.dart';
 import '../../domain/repositories/badge_repository.dart';
+import '../../../dashboard/data/repositories/user_stats_repository.dart';
+import '../../../dashboard/domain/models/user_stats.dart';
 import '../../../dictionary/data/repositories/saved_words_repository.dart';
 import '../../../dictionary/domain/models/saved_word.dart';
 import 'badge_event.dart';
@@ -11,13 +14,17 @@ import 'badge_state.dart';
 class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
   final BadgeRepository _badgeRepository;
   final SavedWordsRepository _savedWordsRepository;
+  final UserStatsRepository _userStatsRepository;
   StreamSubscription<List<SavedWord>>? _progressSubscription;
+  StreamSubscription<UserStats>? _statsSubscription;
 
   BadgeBloc({
     required BadgeRepository badgeRepository,
     required SavedWordsRepository savedWordsRepository,
+    required UserStatsRepository userStatsRepository,
   })  : _badgeRepository = badgeRepository,
         _savedWordsRepository = savedWordsRepository,
+        _userStatsRepository = userStatsRepository,
         super(const BadgeState.initial()) {
     on<BadgeEvent>((event, emit) async {
       await event.map(
@@ -27,63 +34,33 @@ class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
       );
     });
 
-    // Subscribe to saved words changes
-    _progressSubscription = _savedWordsRepository.getSavedWords().listen((words) {
-      add(BadgeEvent.wordsUpdated(words.length));
+    // Subscribe to user stats changes
+    _statsSubscription = _userStatsRepository.streamUserStats().listen((stats) {
+      final progress = BadgeProgress(
+        currentLevel: _calculateBadgeLevel(stats),
+        booksRead: stats.booksRead,
+        favoriteBooks: stats.favoriteBooks,
+        readingStreak: stats.readingStreak,
+        lastUpdated: DateTime.now(),
+      );
+      emit(BadgeState.loaded(progress));
     });
   }
 
   Future<void> _onStarted(Emitter<BadgeState> emit) async {
-    final words = await _savedWordsRepository.getSavedWordsList();
+    final stats = await _userStatsRepository.getUserStats();
     final progress = BadgeProgress(
-      currentLevel: _calculateBadgeLevel(words.length),
-      booksRead: 0,
-      favoriteBooks: 0,
-      readingStreak: 0,
+      currentLevel: _calculateBadgeLevel(stats),
+      booksRead: stats.booksRead,
+      favoriteBooks: stats.favoriteBooks,
+      readingStreak: stats.readingStreak,
       lastUpdated: DateTime.now(),
     );
     emit(BadgeState.loaded(progress));
   }
 
-  Future<void> _onWordsUpdated(
-    int wordCount,
-    Emitter<BadgeState> emit,
-  ) async {
-    final currentState = state;
-    if (!currentState.map(
-      initial: (_) => false,
-      loaded: (_) => true,
-      levelingUp: (_) => true,
-    )) {
-      return;
-    }
-
-    final currentProgress = currentState.map(
-      initial: (_) => BadgeProgress(
-        currentLevel: BadgeLevel.beginner,
-        booksRead: 0,
-        favoriteBooks: 0,
-        readingStreak: 0,
-        lastUpdated: DateTime.now(),
-      ),
-      loaded: (s) => s.progress,
-      levelingUp: (s) => s.progress,
-    );
-
-    final newLevel = _calculateBadgeLevel(wordCount);
-
-    if (newLevel != currentProgress.currentLevel) {
-      add(BadgeEvent.levelUp(newLevel));
-    }
-
-    final newProgress = currentProgress.copyWith(
-      currentLevel: newLevel,
-      booksRead: wordCount ~/ 10, // Rough estimate
-      lastUpdated: DateTime.now(),
-    );
-
-    await _badgeRepository.updateBadgeProgress(newProgress);
-    emit(BadgeState.loaded(newProgress));
+  Future<void> _onWordsUpdated(int wordCount, Emitter<BadgeState> emit) async {
+    // No need to handle word count updates since we're using the stats stream
   }
 
   Future<void> _onLevelUp(
@@ -119,16 +96,43 @@ class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
     emit(BadgeState.loaded(updatedProgress));
   }
 
-  BadgeLevel _calculateBadgeLevel(int wordCount) {
-    if (wordCount >= 100) return BadgeLevel.master;
-    if (wordCount >= 50) return BadgeLevel.advanced;
-    if (wordCount >= 20) return BadgeLevel.intermediate;
+  BadgeLevel _calculateBadgeLevel(UserStats stats) {
+
+    // Check each level from highest to lowest
+    final masterReqs = BadgeRequirements.getRequirementsForLevel(BadgeLevel.master);
+    if (masterReqs.isSatisfiedBy(
+      booksRead: stats.booksRead,
+      favoriteBooks: stats.favoriteBooks,
+      readingStreak: stats.readingStreak,
+    )) {
+      return BadgeLevel.master;
+    }
+
+    final advancedReqs = BadgeRequirements.getRequirementsForLevel(BadgeLevel.advanced);
+    if (advancedReqs.isSatisfiedBy(
+      booksRead: stats.booksRead,
+      favoriteBooks: stats.favoriteBooks,
+      readingStreak: stats.readingStreak,
+    )) {
+      return BadgeLevel.advanced;
+    }
+
+    final intermediateReqs = BadgeRequirements.getRequirementsForLevel(BadgeLevel.intermediate);
+    if (intermediateReqs.isSatisfiedBy(
+      booksRead: stats.booksRead,
+      favoriteBooks: stats.favoriteBooks,
+      readingStreak: stats.readingStreak,
+    )) {
+      return BadgeLevel.intermediate;
+    }
+
     return BadgeLevel.beginner;
   }
 
   @override
-  Future<void> close() {
-    _progressSubscription?.cancel();
+  Future<void> close() async {
+    await _progressSubscription?.cancel();
+    await _statsSubscription?.cancel();
     return super.close();
   }
 }

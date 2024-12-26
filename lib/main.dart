@@ -7,7 +7,7 @@ import 'package:Keyra/features/books/data/services/book_cache_service.dart';
 import 'package:Keyra/features/books/data/services/book_cover_cache_manager.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/badges/domain/repositories/badge_repository.dart';
-import 'features/badges/data/repositories/mock_badge_repository.dart';
+import 'features/badges/data/repositories/badge_repository_impl.dart';
 import 'features/badges/presentation/bloc/badge_bloc.dart';
 import 'features/dictionary/data/repositories/saved_words_repository.dart';
 import 'features/home/presentation/pages/home_page.dart';
@@ -117,7 +117,7 @@ void main() async {
     
     // Initialize core services
     await initServices();
-    await dotenv.load();
+    await dotenv.load(fileName: '.env');
 
     // Initialize preferences service
     final preferencesService = await PreferencesService.init();
@@ -198,7 +198,7 @@ void main() async {
             create: (context) => SavedWordsRepository(),
           ),
           RepositoryProvider<BadgeRepository>(
-            create: (context) => MockBadgeRepository(),
+            create: (context) => BadgeRepositoryImpl(),
           ),
           RepositoryProvider<UserStatsRepository>(
             create: (context) => UserStatsRepository(),
@@ -228,6 +228,7 @@ void main() async {
               create: (context) => BadgeBloc(
                 badgeRepository: context.read<BadgeRepository>(),
                 savedWordsRepository: context.read<SavedWordsRepository>(),
+                userStatsRepository: context.read<UserStatsRepository>(),
               ),
             ),
           ],
