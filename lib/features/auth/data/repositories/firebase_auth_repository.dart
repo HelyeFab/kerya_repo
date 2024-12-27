@@ -12,7 +12,10 @@ class FirebaseAuthRepository {
     GoogleSignIn? googleSignIn,
     UserStatsRepository? userStatsRepository,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn(),
+        _googleSignIn = googleSignIn ?? GoogleSignIn(
+          signInOption: SignInOption.standard,
+          clientId: '683024343520-5frvus96mrnucr0lt4bn55epuanv1l52.apps.googleusercontent.com',
+        ),
         _userStatsRepository = userStatsRepository ?? UserStatsRepository();
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -22,14 +25,20 @@ class FirebaseAuthRepository {
   Future<UserCredential> signInWithGoogle() async {
     try {
       print('Starting Google Sign In...');
-      // Check if a previous sign-in exists
-      final currentUser = await _googleSignIn.signInSilently();
-      if (currentUser != null) {
-        print('Found previous sign-in, signing out first...');
-        await _googleSignIn.signOut();
+      GoogleSignInAccount? googleUser;
+      try {
+        // Try to get the current signed-in user first
+        googleUser = await _googleSignIn.signInSilently();
+        
+        // If no current user, trigger the sign-in flow
+        googleUser ??= await _googleSignIn.signIn();
+      } catch (e) {
+        // If we get the PigeonUserDetails error but have a valid user, continue
+        if (!e.toString().contains('PigeonUserDetails') || googleUser == null) {
+          rethrow;
+        }
+        print('Continuing despite PigeonUserDetails warning');
       }
-      
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
       if (googleUser == null) {
         print('Sign in aborted by user');

@@ -85,7 +85,7 @@ class TTSService {
       _onComplete = onComplete;
 
       final languageCode = _getLanguageCode(language);
-      debugPrint('TTS: Attempting to speak text in ${language.displayName} (${languageCode}): ${text.substring(0, min(50, text.length))}...');
+      debugPrint('TTS: Attempting to speak text in ${language.displayName} ($languageCode): ${text.substring(0, min(50, text.length))}...');
       
       // Always stop current playback and cleanup before starting new audio
       await stop();
@@ -94,7 +94,7 @@ class TTSService {
       _currentLanguage = language;
 
       final voice = await _getVoice(languageCode);
-      debugPrint('TTS: Selected voice ${voice} for ${language.displayName}');
+      debugPrint('TTS: Selected voice $voice for ${language.displayName}');
       
       final input = SynthesisInput(text: text);
       final voiceParams = VoiceSelectionParams(

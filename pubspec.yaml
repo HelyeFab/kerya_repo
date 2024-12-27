@@ -57,11 +57,11 @@ dependencies:
   easy_localization: ^3.0.3
   sign_in_with_apple: ^5.0.0
   crypto: ^3.0.3
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.15.3
-  cloud_firestore: ^4.13.6
-  firebase_storage: ^11.5.6
-  google_sign_in: ^6.2.1
+  firebase_core: ^3.9.0
+  firebase_auth: ^5.3.4
+  cloud_firestore: ^5.6.0
+  firebase_storage: ^12.3.7
+  google_sign_in: 6.2.2
   hugeicons: ^0.0.7
   japanese_word_tokenizer: ^0.0.3
   ruby_text: ^3.0.3

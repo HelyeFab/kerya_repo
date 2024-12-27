@@ -103,9 +103,9 @@ class _DashboardPageState extends State<DashboardPage>
               },
             ),
           ),
-          actions: [
-            const MenuButton(),
-            const SizedBox(width: 16),
+          actions: const [
+            MenuButton(),
+            SizedBox(width: 16),
           ],
         ),
         body: Column(
@@ -155,7 +155,7 @@ class _DashboardPageState extends State<DashboardPage>
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                children: const [
+                                children: [
                                   SizedBox(),
                                   Row(
                                     children: [
