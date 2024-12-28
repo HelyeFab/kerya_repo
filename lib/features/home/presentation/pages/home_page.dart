@@ -240,7 +240,7 @@ class _HomePageState extends State<HomePage> {
               gradientColor: AppColors.controlPurple,
               child: Column(
                 children: [
-                    const PageHeader(
+                  const PageHeader(
                       title: '',
                       actions: [],
                       showBadge: false,
@@ -412,6 +412,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ],
+              ),
             ),
             endDrawer: const AppDrawer(),
           ),
