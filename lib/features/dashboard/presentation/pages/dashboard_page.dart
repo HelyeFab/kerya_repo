@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Keyra/core/widgets/menu_button.dart';
+import 'package:Keyra/core/theme/color_schemes.dart';
+import 'package:Keyra/core/widgets/keyra_gradient_background.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
 import 'package:Keyra/features/badges/presentation/widgets/badge_display.dart';
@@ -29,6 +32,27 @@ class _DashboardPageState extends State<DashboardPage>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   bool get wantKeepAlive => true;
+
+  void _dashboardStateListener(BuildContext context, DashboardState state) {
+    state.maybeWhen(
+      error: (message) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            action: SnackBarAction(
+              label: UiTranslationService.translate(context, 'ok', null, false),
+              textColor: Colors.white,
+              onPressed: () {
+                context.read<DashboardBloc>().loadDashboardStats();
+              },
+            ),
+          ),
+        );
+      },
+      orElse: () {},
+    );
+  }
 
   void _startStudySession(BuildContext context, BookLanguage? language) async {
     final savedWordsRepo = context.read<SavedWordsRepository>();
@@ -66,8 +90,11 @@ class _DashboardPageState extends State<DashboardPage>
     // Load stats when page is mounted
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<DashboardBloc>().loadDashboardStats();
-        context.read<BadgeBloc>().add(const BadgeEvent.started());
+        final auth = FirebaseAuth.instance;
+        if (auth.currentUser != null) {
+          context.read<DashboardBloc>().loadDashboardStats();
+          context.read<BadgeBloc>().add(const BadgeEvent.started());
+        }
       }
     });
   }
@@ -76,72 +103,57 @@ class _DashboardPageState extends State<DashboardPage>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SafeArea(
-      child: Scaffold(
-        key: _scaffoldKey,
-        endDrawer: const AppDrawer(),
-        appBar: AppBar(
-          centerTitle: false,
-          automaticallyImplyLeading: false,
+      child: KeyraGradientBackground(
+        gradientColor: AppColors.controlPurple,
+        child: Scaffold(
           backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: BlocBuilder<BadgeBloc, BadgeState>(
-              builder: (context, state) {
-                return state.map(
-                  initial: (_) => const SizedBox.shrink(),
-                  loaded: (loaded) => BadgeDisplay(
-                    level: loaded.progress.currentLevel,
-                  ),
-                  levelingUp: (levelingUp) => BadgeDisplay(
-                    level: levelingUp.progress.currentLevel,
-                  ),
-                );
-              },
-            ),
-          ),
-          actions: const [
-            MenuButton(),
-            SizedBox(width: 16),
-          ],
-        ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  context.read<DashboardBloc>().loadDashboardStats();
+          key: _scaffoldKey,
+          endDrawer: const AppDrawer(),
+          appBar: AppBar(
+            centerTitle: false,
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: BlocBuilder<BadgeBloc, BadgeState>(
+                builder: (context, state) {
+                  return state.map(
+                    initial: (_) => const SizedBox.shrink(),
+                    loaded: (loaded) => BadgeDisplay(
+                      level: loaded.progress.currentLevel,
+                    ),
+                    levelingUp: (levelingUp) => BadgeDisplay(
+                      level: levelingUp.progress.currentLevel,
+                    ),
+                  );
                 },
-                child: BlocConsumer<DashboardBloc, DashboardState>(
-                  listener: (context, state) {
-                    state.maybeWhen(
-                      error: (message) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(message),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.error,
-                            action: SnackBarAction(
-                              label: UiTranslationService.translate(
-                                  context, 'ok', null, false),
-                              textColor: Colors.white,
-                              onPressed: () {
-                                context
-                                    .read<DashboardBloc>()
-                                    .loadDashboardStats();
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                      orElse: () {},
-                    );
+              ),
+            ),
+            actions: const [
+              MenuButton(),
+              SizedBox(width: 16),
+            ],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<DashboardBloc>().loadDashboardStats();
                   },
-                  builder: (context, state) {
-                    return state.when(
+                  child: BlocConsumer<DashboardBloc, DashboardState>(
+                    listener: _dashboardStateListener,
+                    builder: (context, state) {
+                      return state.when(
                       initial: () => const Center(child: SizedBox()),
                       loading: () => const Center(child: SizedBox()),
                       loaded: (booksRead, favoriteBooks, readingStreak,
@@ -387,12 +399,13 @@ class _DashboardPageState extends State<DashboardPage>
                           ),
                         ),
                       ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -20,7 +20,6 @@ import '../../../../features/badges/presentation/bloc/badge_bloc.dart';
 import '../../../../features/badges/presentation/bloc/badge_state.dart';
 import '../../../../features/badges/presentation/bloc/badge_event.dart';
 import '../../../../features/navigation/presentation/widgets/app_drawer.dart';
-import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/keyra_gradient_background.dart';
 
 class HomePage extends StatefulWidget {
@@ -210,11 +209,15 @@ class _HomePageState extends State<HomePage> {
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, languageState) {
         return SafeArea(
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
+          child: KeyraGradientBackground(
+            gradientColor: AppColors.controlPurple,
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
             appBar: AppBar(
               centerTitle: false,
               automaticallyImplyLeading: false,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
               leading: Padding(
                 padding: const EdgeInsets.only(left: 16.0),
                 child: BlocBuilder<BadgeBloc, BadgeState>(
@@ -236,17 +239,11 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(width: 16),
               ],
             ),
-            body: KeyraGradientBackground(
-              gradientColor: AppColors.controlPurple,
-              child: Column(
-                children: [
-                  const PageHeader(
-                      title: '',
-                      actions: [],
-                      showBadge: false,
-                    ),
-                    Padding(
-                  padding: AppSpacing.paddingLg,
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -268,23 +265,23 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                     ),
-                    Expanded(
-                      child: ListView(
-                        children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: AppSpacing.lg),
-                        child: Text(
+                Expanded(
+                  child: ListView(
+                    children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: AppSpacing.lg),
+                            child: Text(
                           UiTranslations.of(context).translate('home_recently_added_stories'),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.sectionTitle,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      SizedBox(
-                        height: 280,
-                        child: _isLoadingAll
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          SizedBox(
+                            height: 280,
+                            child: _isLoadingAll
                             ? const Center(
                                 child: LoadingIndicator(size: 100),
                               )
@@ -309,20 +306,20 @@ class _HomePageState extends State<HomePage> {
                                   );
                                 },
                               ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                        child: Text(
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                            child: Text(
                           UiTranslations.of(context).translate('home_continue_reading'),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.sectionTitle,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _isLoadingInProgress
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _isLoadingInProgress
                           ? const Center(
                               child: LoadingIndicator(size: 100),
                             )
@@ -409,12 +406,11 @@ class _HomePageState extends State<HomePage> {
                                 ),
                     ],
                   ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            endDrawer: const AppDrawer(),
+              endDrawer: const AppDrawer(),
+            ),
           ),
         );
       },

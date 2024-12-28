@@ -33,9 +33,44 @@ class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
         levelUp: (e) async => await _onLevelUp(e.newLevel, emit),
       );
     });
+  }
 
-    // Subscribe to user stats changes
-    _statsSubscription = _userStatsRepository.streamUserStats().listen((stats) {
+  Future<void> _onStarted(Emitter<BadgeState> emit) async {
+    try {
+      // Try to get initial stats
+      final stats = await _userStatsRepository.getUserStats();
+      if (!emit.isDone) {
+        final progress = BadgeProgress(
+          currentLevel: _calculateBadgeLevel(stats),
+          booksRead: stats.booksRead,
+          favoriteBooks: stats.favoriteBooks,
+          readingStreak: stats.readingStreak,
+          lastUpdated: DateTime.now(),
+        );
+        emit(BadgeState.loaded(progress));
+      }
+
+      // Set up subscription only after successful initial load
+      await _statsSubscription?.cancel(); // Cancel any existing subscription
+      _statsSubscription = _userStatsRepository.streamUserStats().listen(
+        (stats) {
+          if (!isClosed) {
+            add(BadgeEvent.wordsUpdated(stats.savedWords));
+          }
+        },
+        onError: (error) {
+          print('Error in badge stats stream: $error');
+        },
+      );
+    } catch (e) {
+      // Keep initial state if we can't load stats (e.g. user not authenticated)
+      print('Could not load badge stats: $e');
+    }
+  }
+
+  Future<void> _onWordsUpdated(int wordCount, Emitter<BadgeState> emit) async {
+    try {
+      final stats = await _userStatsRepository.getUserStats();
       final progress = BadgeProgress(
         currentLevel: _calculateBadgeLevel(stats),
         booksRead: stats.booksRead,
@@ -44,56 +79,50 @@ class BadgeBloc extends Bloc<BadgeEvent, BadgeState> {
         lastUpdated: DateTime.now(),
       );
       emit(BadgeState.loaded(progress));
-    });
-  }
-
-  Future<void> _onStarted(Emitter<BadgeState> emit) async {
-    final stats = await _userStatsRepository.getUserStats();
-    final progress = BadgeProgress(
-      currentLevel: _calculateBadgeLevel(stats),
-      booksRead: stats.booksRead,
-      favoriteBooks: stats.favoriteBooks,
-      readingStreak: stats.readingStreak,
-      lastUpdated: DateTime.now(),
-    );
-    emit(BadgeState.loaded(progress));
-  }
-
-  Future<void> _onWordsUpdated(int wordCount, Emitter<BadgeState> emit) async {
-    // No need to handle word count updates since we're using the stats stream
+    } catch (e) {
+      print('Error updating badge stats: $e');
+    }
   }
 
   Future<void> _onLevelUp(
     BadgeLevel newLevel,
     Emitter<BadgeState> emit,
   ) async {
-    final currentState = state;
-    if (!currentState.map(
-      initial: (_) => false,
-      loaded: (_) => true,
-      levelingUp: (_) => true,
-    )) {
-      return;
+    try {
+      final currentState = state;
+      if (!currentState.map(
+        initial: (_) => false,
+        loaded: (_) => true,
+        levelingUp: (_) => true,
+      )) {
+        return;
+      }
+
+      final currentProgress = currentState.map(
+        initial: (_) => BadgeProgress(
+          currentLevel: BadgeLevel.beginner,
+          booksRead: 0,
+          favoriteBooks: 0,
+          readingStreak: 0,
+          lastUpdated: DateTime.now(),
+        ),
+        loaded: (s) => s.progress,
+        levelingUp: (s) => s.progress,
+      );
+
+      if (!emit.isDone) {
+        emit(BadgeState.levelingUp(currentProgress, newLevel));
+      }
+
+      // Reset to loaded state after showing level up
+      await Future.delayed(const Duration(seconds: 2));
+      if (!emit.isDone) {
+        final updatedProgress = currentProgress.copyWith(currentLevel: newLevel);
+        emit(BadgeState.loaded(updatedProgress));
+      }
+    } catch (e) {
+      print('Error in level up: $e');
     }
-
-    final currentProgress = currentState.map(
-      initial: (_) => BadgeProgress(
-        currentLevel: BadgeLevel.beginner,
-        booksRead: 0,
-        favoriteBooks: 0,
-        readingStreak: 0,
-        lastUpdated: DateTime.now(),
-      ),
-      loaded: (s) => s.progress,
-      levelingUp: (s) => s.progress,
-    );
-
-    emit(BadgeState.levelingUp(currentProgress, newLevel));
-
-    // Reset to loaded state after showing level up
-    await Future.delayed(const Duration(seconds: 2));
-    final updatedProgress = currentProgress.copyWith(currentLevel: newLevel);
-    emit(BadgeState.loaded(updatedProgress));
   }
 
   BadgeLevel _calculateBadgeLevel(UserStats stats) {

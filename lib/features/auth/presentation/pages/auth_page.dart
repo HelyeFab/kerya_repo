@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hugeicons/hugeicons.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/loading_animation.dart';
 import '../../../navigation/presentation/pages/navigation_page.dart';
 import '../bloc/auth_bloc.dart';
 import '../widgets/login_form.dart';
@@ -49,73 +46,81 @@ class _AuthPageState extends State<AuthPage> {
       child: DefaultTabController(
         length: 2,
         child: Scaffold(
+          backgroundColor: Colors.yellow.shade100,
           body: SafeArea(
-            child: Padding(
-              padding: AppSpacing.paddingLg,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Column(
-                    children: [
-                      Text(
-                        'Welcome to',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Keyra',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontFamily: 'FascinateInline',
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+            child: Stack(
+              children: [
+                // Background image
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Image.asset(
+                    'assets/images/login/login-register.png',
+                    height: MediaQuery.of(context).size.height * 0.35,
+                    fit: BoxFit.cover,
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  TabBar(
-                    tabs: [
-                      Tab(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedLogin01,
-                          size: 24.0,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        text: 'Login',
-                      ),
-                      Tab(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedUser,
-                          size: 24.0,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        text: 'Register',
-                      ),
-                    ],
-                    labelColor: Theme.of(context).primaryColor,
-                    unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                    indicatorColor: Theme.of(context).primaryColor,
-                    indicatorWeight: 3.0,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  const Expanded(
-                    child: TabBarView(
+                ),
+                // White container
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.35,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        LoginForm(),
-                        RegisterForm(),
+                        const SizedBox(height: 32),
+                        Text(
+                          'Welcome to',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Keyra',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Tab Bar
+                        TabBar(
+                          tabs: [
+                            Tab(text: 'Login'),
+                            Tab(text: 'Register'),
+                          ],
+                          labelColor: Colors.black,
+                          unselectedLabelColor: Colors.grey,
+                          indicatorColor: Colors.black,
+                        ),
+                        // Tab Bar View
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              SingleChildScrollView(
+                                child: Padding(
+                                  padding: EdgeInsets.all(24.0),
+                                  child: LoginForm(),
+                                ),
+                              ),
+                              SingleChildScrollView(
+                                child: Padding(
+                                  padding: EdgeInsets.all(24.0),
+                                  child: RegisterForm(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  const Center(child: LoadingAnimation(size: 48)),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

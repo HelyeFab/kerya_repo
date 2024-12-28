@@ -48,8 +48,11 @@ app.*.map.json
 
 # Sensitive credentials
 scripts/service-account-key.json
+book_uploader/serviceAccountKey.json
 # Google Cloud credentials
 assets/config/google_tts_credentials.json
+
+
 
 # Keystore files
 *.keystore

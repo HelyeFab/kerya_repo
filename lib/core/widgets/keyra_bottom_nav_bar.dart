@@ -146,7 +146,7 @@ class KeyraBottomNavBar extends StatelessWidget {
                 size: 24.0,
                 color: iconColor,
               ),
-              activeIcon: HugeIcon(
+              activeIcon: const HugeIcon(
                 icon: HugeIcons.strokeRoundedHome13,
                 size: 24.0,
                 color: AppColors.sectionTitle,
@@ -161,7 +161,7 @@ class KeyraBottomNavBar extends StatelessWidget {
                 size: 24.0,
                 color: iconColor,
               ),
-              activeIcon: HugeIcon(
+              activeIcon: const HugeIcon(
                 icon: HugeIcons.strokeRoundedBook02,
                 size: 24.0,
                 color: AppColors.sectionTitle,
@@ -176,7 +176,7 @@ class KeyraBottomNavBar extends StatelessWidget {
                 size: 24.0,
                 color: iconColor,
               ),
-              activeIcon: HugeIcon(
+              activeIcon: const HugeIcon(
                 icon: HugeIcons.strokeRoundedIdea01,
                 size: 24.0,
                 color: AppColors.sectionTitle,
@@ -191,7 +191,7 @@ class KeyraBottomNavBar extends StatelessWidget {
                 size: 24.0,
                 color: iconColor,
               ),
-              activeIcon: HugeIcon(
+              activeIcon: const HugeIcon(
                 icon: HugeIcons.strokeRoundedDashboardBrowsing,
                 size: 24.0,
                 color: AppColors.sectionTitle,
