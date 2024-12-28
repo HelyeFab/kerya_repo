@@ -190,7 +190,11 @@ class Book extends Equatable {
     return Book(
       id: docId ?? map['id'] as String? ?? '',
       title: (map['title'] as Map<String, dynamic>).map(
-        (key, value) => MapEntry(BookLanguage.fromCode(key), value as String),
+        (key, value) {
+          // Always convert key to string first, then to BookLanguage
+          final bookLanguage = BookLanguage.fromCode(key.toString());
+          return MapEntry(bookLanguage, value as String);
+        },
       ),
       coverImage: map['coverImage'] as String? ?? '',
       pages: (map['pages'] as List<dynamic>)

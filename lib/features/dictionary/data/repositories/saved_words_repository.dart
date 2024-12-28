@@ -63,10 +63,11 @@ class SavedWordsRepository {
       // Commit the batch
       await batch.commit();
       
-      // Update saved words count based on actual count
+      // Update saved words count in both places
       await _updateSavedWordsCount();
+      await _userStatsRepository.incrementSavedWords();
       
-      print('Successfully saved word and updated count');
+      print('Successfully saved word and updated counts');
     } catch (e) {
       print('Error saving word: $e');
       throw Exception(e.toString());
@@ -92,10 +93,11 @@ class SavedWordsRepository {
       // Commit the batch
       await batch.commit();
       
-      // Update saved words count based on actual count
+      // Update saved words count in both places
       await _updateSavedWordsCount();
+      await _userStatsRepository.decrementSavedWords();
       
-      print('Successfully removed word and updated count');
+      print('Successfully removed word and updated counts');
     } catch (e) {
       print('Error removing word: $e');
       throw Exception('Failed to remove word');

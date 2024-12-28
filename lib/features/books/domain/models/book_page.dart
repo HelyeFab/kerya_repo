@@ -50,11 +50,18 @@ class BookPage extends Equatable {
   factory BookPage.fromJson(Map<String, dynamic> json) {
     return BookPage(
       text: (json['text'] as Map<String, dynamic>).map(
-        (key, value) => MapEntry(BookLanguage.fromCode(key), value as String),
+        (key, value) {
+          // Always convert key to string first, then to BookLanguage
+          final bookLanguage = BookLanguage.fromCode(key.toString());
+          return MapEntry(bookLanguage, value as String);
+        },
       ),
-      audioPath: (json['audioPath'] as Map<String, dynamic>).map(
-        (key, value) => MapEntry(BookLanguage.fromCode(key), value as String),
-      ),
+      audioPath: (json['audioPath'] as Map<String, dynamic>?)?.map(
+        (key, value) {
+          final bookLanguage = BookLanguage.fromCode(key.toString());
+          return MapEntry(bookLanguage, value as String);
+        },
+      ) ?? {},
       imagePath: json['imagePath'] as String?,
     );
   }

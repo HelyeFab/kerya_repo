@@ -47,11 +47,11 @@ class _LoginFormState extends State<LoginForm> {
               children: [
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(
                       HugeIcons.strokeRoundedMailAtSign01,
-                      color: Colors.black,
+                      color: Theme.of(context).primaryColor,
                       size: 24.0,
                     ),
                   ),
@@ -68,9 +68,9 @@ class _LoginFormState extends State<LoginForm> {
                   controller: _passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       HugeIcons.strokeRoundedLockPassword,
-                      color: Colors.black,
+                      color: Theme.of(context).primaryColor,
                       size: 24.0,
                     ),
                     suffixIcon: IconButton(
@@ -78,7 +78,7 @@ class _LoginFormState extends State<LoginForm> {
                         _obscurePassword 
                           ? HugeIcons.strokeRoundedMonocle01
                           : HugeIcons.strokeRoundedView,
-                        color: Colors.black,
+                        color: Theme.of(context).primaryColor,
                         size: 24.0,
                       ),
                       onPressed: () {
@@ -105,8 +105,9 @@ class _LoginFormState extends State<LoginForm> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  icon: const Icon(
+                  icon: Icon(
                     HugeIcons.strokeRoundedLogin01,
+                    color: Theme.of(context).primaryColor,
                     size: 24.0,
                   ),
                   label: state.maybeWhen(
@@ -119,9 +120,9 @@ class _LoginFormState extends State<LoginForm> {
                   onPressed: () => context.read<AuthBloc>().add(
                         const AuthBlocEvent.googleSignInRequested(),
                       ),
-                  icon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedLogin01,
-                    color: Colors.black,
+                  icon: Icon(
+                    HugeIcons.strokeRoundedLogin01,
+                    color: Theme.of(context).primaryColor,
                     size: 24.0,
                   ),
                   label: const Text('Sign in with Google'),

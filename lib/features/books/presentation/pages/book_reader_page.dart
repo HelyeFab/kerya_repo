@@ -13,12 +13,14 @@ import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart'
 import 'package:japanese_word_tokenizer/japanese_word_tokenizer.dart' show tokenize;
 import 'package:Keyra/core/widgets/loading_animation.dart';
 import 'package:Keyra/features/books/presentation/bloc/tts_bloc.dart';
+import 'package:Keyra/features/books/data/repositories/book_repository.dart';
 
 class BookReaderPage extends StatefulWidget {
   final Book book;
   final BookLanguage language;
   final UserStatsRepository userStatsRepository;
   final DictionaryService dictionaryService;
+  final BookRepository bookRepository;
 
   const BookReaderPage({
     super.key,
@@ -26,6 +28,7 @@ class BookReaderPage extends StatefulWidget {
     required this.language,
     required this.userStatsRepository,
     required this.dictionaryService,
+    required this.bookRepository,
   });
 
   @override
@@ -53,7 +56,28 @@ class _BookReaderPageState extends State<BookReaderPage> {
 
   Future<void> _startReadingSession() async {
     try {
+      // Start reading session for stats
       await widget.userStatsRepository.startReadingSession();
+      
+      // Update book progress in Firestore
+      final updatedBook = widget.book.copyWith(
+        currentPage: _currentPage,
+        lastReadAt: DateTime.now(),
+        currentLanguage: widget.language,
+      );
+      print('BookReaderPage: Language code: ${widget.language.code}');
+      
+      print('BookReaderPage: Starting reading session');
+      print('BookReaderPage: Current page: $_currentPage');
+      print('BookReaderPage: Language: ${widget.language.code}');
+      
+      try {
+        await widget.bookRepository.updateBook(updatedBook);
+        print('BookReaderPage: Reading session started successfully');
+      } catch (e) {
+        print('BookReaderPage: Error starting reading session: $e');
+        rethrow;
+      }
     } catch (e) {
       debugPrint('Error starting reading session: $e');
     }
@@ -78,10 +102,35 @@ class _BookReaderPageState extends State<BookReaderPage> {
     }
   }
 
-  void _onPageChanged(int page) {
+  Future<void> _onPageChanged(int page) async {
     setState(() {
       _currentPage = page;
     });
+
+    try {
+      // Update book progress in Firestore
+      final updatedBook = widget.book.copyWith(
+        currentPage: page,
+        lastReadAt: DateTime.now(),
+        currentLanguage: widget.language,
+      );
+      print('BookReaderPage: Language code: ${widget.language.code}');
+      
+      print('BookReaderPage: Updating progress');
+      print('BookReaderPage: Current page: $page');
+      print('BookReaderPage: Total pages: ${widget.book.pages.length}');
+      print('BookReaderPage: Language: ${widget.language.code}');
+      
+      try {
+        await widget.bookRepository.updateBook(updatedBook);
+        print('BookReaderPage: Progress updated successfully');
+      } catch (e) {
+        print('BookReaderPage: Error updating progress: $e');
+        rethrow;
+      }
+    } catch (e) {
+      debugPrint('Error updating book progress: $e');
+    }
   }
 
   Widget _buildFontSizeButton({
@@ -114,12 +163,14 @@ class _BookReaderPageState extends State<BookReaderPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return WillPopScope(
-      onWillPop: () async {
-        _ttsBloc.add(TTSStopRequested());
-        return true;
-      },
-      child: Scaffold(
+    return BlocProvider.value(
+      value: _ttsBloc,
+      child: WillPopScope(
+        onWillPop: () async {
+          _ttsBloc.add(TTSStopRequested());
+          return true;
+        },
+        child: Scaffold(
         body: Stack(
           children: [
             // Book content
@@ -205,6 +256,7 @@ class _BookReaderPageState extends State<BookReaderPage> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -428,53 +480,50 @@ class _BookReaderPageState extends State<BookReaderPage> {
         final buttonColor = Theme.of(context).brightness == Brightness.dark
             ? AppColors.readerControlDark
             : AppColors.readerControl;
-        final iconColor = Theme.of(context).brightness == Brightness.dark
-            ? AppColors.controlTextDark
-            : AppColors.controlText;
 
         if (state is TTSPlaying) {
-          return Center(
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: buttonColor,
-              ),
-              child: IconButton(
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedPause,
-                  color: AppColors.controlText,
-                  size: 24.0,
-                ),
-                iconSize: 48,
-                onPressed: () {
-                  _ttsBloc.add(TTSStopRequested());
-                },
-              ),
+      return Center(
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: buttonColor,
+          ),
+          child: IconButton(
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedPause,
+              color: AppColors.controlText,
+              size: 24.0,
             ),
-          );
+            iconSize: 48,
+            onPressed: () {
+              _ttsBloc.add(TTSPauseRequested());
+            },
+          ),
+        ),
+      );
         } else {
-          return Center(
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: buttonColor,
-              ),
-              child: IconButton(
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedPlay,
-                  color: AppColors.controlText,
-                  size: 24.0,
-                ),
-                iconSize: 48,
-                onPressed: () {
-                  _ttsBloc.add(TTSStarted(
-                    text: pageText,
-                    language: widget.language,
-                  ));
-                                },
-              ),
+      return Center(
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: buttonColor,
+          ),
+          child: IconButton(
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedPlay,
+              color: AppColors.controlText,
+              size: 24.0,
             ),
-          );
+            iconSize: 48,
+            onPressed: () {
+              _ttsBloc.add(TTSStarted(
+                text: pageText,
+                language: widget.language,
+              ));
+            },
+          ),
+        ),
+      );
         }
       },
     );

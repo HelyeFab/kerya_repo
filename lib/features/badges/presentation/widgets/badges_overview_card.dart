@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/ui_language/service/ui_translation_service.dart';
+import '../../../../core/theme/color_schemes.dart';
 import '../../domain/models/badge_level.dart';
 import '../../domain/models/badge_requirements.dart';
 import '../bloc/badge_bloc.dart';
@@ -29,7 +30,10 @@ class BadgesOverviewCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   UiTranslationService.translate(context, 'achievements'),
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppColors.sectionTitle,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -69,9 +73,7 @@ class BadgesOverviewCard extends StatelessWidget {
                             showName: true,
                             displayName: UiTranslationService.translate(
                               context,
-                              'badge_${level.name.toLowerCase()}',
-                              null,
-                              true,
+                              requirements.displayName,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -90,8 +92,8 @@ class BadgesOverviewCard extends StatelessWidget {
                                 Icons.book,
                                 UiTranslationService.translate(
                                   context, 
-                                  'books read requirement',
-                                  [requirements.requiredBooksRead.toString()],
+                                'books_read_requirement',
+                                [requirements.requiredBooksRead.toString()],
                                 ),
                               ),
                               _buildRequirement(
@@ -99,8 +101,8 @@ class BadgesOverviewCard extends StatelessWidget {
                                 Icons.favorite,
                                 UiTranslationService.translate(
                                   context, 
-                                  'favorite books requirement',
-                                  [requirements.requiredFavoriteBooks.toString()],
+                                'favorite_books_requirement',
+                                [requirements.requiredFavoriteBooks.toString()],
                                 ),
                               ),
                               _buildRequirement(
@@ -108,8 +110,8 @@ class BadgesOverviewCard extends StatelessWidget {
                                 Icons.local_fire_department,
                                 UiTranslationService.translate(
                                   context, 
-                                  'reading streak requirement',
-                                  [requirements.requiredReadingStreak.toString()],
+                                'reading_streak_requirement',
+                                [requirements.requiredReadingStreak.toString()],
                                 ),
                               ),
                             ],

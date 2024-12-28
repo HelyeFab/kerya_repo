@@ -5,13 +5,15 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:Keyra/main.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
 import 'package:Keyra/core/ui_language/bloc/ui_language_bloc.dart';
+import 'package:Keyra/core/ui_language/translations/ui_translations.dart';
 import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
 
 void main() {
@@ -25,11 +27,31 @@ void main() {
     final uiLanguageBloc = UiLanguageBloc(prefs);
     
     // Build our app and trigger a frame
-    await tester.pumpWidget(App(
-      preferencesService: preferencesService,
-      isFirstLaunch: true,
-      dictionaryService: dictionaryService,
-      dictionaryInitStream: Stream.value(true),
-    ));
+    await tester.pumpWidget(
+      MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<DictionaryService>(
+            create: (context) => dictionaryService,
+          ),
+        ],
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<ThemeBloc>.value(value: themeBloc),
+            BlocProvider<LanguageBloc>.value(value: languageBloc),
+            BlocProvider<UiLanguageBloc>.value(value: uiLanguageBloc),
+          ],
+          child: BlocBuilder<UiLanguageBloc, UiLanguageState>(
+            builder: (context, uiLanguageState) {
+              return UiTranslations(
+                currentLanguage: uiLanguageState.languageCode,
+                child: const MaterialApp(
+                  home: SizedBox(), // Empty widget for testing
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
   });
 }

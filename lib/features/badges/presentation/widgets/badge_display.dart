@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../domain/models/badge_level.dart';
 import 'animated_badge_tooltip.dart';
+import '../../../../core/theme/app_spacing.dart';
 
 class BadgeDisplay extends StatefulWidget {
   final BadgeLevel level;
@@ -59,35 +60,38 @@ class _BadgeDisplayState extends State<BadgeDisplay> {
       badgeSize: BadgeDisplay.badgeSize,
       child: GestureDetector(
         onTap: _showTooltipTemporarily,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
+        child: Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.xs),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+                child: Image.asset(
+                  widget.level.assetPath,
+                  width: BadgeDisplay.badgeSize,
+                  height: BadgeDisplay.badgeSize,
+                  fit: BoxFit.contain,
                 ),
               ),
-              child: Image.asset(
-                widget.level.assetPath,
-                width: BadgeDisplay.badgeSize,
-                height: BadgeDisplay.badgeSize,
-                fit: BoxFit.contain,
-              ),
-            ),
-            if (widget.showName) ...[
-              const SizedBox(width: 8),
-              Text(
-                widget.displayName ?? '',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 12,
+              if (widget.showName) ...[
+                const SizedBox(width: 8),
+                Text(
+                  widget.displayName ?? '',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 12,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

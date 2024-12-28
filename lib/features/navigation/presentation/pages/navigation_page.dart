@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/keyra_scaffold.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/pages/auth_page.dart';
-import '../../../create/presentation/pages/create_page.dart';
+import '../../../study/presentation/pages/study_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../../dashboard/data/repositories/user_stats_repository.dart';
@@ -23,7 +23,7 @@ class _NavigationPageState extends State<NavigationPage> {
   final List<Widget> _pages = const [
     HomePage(),
     LibraryPage(),
-    CreatePage(),
+    StudyPage(),
     DashboardPage(),
   ];
 

@@ -39,7 +39,8 @@ enum BookLanguage {
     }
   }
 
-  static BookLanguage fromCode(String code) {
+  static BookLanguage fromCode(String? code) {
+    if (code == null) return BookLanguage.english;
     return BookLanguage.values.firstWhere(
       (lang) => lang.code == code,
       orElse: () => BookLanguage.english,

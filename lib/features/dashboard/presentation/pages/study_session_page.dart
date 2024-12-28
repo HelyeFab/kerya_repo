@@ -169,6 +169,9 @@ class _StudySessionPageState extends State<StudySessionPage> {
                         backgroundColor: Theme.of(context).brightness == Brightness.light
                             ? AppColors.flashcardHardLight
                             : AppColors.flashcardHardDark,
+                        foregroundColor: Theme.of(context).brightness == Brightness.light
+                            ? Colors.white.withOpacity(0.87)
+                            : Colors.white,
                       ),
                       child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_hard')),
                     ),
@@ -178,6 +181,9 @@ class _StudySessionPageState extends State<StudySessionPage> {
                         backgroundColor: Theme.of(context).brightness == Brightness.light
                             ? AppColors.flashcardGoodLight
                             : AppColors.flashcardGoodDark,
+                        foregroundColor: Theme.of(context).brightness == Brightness.light
+                            ? Colors.white.withOpacity(0.87)
+                            : Colors.white,
                       ),
                       child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_good')),
                     ),
@@ -187,6 +193,9 @@ class _StudySessionPageState extends State<StudySessionPage> {
                         backgroundColor: Theme.of(context).brightness == Brightness.light
                             ? AppColors.flashcardEasyLight
                             : AppColors.flashcardEasyDark,
+                        foregroundColor: Theme.of(context).brightness == Brightness.light
+                            ? Colors.white.withOpacity(0.87)
+                            : Colors.white,
                       ),
                       child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_easy')),
                     ),

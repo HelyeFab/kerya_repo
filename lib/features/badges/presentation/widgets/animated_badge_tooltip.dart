@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/color_schemes.dart';
+import '../../../../core/theme/app_spacing.dart';
 
 class AnimatedBadgeTooltip extends StatefulWidget {
   final Widget child;
@@ -75,7 +76,7 @@ class _AnimatedBadgeTooltipState extends State<AnimatedBadgeTooltip>
       children: [
         Positioned(
           left: 18,
-          top: 0,
+          top: -AppSpacing.xs,
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {

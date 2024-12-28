@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rxdart/rxdart.dart';
 import '../../domain/models/user_stats.dart';
 
 class UserStatsRepository {
@@ -19,27 +20,40 @@ class UserStatsRepository {
     }
 
     try {
-      final docRef = _firestore
+      // Get both the stats document and the root user document
+      final statsDocRef = _firestore
           .collection('users')
           .doc(user.uid)
+          .collection('stats')
+          .doc('current')
           .withConverter(
             fromFirestore: UserStats.fromFirestore,
             toFirestore: (UserStats stats, _) => stats.toFirestore(),
           );
 
-      // Get the document
-      final docSnap = await docRef.get();
+      final userDocRef = _firestore.collection('users').doc(user.uid);
+
+      // Get both documents
+      final statsDocSnap = await statsDocRef.get();
+      final userDocSnap = await userDocRef.get();
       
-      // If document doesn't exist, initialize it
-      if (!docSnap.exists) {
+      // If stats document doesn't exist, initialize it
+      if (!statsDocSnap.exists) {
         print('Initializing user stats document for user: ${user.uid}');
         await _initializeUserStats(user.uid);
         // Get the newly created document
-        final newDocSnap = await docRef.get();
-        return newDocSnap.data() ?? const UserStats();
+        final newStatsDocSnap = await statsDocRef.get();
+        final stats = newStatsDocSnap.data() ?? const UserStats();
+        // Get saved words count from root user document
+        final savedWords = userDocSnap.data()?['savedWords'] as int? ?? 0;
+        return stats.copyWith(savedWords: savedWords);
       }
 
-      return docSnap.data() ?? const UserStats();
+      // Get base stats from stats document
+      final stats = statsDocSnap.data() ?? const UserStats();
+      // Get saved words count from root user document
+      final savedWords = userDocSnap.data()?['savedWords'] as int? ?? 0;
+      return stats.copyWith(savedWords: savedWords);
     } catch (e) {
       print('Error getting user stats: $e');
       throw Exception('Failed to get user stats: $e');
@@ -52,31 +66,51 @@ class UserStatsRepository {
       throw Exception('User not authenticated');
     }
 
-    return _firestore
+    // Create streams for both documents
+    final statsStream = _firestore
         .collection('users')
         .doc(user.uid)
+        .collection('stats')
+        .doc('current')
         .withConverter(
           fromFirestore: UserStats.fromFirestore,
           toFirestore: (UserStats stats, _) => stats.toFirestore(),
         )
-        .snapshots()
-        .asyncMap((snapshot) async {
-          if (!snapshot.exists) {
-            // Initialize the document and wait for it to complete
-            await _initializeUserStats(user.uid);
-            // Get the newly created document
-            final newSnapshot = await _firestore
-                .collection('users')
-                .doc(user.uid)
-                .withConverter(
-                  fromFirestore: UserStats.fromFirestore,
-                  toFirestore: (UserStats stats, _) => stats.toFirestore(),
-                )
-                .get();
-            return newSnapshot.data() ?? const UserStats();
-          }
-          return snapshot.data() ?? const UserStats();
-        });
+        .snapshots();
+
+    final userStream = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots();
+
+    // Combine both streams
+    return Rx.combineLatest2(
+      statsStream,
+      userStream,
+      (statsDoc, userDoc) async {
+        if (!statsDoc.exists) {
+          // Initialize the document and wait for it to complete
+          await _initializeUserStats(user.uid);
+          // Get the newly created document
+          final newStatsDoc = await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .collection('stats')
+              .doc('current')
+              .withConverter(
+                fromFirestore: UserStats.fromFirestore,
+                toFirestore: (UserStats stats, _) => stats.toFirestore(),
+              )
+              .get();
+          final stats = newStatsDoc.data() ?? const UserStats();
+          final savedWords = userDoc.data()?['savedWords'] as int? ?? 0;
+          return stats.copyWith(savedWords: savedWords);
+        }
+        final stats = statsDoc.data() ?? const UserStats();
+        final savedWords = userDoc.data()?['savedWords'] as int? ?? 0;
+        return stats.copyWith(savedWords: savedWords);
+      },
+    ).asyncMap((stats) => stats);
   }
 
   Future<void> _initializeUserStats(String userId) async {
@@ -90,6 +124,7 @@ class UserStatsRepository {
         readDates: [],
         isReadingActive: false,
         currentSessionMinutes: 0,
+        lastBookId: null,
       );
 
       // Convert to Firestore data using the model's toFirestore method
@@ -98,10 +133,22 @@ class UserStatsRepository {
       // Add server timestamp
       data['lastUpdated'] = FieldValue.serverTimestamp();
 
+      // First ensure user document exists
       await _firestore
           .collection('users')
           .doc(userId)
-          .set(data, SetOptions(merge: true));
+          .set({
+            'email': _auth.currentUser?.email,
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+      
+      // Then create stats document
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('stats')
+          .doc('current')
+          .set(data);
       
       print('Successfully initialized user stats document');
     } catch (e) {
@@ -117,7 +164,12 @@ class UserStatsRepository {
     }
 
     try {
-      await _firestore.collection('users').doc(user.uid).set({
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('stats')
+          .doc('current')
+          .set({
         'savedWords': FieldValue.increment(1),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -134,7 +186,12 @@ class UserStatsRepository {
     }
 
     try {
-      await _firestore.collection('users').doc(user.uid).set({
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('stats')
+          .doc('current')
+          .set({
         'savedWords': FieldValue.increment(-1),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -151,7 +208,11 @@ class UserStatsRepository {
     }
 
     print('[UserStatsRepository] Starting markBookAsRead');
-    final docRef = _firestore.collection('users').doc(user.uid);
+    final docRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('stats')
+        .doc('current');
     final stats = await getUserStats();
     
     final now = DateTime.now();
@@ -175,30 +236,39 @@ class UserStatsRepository {
       }
     }
 
-    print('[UserStatsRepository] Updating Firestore with new stats');
-    await docRef.set(
-      {
+    try {
+      print('[UserStatsRepository] Updating Firestore with new stats');
+      final batch = _firestore.batch();
+
+      // Update stats
+      batch.set(docRef, {
         'booksRead': FieldValue.increment(1),
         'readingStreak': newStreak,
         'lastReadDate': Timestamp.fromDate(today),
         'readDates': FieldValue.arrayUnion([Timestamp.fromDate(today)]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+      }, SetOptions(merge: true));
 
-    // Get and emit the updated stats immediately
-    print('[UserStatsRepository] Getting updated stats after marking book as read');
-    final updatedStats = await getUserStats();
-    print('[UserStatsRepository] Updated stats: $updatedStats');
+      // Commit the batch
+      await batch.commit();
 
-    // Update the document again to trigger the stream
-    await docRef.set(
-      {
-        'lastUpdated': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+      // Get and emit the updated stats immediately
+      print('[UserStatsRepository] Getting updated stats after marking book as read');
+      final updatedStats = await getUserStats();
+      print('[UserStatsRepository] Updated stats: $updatedStats');
+      print('[UserStatsRepository] Books read: ${updatedStats.booksRead}');
+
+      // Update the document again to trigger the stream
+      await docRef.set(
+        {
+          'lastUpdated': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    } catch (e) {
+      print('[UserStatsRepository] Error marking book as read: $e');
+      throw Exception('Failed to mark book as read: $e');
+    }
   }
 
   Future<void> startReadingSession() async {
@@ -208,7 +278,12 @@ class UserStatsRepository {
     }
 
     final now = DateTime.now();
-    await _firestore.collection('users').doc(user.uid).set(
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('stats')
+        .doc('current')
+        .set(
       {
         'sessionStartTime': Timestamp.fromDate(now),
         'isReadingActive': true,
@@ -229,7 +304,12 @@ class UserStatsRepository {
       return;
     }
 
-    await _firestore.collection('users').doc(user.uid).set(
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('stats')
+        .doc('current')
+        .set(
       {
         'currentSessionMinutes': 0,
         'sessionStartTime': null,
@@ -247,7 +327,12 @@ class UserStatsRepository {
     }
 
     try {
-      await _firestore.collection('users').doc(user.uid).set({
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('stats')
+          .doc('current')
+          .set({
         'favoriteBooks': FieldValue.increment(1),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -264,7 +349,12 @@ class UserStatsRepository {
     }
 
     try {
-      await _firestore.collection('users').doc(user.uid).set({
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('stats')
+          .doc('current')
+          .set({
         'favoriteBooks': FieldValue.increment(-1),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));

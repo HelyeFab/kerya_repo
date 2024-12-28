@@ -6,9 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:Keyra/core/theme/color_schemes.dart';
 import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import 'package:Keyra/core/ui_language/widgets/ui_language_selector_modal.dart';
-import 'package:Keyra/core/ui_language/service/ui_translation_service.dart';
+import 'package:Keyra/core/ui_language/translations/ui_translations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../dictionary/presentation/pages/saved_words_page.dart';
 import 'privacy_policy_page.dart';
 import 'terms_of_service_page.dart';
 import 'acknowledgments_page.dart';
@@ -47,19 +46,19 @@ class ProfilePage extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(UiTranslationService.translate(context, 'logout')),
-          content: Text(UiTranslationService.translate(context, 'logout_confirm')),
+          title: Text(UiTranslations.of(context).translate('logout')),
+          content: Text(UiTranslations.of(context).translate('logout_confirm')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(UiTranslationService.translate(context, 'cancel')),
+              child: Text(UiTranslations.of(context).translate('cancel')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: Text(UiTranslationService.translate(context, 'logout')),
+              child: Text(UiTranslations.of(context).translate('logout')),
             ),
           ],
         );
@@ -138,35 +137,6 @@ class ProfilePage extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Saved Words Section
-          Card(
-            child: ListTile(
-              leading: HugeIcon(
-                icon: HugeIcons.strokeRoundedAllBookmark,
-                color: iconColor,
-                size: 24.0,
-              ),
-              title: Text(UiTranslationService.translate(context, 'saved words')),
-              subtitle: Text(
-                UiTranslationService.translate(context, 'saved words subtitle'),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SavedWordsPage(),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
           // Settings Section
           Card(
             child: Column(
@@ -175,8 +145,11 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    UiTranslationService.translate(context, 'settings'),
-                    style: theme.textTheme.titleLarge,
+                    UiTranslations.of(context).translate('settings'),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: AppColors.sectionTitle,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -186,7 +159,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'dark mode')),
+                  title: Text(UiTranslations.of(context).translate('dark_mode')),
                   trailing: BlocBuilder<ThemeBloc, ThemeState>(
                     builder: (context, state) {
                       return Switch(
@@ -204,7 +177,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'notifications')),
+                  title: Text(UiTranslations.of(context).translate('notifications')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {},
                 ),
@@ -214,7 +187,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'app language')),
+                  title: Text(UiTranslations.of(context).translate('app_language')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showLanguageDialog(context),
                 ),
@@ -222,8 +195,11 @@ class ProfilePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    UiTranslationService.translate(context, 'information'),
-                    style: theme.textTheme.titleLarge,
+                    UiTranslations.of(context).translate('information'),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: AppColors.sectionTitle,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -233,7 +209,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'version')),
+                  title: Text(UiTranslations.of(context).translate('version')),
                   trailing: const Text('1.0.0'),
                 ),
                 ListTile(
@@ -242,7 +218,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'acknowledgments')),
+                  title: Text(UiTranslations.of(context).translate('acknowledgments')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -259,7 +235,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'privacy policy')),
+                  title: Text(UiTranslations.of(context).translate('privacy_policy')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -276,7 +252,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'terms of service')),
+                  title: Text(UiTranslations.of(context).translate('terms_of_service')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -293,7 +269,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'developer')),
+                  title: Text(UiTranslations.of(context).translate('developer')),
                   subtitle: const Text('Emmanuel Fabiani'),
                 ),
                 ListTile(
@@ -302,7 +278,7 @@ class ProfilePage extends StatelessWidget {
                     color: iconColor,
                     size: 24.0,
                   ),
-                  title: Text(UiTranslationService.translate(context, 'contact us')),
+                  title: Text(UiTranslations.of(context).translate('contact_us')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final Uri emailLaunchUri = Uri(
@@ -313,6 +289,76 @@ class ProfilePage extends StatelessWidget {
                       },
                     );
                     final String url = emailLaunchUri.toString();
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Socials Section
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    UiTranslations.of(context).translate('socials'),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: AppColors.sectionTitle,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedTelegram,
+                    color: iconColor,
+                    size: 24.0,
+                  ),
+                  title: Text(UiTranslations.of(context).translate('chat_with_friends')),
+                  subtitle: Text(UiTranslations.of(context).translate('improve_language_skills')),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final url = 'https://t.me/keyra_community';
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedInstagram,
+                    color: iconColor,
+                    size: 24.0,
+                  ),
+                  title: Text(UiTranslations.of(context).translate('instagram')),
+                  subtitle: Text(UiTranslations.of(context).translate('discover_learning_tips')),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final url = 'https://instagram.com/keyra_reader';
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedTiktok,
+                    color: iconColor,
+                    size: 24.0,
+                  ),
+                  title: Text(UiTranslations.of(context).translate('tiktok')),
+                  subtitle: Text(UiTranslations.of(context).translate('fun_language_content')),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final url = 'https://tiktok.com/@keyra_reader';
                     if (await canLaunchUrl(Uri.parse(url))) {
                       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                     }

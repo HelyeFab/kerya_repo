@@ -19,7 +19,6 @@ import 'package:Keyra/features/badges/presentation/bloc/badge_bloc.dart';
 import 'package:Keyra/features/badges/presentation/bloc/badge_state.dart';
 import 'package:Keyra/features/badges/presentation/bloc/badge_event.dart';
 import 'package:Keyra/features/navigation/presentation/widgets/app_drawer.dart';
-import 'package:Keyra/core/widgets/page_header.dart';
 import 'package:Keyra/features/books/data/services/book_cover_cache_manager.dart';
 
 class LibraryPage extends StatefulWidget {
@@ -205,6 +204,11 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   void _navigateToBookReader(BuildContext context, Book book) {
+    if (_bookRepository == null) {
+      print('LibraryPage: BookRepository not initialized');
+      return;
+    }
+    
     final selectedLanguage =
         context.read<LanguageBloc>().state.selectedLanguage;
     Navigator.of(context).push(
@@ -214,6 +218,7 @@ class _LibraryPageState extends State<LibraryPage> {
           language: selectedLanguage,
           userStatsRepository: _userStatsRepository,
           dictionaryService: _dictionaryService,
+          bookRepository: _bookRepository!,
         ),
       ),
     );
@@ -224,7 +229,7 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   Widget _buildFilterChip(String label) {
-    final translatedLabel = UiTranslationService.translate(context, label);
+    final translatedLabel = UiTranslationService.translate(context, 'library_filter_$label');
     bool isSelected = _activeFilter == label;
 
     return Padding(
@@ -318,11 +323,6 @@ class _LibraryPageState extends State<LibraryPage> {
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PageHeader(
-                  title: UiTranslationService.translate(context, 'library'),
-                  actions: const [],
-                  showBadge: false,
-                ),
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Row(
@@ -346,7 +346,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     controller: _searchController,
                     decoration: InputDecoration(
                       hintText:
-                          UiTranslationService.translate(context, 'search books'),
+                          UiTranslationService.translate(context, 'library_search_books'),
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _isSearching
                           ? const SizedBox(
@@ -410,12 +410,12 @@ class _LibraryPageState extends State<LibraryPage> {
                                     ),
                                     const SizedBox(height: AppSpacing.md),
                                     Text(
-                                      'No books found',
+                                      UiTranslationService.translate(context, 'library_no_books'),
                                       style: Theme.of(context).textTheme.titleMedium,
                                     ),
                                     TextButton(
                                       onPressed: _loadBooks,
-                                      child: const Text('Retry'),
+                                      child: Text(UiTranslationService.translate(context, 'library_retry')),
                                     ),
                                   ],
                                 ),

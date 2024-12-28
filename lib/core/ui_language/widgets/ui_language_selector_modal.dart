@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/ui_language_bloc.dart';
-import '../service/ui_translation_service.dart';
+import '../translations/ui_translations.dart';
 
 class UiLanguageSelectorModal extends StatelessWidget {
   const UiLanguageSelectorModal({super.key});
@@ -32,7 +32,7 @@ class UiLanguageSelectorModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      UiTranslationService.translate(context, 'select language'),
+                      UiTranslations.of(context).translate('select_language'),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     IconButton(

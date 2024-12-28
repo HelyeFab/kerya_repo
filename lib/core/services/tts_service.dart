@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -24,21 +25,32 @@ class TTSService {
   BookLanguage? _currentLanguage;
   File? _currentAudioFile;
   Function? _onComplete;
+  final _audioPlayerStateController = StreamController<bool>.broadcast();
+
+  Stream<bool> get audioPlayerState => _audioPlayerStateController.stream;
 
   void _setupAudioPlayer() {
     _audioPlayer.onPlayerStateChanged.listen((state) {
       switch (state) {
         case PlayerState.playing:
           _isPlaying = true;
+          _audioPlayerStateController.add(true);
           break;
         case PlayerState.paused:
         case PlayerState.stopped:
         case PlayerState.completed:
         case PlayerState.disposed:
           _isPlaying = false;
+          _audioPlayerStateController.add(false);
           break;
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    _audioPlayerStateController.close();
   }
 
   Future<void> init() async {
@@ -125,6 +137,10 @@ class TTSService {
         _setupAudioPlayer();
         await _audioPlayer.setVolume(1.0);
 
+        // Set playing state before starting playback
+        _isPlaying = true;
+        _audioPlayerStateController.add(true);
+        
         await _audioPlayer.play(DeviceFileSource(_currentAudioFile!.path));
         debugPrint('TTS: Started playing audio in ${language.displayName} (${languageCode == 'ja-JP' ? '90% speed' : 'normal speed'})');
 
@@ -170,6 +186,8 @@ class TTSService {
     try {
       if (_isPlaying) {
         await _audioPlayer.pause();
+        _isPlaying = false;
+        _audioPlayerStateController.add(false);
         debugPrint('TTS: Paused playback in ${_currentLanguage?.displayName ?? "unknown language"}');
       }
     } catch (e) {
@@ -181,6 +199,8 @@ class TTSService {
     try {
       if (!_isPlaying && _currentText != null && _currentLanguage != null) {
         await _audioPlayer.resume();
+        _isPlaying = true;
+        _audioPlayerStateController.add(true);
         debugPrint('TTS: Resumed playback in ${_currentLanguage?.displayName ?? "unknown language"}');
       }
     } catch (e) {
@@ -204,8 +224,9 @@ class TTSService {
       // Clean up any existing audio file
       await _cleanupAudioFile();
       
-      // Reset all state
+      // Reset all state and notify listeners
       _isPlaying = false;
+      _audioPlayerStateController.add(false);
       _currentText = null;
       _currentLanguage = null;
       
@@ -308,8 +329,4 @@ class TTSService {
   }
 
   bool get isPlaying => _isPlaying;
-  
-  void dispose() {
-    _audioPlayer.dispose();
-  }
 }

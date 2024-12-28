@@ -13,7 +13,6 @@ import 'package:Keyra/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:Keyra/features/dashboard/presentation/pages/study_session_page.dart';
 import 'package:Keyra/features/dashboard/presentation/pages/study_words_page.dart';
 import 'package:Keyra/features/dashboard/presentation/widgets/circular_stats_card.dart';
-import 'package:Keyra/features/dashboard/presentation/widgets/study_progress_card.dart';
 import 'package:Keyra/features/dashboard/presentation/widgets/no_saved_words_dialog.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 
@@ -187,7 +186,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                 child: CircularStatsCard(
                                                   title: UiTranslationService
                                                       .translate(context,
-                                                          'books read'),
+                                                          'books_read'),
                                                   value: booksRead,
                                                   maxValue: 50,
                                                   icon: Icons.book,
@@ -198,7 +197,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                 child: CircularStatsCard(
                                                   title: UiTranslationService
                                                       .translate(context,
-                                                          'favorite books'),
+                                                          'favorite_books'),
                                                   value: favoriteBooks,
                                                   maxValue: 20,
                                                   icon: Icons.favorite,
@@ -219,7 +218,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                 child: CircularStatsCard(
                                                   title: UiTranslationService
                                                       .translate(context,
-                                                          'reading streak'),
+                                                          'reading_streak'),
                                                   value: readingStreak,
                                                   maxValue: 30,
                                                   icon: Icons
@@ -290,7 +289,7 @@ class _DashboardPageState extends State<DashboardPage>
                                                                   UiTranslationService
                                                                       .translate(
                                                                           context,
-                                                                          'saved words'),
+                                                                          'saved_words'),
                                                                   style:
                                                                       TextStyle(
                                                                     fontSize:
@@ -339,16 +338,9 @@ class _DashboardPageState extends State<DashboardPage>
                                           const SizedBox(height: 32),
 
                                           // Study Progress Section
-                                          Column(
+                                          const Column(
                                             children: [
-                                              StudyProgressCard(
-                                                onLanguageSelected: (language) {
-                                                  _startStudySession(
-                                                      context, language);
-                                                },
-                                              ),
-                                              const SizedBox(height: 32),
-                                              const BadgesOverviewCard(),
+                                              BadgesOverviewCard(),
                                             ],
                                           ),
                                         ],
@@ -389,7 +381,7 @@ class _DashboardPageState extends State<DashboardPage>
                                 },
                                 icon: const Icon(Icons.refresh),
                                 label: Text(UiTranslationService.translate(
-                                    context, 'ok', null, false)),
+                                    context, 'ok')),
                               ),
                             ],
                           ),

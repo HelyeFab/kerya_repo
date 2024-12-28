@@ -6,16 +6,57 @@ import '../sample_books.dart';
 import '../../domain/models/book.dart';
 import '../../domain/models/book_page.dart';
 import '../../domain/models/book_language.dart';
+import '../services/book_cache_service.dart';
+import '../services/book_cover_cache_manager.dart';
 
 class FirestorePopulator {
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
+  final BookCacheService _bookCacheService;
+  final BookCoverCacheManager _coverCacheManager;
 
   FirestorePopulator({
     FirebaseFirestore? firestore,
     FirebaseStorage? storage,
+    BookCacheService? bookCacheService,
+    BookCoverCacheManager? coverCacheManager,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance;
+        _storage = storage ?? FirebaseStorage.instance,
+        _bookCacheService = bookCacheService ?? BookCacheService(),
+        _coverCacheManager = coverCacheManager ?? BookCoverCacheManager.instance;
+
+  Future<List<Book>> preloadBooks() async {
+    try {
+      // Check if we have valid cached books
+      if (_bookCacheService.hasCache) {
+        final cachedBooks = _bookCacheService.getCachedBooks();
+        print('Using ${cachedBooks.length} cached books');
+        return cachedBooks;
+      }
+
+      print('Preloading books from Firestore...');
+      final snapshot = await _firestore.collection('books').get();
+      
+      final books = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Book.fromMap(data);
+      }).toList();
+
+      // Cache the books
+      await _bookCacheService.cacheBooks(books);
+      
+      // Pre-cache cover images
+      print('Pre-caching book covers...');
+      final coverUrls = books.map((book) => book.coverImage).toList();
+      await _coverCacheManager.preCacheBookCovers(coverUrls);
+      
+      print('Successfully preloaded ${books.length} books and cached covers');
+      return books;
+    } catch (e) {
+      print('Error preloading books: $e');
+      rethrow;
+    }
+  }
 
   Future<String> uploadAsset(String assetPath, String bookId) async {
     try {
@@ -102,7 +143,7 @@ class FirestorePopulator {
 
   Future<bool> areSampleBooksPopulated() async {
     try {
-      // Get all books
+      // Only check if books exist, don't try to modify anything
       final snapshot = await _firestore.collection('books').get();
       print('Found ${snapshot.docs.length} books in Firestore');
       
@@ -111,31 +152,7 @@ class FirestorePopulator {
         return false;
       }
       
-      // Check if we have all sample books with proper URLs
-      final existingBookIds = snapshot.docs.map((doc) => doc.id).toSet();
-      final sampleBookIds = sampleBooks.map((book) => book.id).toSet();
-      
-      final missingBooks = sampleBookIds.difference(existingBookIds);
-      if (missingBooks.isNotEmpty) {
-        print('Missing sample books: $missingBooks');
-        return false;
-      }
-      
-      // Check if all existing books have proper Firebase Storage URLs
-      for (final doc in snapshot.docs) {
-        final bookData = doc.data();
-        final coverImage = bookData['coverImage'] as String?;
-        print('Checking book ${doc.id} - Cover image URL: $coverImage');
-        
-        if (coverImage == null || !coverImage.startsWith('https://firebasestorage.googleapis.com')) {
-          print('Book ${doc.id} exists but assets are not in Firebase Storage');
-          // Delete the book so it can be recreated with proper Storage URLs
-          await doc.reference.delete();
-          return false;
-        }
-      }
-      
-      print('All sample books exist with proper Storage URLs');
+      // Simply check if we have any books, don't validate or try to modify them
       return true;
     } catch (e) {
       print('Error checking for sample books: $e');

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Keyra/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:Keyra/core/ui_language/translations/ui_translations.dart';
 
 class MiniStatsDisplay extends StatefulWidget {
   const MiniStatsDisplay({super.key});
@@ -71,7 +72,7 @@ class _MiniStatsDisplayState extends State<MiniStatsDisplay> with WidgetsBinding
                     context,
                     Icons.book,
                     booksRead.toString(),
-                    'Books Read',
+                    UiTranslations.of(context).translate('stats_books_read'),
                     Colors.blue,
                   ),
                   const SizedBox(width: 16),
@@ -79,7 +80,7 @@ class _MiniStatsDisplayState extends State<MiniStatsDisplay> with WidgetsBinding
                     context,
                     Icons.local_fire_department,
                     readingStreak.toString(),
-                    'Day Streak',
+                    UiTranslations.of(context).translate('stats_day_streak'),
                     Colors.orange,
                   ),
                 ],

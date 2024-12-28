@@ -76,6 +76,23 @@ class TTSBloc extends Bloc<TTSEvent, TTSState> {
     on<TTSResumeRequested>(_onResumeRequested);
     on<TTSStopRequested>(_onStopRequested);
     on<TTSCompleted>(_onCompleted);
+
+    // Listen to audio player state changes
+    _ttsService.audioPlayerState.listen((isPlaying) {
+      if (isPlaying) {
+        if (state is! TTSPlaying) {
+          if (state is TTSPausedState) {
+            final pausedState = state as TTSPausedState;
+            emit(TTSPlaying(text: pausedState.text, language: pausedState.language));
+          } else if (_currentText != null && _currentLanguage != null) {
+            emit(TTSPlaying(text: _currentText!, language: _currentLanguage!));
+          }
+        }
+      } else if (!isPlaying && state is TTSPlaying) {
+        emit(TTSStoppedState());
+      }
+    });
+    
     debugPrint('TTSBloc: Initialized');
   }
 
@@ -84,13 +101,18 @@ class TTSBloc extends Bloc<TTSEvent, TTSState> {
     debugPrint('TTSBloc: TTS service initialized');
   }
 
+  String? _currentText;
+  BookLanguage? _currentLanguage;
+
   Future<void> _onStarted(TTSStarted event, Emitter<TTSState> emit) async {
     debugPrint('TTSBloc: Received TTSStarted event with text: ${event.text.substring(0, min(50, event.text.length))}...');
+    _currentText = event.text;
+    _currentLanguage = event.language;
     emit(TTSPlaying(text: event.text, language: event.language));
     await _ttsService.speak(event.text, event.language, onComplete: () {
       add(TTSCompleted());
     });
-    debugPrint('TTSBloc: Emitted TTSPlaying state');
+    debugPrint('TTSBloc: Started TTS playback');
   }
 
   Future<void> _onCompleted(TTSCompleted event, Emitter<TTSState> emit) async {

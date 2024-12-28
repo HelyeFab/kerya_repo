@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../translations/ui_translations.dart';
-import '../bloc/ui_language_bloc.dart';
 
 class UiTranslationService {
   static String translate(BuildContext context, String key, [List<String>? args, bool listen = true]) {
-    final langCode = listen 
-        ? context.watch<UiLanguageBloc>().state.languageCode
-        : context.read<UiLanguageBloc>().state.languageCode;
-    final translations = UiTranslations.translations[langCode] ?? UiTranslations.translations['en']!;
-    var text = translations[key] ?? key;
+    final uiTranslations = UiTranslations.of(context);
+    var text = uiTranslations.translate(key);
     
     if (args != null) {
       for (var i = 0; i < args.length; i++) {

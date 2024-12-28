@@ -12,18 +12,20 @@ import 'features/badges/presentation/bloc/badge_bloc.dart';
 import 'features/dictionary/data/repositories/saved_words_repository.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
 import 'package:Keyra/core/services/preferences_service.dart';
 import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
 import 'package:Keyra/core/ui_language/bloc/ui_language_bloc.dart';
+import 'package:Keyra/core/ui_language/translations/ui_translations.dart';
 import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:Keyra/features/auth/data/repositories/firebase_auth_repository.dart';
 import 'package:Keyra/core/theme/app_theme.dart';
 import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
 import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
 import 'package:Keyra/features/library/presentation/pages/library_page.dart';
-import 'package:Keyra/features/create/presentation/pages/create_page.dart';
+import 'package:Keyra/features/study/presentation/pages/study_page.dart';
 import 'package:Keyra/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:Keyra/features/profile/presentation/pages/profile_page.dart';
 import 'firebase_options.dart';
@@ -33,61 +35,16 @@ import 'splash_screen.dart';
 import 'dart:async';
 import 'package:Keyra/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dart';
+import 'package:rxdart/rxdart.dart';
 
-// Create a stream controller for dictionary initialization status
+// Create stream controllers for initialization status
 final _dictionaryInitController = StreamController<bool>.broadcast();
-
-class App extends StatelessWidget {
-  final bool isFirstLaunch;
-  final PreferencesService preferencesService;
-  final DictionaryService dictionaryService;
-  final Stream<bool> dictionaryInitStream;
-
-  const App({
-    super.key,
-    required this.isFirstLaunch,
-    required this.preferencesService,
-    required this.dictionaryService,
-    required this.dictionaryInitStream,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ThemeBloc, ThemeState>(
-      builder: (context, themeState) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Keyra',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeState.themeMode,
-          home: StreamBuilder<bool>(
-            stream: dictionaryInitStream,
-            initialData: !isFirstLaunch,
-            builder: (context, snapshot) {
-              return SplashScreen(
-                isInitialized: snapshot.data ?? false,
-                isFirstLaunch: isFirstLaunch,
-                preferencesService: preferencesService,
-              );
-            },
-          ),
-          routes: {
-            '/home': (context) => const HomePage(),
-            '/library': (context) => const LibraryPage(),
-            '/create': (context) => const CreatePage(),
-            '/dashboard': (context) => const DashboardPage(),
-            '/profile': (context) => const ProfilePage(),
-            '/onboarding': (context) => OnboardingPage(preferencesService: preferencesService),
-            '/navigation': (context) => const NavigationPage(),
-          },
-        );
-      },
-    );
-  }
-}
+final _booksInitController = StreamController<bool>.broadcast();
+final _userStatsInitController = StreamController<bool>.broadcast();
 
 late BookCacheService _bookCacheService;
+late FirestorePopulator _firestorePopulator;
+late UserStatsRepository _userStatsRepository;
 
 Future<void> initServices() async {
   try {
@@ -99,12 +56,9 @@ Future<void> initServices() async {
     if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(BookLanguageAdapter());
     if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(BookPageAdapter());
     
-    // Initialize services
+    // Initialize caches
     _bookCacheService = BookCacheService();
     await _bookCacheService.init();
-
-    // Initialize book cover cache manager
-    await BookCoverCacheManager.instance.emptyCache();
   } catch (e) {
     print('Error initializing services: $e');
     rethrow;
@@ -143,48 +97,82 @@ void main() async {
     final isFirstLaunch = !dictionaryService.isDictionaryInitialized;
     debugPrint('Is first launch: $isFirstLaunch');
 
-    // Initialize sample books if needed
-    try {
-      print('Attempting to populate sample books...');
-      final populator = FirestorePopulator();
-      
-      // Try multiple times with increasing delays
-      for (int i = 0; i < 3; i++) {
+    // Initialize Firebase Auth and wait for initial state
+    final auth = FirebaseAuth.instance;
+    await auth.authStateChanges().first;
+    
+    // Sign in anonymously if no user is signed in
+    if (auth.currentUser == null) {
+      try {
+        await auth.signInAnonymously();
+        print('Signed in anonymously');
+      } catch (e) {
+        print('Error signing in anonymously: $e');
+      }
+    }
+
+    // Initialize repositories with caches
+    _firestorePopulator = FirestorePopulator(
+      bookCacheService: _bookCacheService,
+      coverCacheManager: BookCoverCacheManager.instance
+    );
+    _userStatsRepository = UserStatsRepository();
+
+    // Start preloading books in background
+    if (auth.currentUser != null) {
+      // Use Future.microtask to avoid immediate execution
+      Future.microtask(() async {
         try {
-          final exists = await populator.areSampleBooksPopulated();
-          if (!exists) {
-            print('No sample books found, populating (attempt ${i + 1})...');
-            await populator.populateWithSampleBooks();
-            print('Successfully populated sample books');
-            break;
-          } else {
-            print('Sample books already exist');
-            break;
+          await _firestorePopulator.preloadBooks();
+          print('Books preloaded successfully');
+          if (!_booksInitController.isClosed) {
+            _booksInitController.add(true);
           }
         } catch (e) {
-          print('Error in sample book initialization attempt ${i + 1}: $e');
-          if (i < 2) {
-            // Wait longer between each retry
-            await Future.delayed(Duration(seconds: (i + 1) * 2));
-          } else {
-            rethrow;
+          print('Error preloading books: $e');
+          if (!_booksInitController.isClosed) {
+            _booksInitController.add(true); // Allow proceeding even on error
           }
         }
-      }
-    } catch (e) {
-      print('Error in sample book initialization: $e');
-      // Continue with app initialization even if book population fails
+      });
+
+      // Initialize user stats in background
+      Future.microtask(() async {
+        try {
+          await _userStatsRepository.getUserStats();
+          print('User stats initialized successfully');
+          if (!_userStatsInitController.isClosed) {
+            _userStatsInitController.add(true);
+          }
+        } catch (e) {
+          print('Error initializing user stats: $e');
+          if (!_userStatsInitController.isClosed) {
+            _userStatsInitController.add(true); // Allow proceeding even on error
+          }
+        }
+      });
+    } else {
+      // No user, mark as initialized
+      _booksInitController.add(true);
+      _userStatsInitController.add(true);
     }
 
     // If it's first launch, start dictionary initialization in background
     if (isFirstLaunch) {
       debugPrint('Starting dictionary initialization in background...');
-      dictionaryService.initialize().then((_) {
-        debugPrint('Dictionary initialization complete');
-        _dictionaryInitController.add(true);
-      }).catchError((e) {
-        debugPrint('Error initializing dictionary: $e');
-        _dictionaryInitController.add(true); // Allow proceeding even on error
+      Future.microtask(() async {
+        try {
+          await dictionaryService.initialize();
+          debugPrint('Dictionary initialization complete');
+          if (!_dictionaryInitController.isClosed) {
+            _dictionaryInitController.add(true);
+          }
+        } catch (e) {
+          debugPrint('Error initializing dictionary: $e');
+          if (!_dictionaryInitController.isClosed) {
+            _dictionaryInitController.add(true); // Allow proceeding even on error
+          }
+        }
       });
     } else {
       // Dictionary already initialized
@@ -201,7 +189,7 @@ void main() async {
             create: (context) => BadgeRepositoryImpl(),
           ),
           RepositoryProvider<UserStatsRepository>(
-            create: (context) => UserStatsRepository(),
+            create: (context) => _userStatsRepository,
           ),
           RepositoryProvider<DictionaryService>(
             create: (context) => dictionaryService,
@@ -232,34 +220,68 @@ void main() async {
               ),
             ),
           ],
-          child: BlocBuilder<ThemeBloc, ThemeState>(
-            builder: (context, themeState) {
-              return MaterialApp(
-                debugShowCheckedModeBanner: false,
-                title: 'Keyra',
-                theme: AppTheme.lightTheme,
-                darkTheme: AppTheme.darkTheme,
-                themeMode: themeState.themeMode,
-                home: StreamBuilder<bool>(
-                  stream: _dictionaryInitController.stream,
-                  initialData: !isFirstLaunch,
-                  builder: (context, snapshot) {
-                    return SplashScreen(
-                      isInitialized: snapshot.data ?? false,
-                      isFirstLaunch: isFirstLaunch,
-                      preferencesService: preferencesService,
+          child: BlocBuilder<UiLanguageBloc, UiLanguageState>(
+            builder: (context, uiLanguageState) {
+              return UiTranslations(
+                currentLanguage: uiLanguageState.languageCode,
+                child: BlocBuilder<ThemeBloc, ThemeState>(
+                  builder: (context, themeState) {
+                    return MaterialApp(
+                      debugShowCheckedModeBanner: false,
+                      title: 'Keyra',
+                      theme: AppTheme.lightTheme,
+                      darkTheme: AppTheme.darkTheme,
+                      themeMode: themeState.themeMode,
+                      home: StreamBuilder<List<bool>>(
+                        stream: Rx.combineLatest3(
+                          _dictionaryInitController.stream,
+                          _booksInitController.stream,
+                          _userStatsInitController.stream,
+                          (a, b, c) => [a, b, c],
+                        ),
+                        initialData: [!isFirstLaunch, false, false],
+                        builder: (context, snapshot) {
+                          final isInitialized = snapshot.data?.every((init) => init) ?? false;
+                          return SplashScreen(
+                            isInitialized: isInitialized,
+                            isFirstLaunch: isFirstLaunch,
+                            preferencesService: preferencesService,
+                          );
+                        },
+                      ),
+                      routes: {
+                        '/home': (context) => BlocProvider.value(
+                          value: context.read<AuthBloc>(),
+                          child: const HomePage(),
+                        ),
+                        '/library': (context) => BlocProvider.value(
+                          value: context.read<AuthBloc>(),
+                          child: const LibraryPage(),
+                        ),
+                        '/study': (context) => BlocProvider.value(
+                          value: context.read<AuthBloc>(),
+                          child: const StudyPage(),
+                        ),
+                        '/dashboard': (context) => BlocProvider.value(
+                          value: context.read<AuthBloc>(),
+                          child: const DashboardPage(),
+                        ),
+                        '/profile': (context) => BlocProvider.value(
+                          value: context.read<AuthBloc>(),
+                          child: const ProfilePage(),
+                        ),
+                        '/onboarding': (context) => BlocProvider.value(
+                          value: context.read<AuthBloc>(),
+                          child: OnboardingPage(preferencesService: preferencesService),
+                        ),
+                        '/navigation': (context) => BlocProvider.value(
+                          value: context.read<AuthBloc>(),
+                          child: const NavigationPage(),
+                        ),
+                      },
                     );
                   },
                 ),
-                routes: {
-                  '/home': (context) => const HomePage(),
-                  '/library': (context) => const LibraryPage(),
-                  '/create': (context) => const CreatePage(),
-                  '/dashboard': (context) => const DashboardPage(),
-                  '/profile': (context) => const ProfilePage(),
-                  '/onboarding': (context) => OnboardingPage(preferencesService: preferencesService),
-                  '/navigation': (context) => const NavigationPage(),
-                },
               );
             },
           ),

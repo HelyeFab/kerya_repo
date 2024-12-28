@@ -34,6 +34,7 @@ class AppColors {
   static const Color playful = Color(0xFFFFAB40);
   static const Color calm = Color(0xFF64DD17);
   static const Color focus = Color(0xFF0091EA);
+  static const Color sectionTitle = Color(0xFF2196F3); // Material Blue 500 for section titles
 
   // Control colors for reader
   static const Color readerControl = Color(0xFFF0EBFF); // Extremely light pastel purple for light theme

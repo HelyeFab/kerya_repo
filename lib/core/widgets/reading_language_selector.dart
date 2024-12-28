@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../ui_language/service/ui_translation_service.dart';
+import '../ui_language/translations/ui_translations.dart';
 
 // Custom class to handle both language and "all" states
 class LanguageSelection {
@@ -44,8 +44,9 @@ class ReadingLanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get translations upfront
-    final allLanguagesText = UiTranslationService.translate(context, 'common_all_languages');
-    final selectLanguageText = UiTranslationService.translate(context, 'select reading language');
+    final translations = UiTranslations.of(context);
+    final allLanguagesText = translations.translate('common_all_languages');
+    final selectLanguageText = translations.translate('select_reading_language');
     
     // Convert current language to LanguageSelection
     final currentSelection = currentLanguage == null
