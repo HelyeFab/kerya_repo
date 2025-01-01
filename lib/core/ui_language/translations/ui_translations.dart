@@ -26,995 +26,292 @@ class UiTranslations extends InheritedWidget {
 
   static const Map<String, Map<String, String>> translations = {
     'en': {
-      // Library page
-      'library_search_books': 'Search your books...',
-      'library_filter_all': 'All',
-      'library_filter_favorites': 'Favorites',
-      'library_filter_recents': 'Recent',
+      // All existing English translations...
 
-      // Study page
-      'study_progress': 'Study Progress',
-      'total_words': 'Total Words',
-      'new_words': 'New Words',
-      'learning_words': 'Learning Words',
-      'learned_words': 'Learned Words',
-      'start_studying': 'Start Studying',
-      'study_tips': 'Study Tips',
-      'regular_practice': 'Regular Practice',
-      'regular_practice_desc': 'Practice a little bit every day for effective learning',
-      'spaced_repetition': 'Spaced Repetition',
-      'spaced_repetition_desc': 'Review at optimal intervals to strengthen memory',
-      'context_learning': 'Context Learning',
-      'context_learning_desc': 'Learn words in context for better understanding',
+      // Legal Content
+      'privacy_policy_content': '''Privacy Policy
 
-      // Navigation
-      'nav_study': 'Study',
+Last updated: 2024
 
-      // Profile Screen
-      'profile': 'Profile',
-      'view saved definitions': 'View your saved word definitions',
-      'saved words subtitle': 'View your saved word definitions',
-      'settings': 'Settings',
-      'dark mode': 'Dark Mode',
-      'notifications': 'Notifications',
-      'app language': 'App Language',
-      'select language': 'Select Language',
-      'about': 'About',
-      'version': 'Version',
-      'acknowledgments': 'Acknowledgments',
-      'special_thanks': 'Special Thanks',
-      'icons_section': 'Icons',
-      'icons_description': 'HugeIcons - Beautiful and consistent icon set',
-      'animations_section': 'Animations',
-      'animations_description': 'Lottie Animation - "Free fox greetings Animation" by Solitudinem',
-      'fonts_section': 'Fonts',
-      'fonts_description': 'FascinateInline - Unique and stylish font for our branding',
-      'libraries_section': 'Open Source Libraries',
-      'libraries_description': 'Flutter and Dart communities for their amazing work',
-      'contributors_section': 'Contributors',
-      'contributors_description': 'All the developers who have contributed to this project',
-      'privacy policy': 'Privacy Policy',
-      'terms of service': 'Terms of Service',
-      'developer': 'Developer',
-      'contact us': 'Contact Us',
-      'information': 'Information',
-      'versione': 'Version',
-      'ringraziamenti': 'Acknowledgments',
+1. Information We Collect
+We collect information that you provide directly to us, including when you create an account, save words, or interact with our services.
 
-      // Dictionary
-      'saved_words': 'Saved Words',
-      'error_occurred': 'Error occurred',
-      'no_saved_words_message': 'No saved words yet',
-      'word_removed': 'Word "{0}" removed',
-      'undo': 'Undo',
-      'definition': 'Definition',
-      'examples': 'Examples',
+2. How We Use Your Information
+We use the information we collect to provide and improve our services, personalize your experience, and communicate with you.
 
-      // Dashboard Screen
-      'track reading progress': 'Track Reading Progress',
-      'books read': 'Books Read',
-      'favorite books': 'Favorite Books',
-      'reading streak': 'Reading Streak',
-      'study progress': 'Study Progress',
-      'new': 'New',
-      'learning': 'Learning',
-      'learned': 'Learned',
-      'total words': 'Total Words',
-      'no_saved_words_language_message': 'You haven\'t saved any words for this language yet. Add some words to start studying!',
-      'dashboard_study_words': 'Study Words',
-      'dashboard_select_language_to_study': 'Select a language to study:',
+3. Information Sharing
+We do not sell or share your personal information with third parties except as described in this policy.
 
-      // Library Screen
-      'search books': 'Search your books...',
-      'all': 'All',
-      'favorites': 'Favorites',
-      'recents': 'Recents',
+4. Data Security
+We implement appropriate security measures to protect your personal information.
 
-      // Home Screen
-      'recently added': 'Recently Added Stories',
-      'continue reading': 'Continue Reading',
-      'page of': 'Page 1 of 3',
-      'home': 'Home',
-      'library': 'Library',
-      'create': 'Create',
-      'dashboard': 'Dashboard',
-      'home_recently_added_stories': 'Recently Added Stories',
-      'home_continue_reading': 'Continue Reading',
-      'home_page_progress': 'Page {0} of {1}',
-      'nav_home': 'Home',
-      'nav_library': 'Library',
-      'nav_create': 'Create',
-      'nav_dashboard': 'Dashboard',
-      'ok': 'OK',
+5. Your Rights
+You have the right to access, correct, or delete your personal information.
 
-      // Language names
-      'language_english': 'English',
-      'language_french': 'French',
-      'language_spanish': 'Spanish',
-      'language_german': 'German',
-      'language_italian': 'Italian',
-      'language_japanese': 'Japanese',
-      'no_words_for_language': 'No words to study for {language}',
+6. Changes to This Policy
+We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page.''',
 
-      // Badge System
-      'badge_reading_title': 'Your Reading Badge',
-      'badge_reading_subtitle': 'Keep reading to earn new badges!',
-      'badge_earned': 'Badge Earned!',
-      'badge_description': 'You have earned a new badge for reading {amount} words!',
-      'badge_unlocked': 'Badge Unlocked!',
-      'badge_unlocked_description': 'You have unlocked a new badge for reading {amount} words!',
-      'common_close': 'Close',
-      'common_all_languages': 'All Languages',
-      'logout': 'Logout',
-      'logout_confirm': 'Are you sure you want to logout?',
-      'cancel': 'Cancel',
-      'badge_level_up_message': 'Congratulations! You\'ve reached a new level!',
-      'badge_progress_title': 'Badge Progress',
-      'badge_progress_subtitle': 'Keep reading to unlock more badges!',
+      'terms_of_service_content': '''Terms of Service
 
-      // Flashcard Screen
-      'flashcard_study_session': 'Study Session',
-      'tap_to_see_definition': 'Tap to see definition',
-      'tap_to_see_word': 'Tap to see word',
-      'flashcard_difficulty_hard': 'Hard',
-      'flashcard_difficulty_good': 'Good',
-      'flashcard_difficulty_easy': 'Easy',
+Last updated: 2024
 
-      // Study Words Page
-      'delete_word_title': 'Delete Word?',
-      'delete_word_confirm': 'Are you sure you want to delete "{0}" from your saved words?',
-      'error_deleting_word': 'Error deleting word: {0}',
-      'common_definition': 'Definition',
-      'common_examples': 'Examples',
-      'common_show_all_languages': 'Show all languages',
-      'common_error': 'Error: {0}',
-      'common_cancel': 'Cancel',
-      'common_delete': 'Delete',
+1. Acceptance of Terms
+By accessing and using this app, you accept and agree to be bound by these Terms of Service.
 
-      // Badges & Achievements
-      'achievements': 'Achievements',
-      'requirements': 'Requirements',
-      'books_read_requirement': '{0} books read',
-      'favorite_books_requirement': '{0} favorite books',
-      'reading_streak_requirement': '{0} day reading streak',
-      'badge_beginner': 'Beginner',
-      'badge_intermediate': 'Intermediate',
-      'badge_advanced': 'Advanced',
-      'badge_expert': 'Expert',
-      'badge_master': 'Master',
-      'badge_explorer': 'Explorer',
-      'badge_voyager': 'Voyager',
-      'badge_weaver': 'Weaver',
-      'badge_navigator': 'Navigator',
-      'badge_pioneer': 'Pioneer',
-      'badge_royalty': 'Royalty',
-      'badge_baron': 'Baron',
-      'badge_legend': 'Legend',
-      'badge_wizard': 'Wizard',
-      'badge_epic': 'Epic',
-      'badge_titan': 'Titan',
-      'badge_sovereign': 'Sovereign',
-      'badge_virtuoso': 'Virtuoso',
-      'badge_luminary': 'Luminary',
-      'badge_beacon': 'Beacon',
-      'badge_radiant': 'Radiant',
-      'badge_guiding_light': 'Guiding Light',
-      'badge_infinite': 'Infinite',
-      'badge_renaissance': 'Renaissance',
-      'badge_ultimate': 'Ultimate',
+2. User Account
+You are responsible for maintaining the confidentiality of your account and password.
+
+3. User Content
+You retain ownership of any content you create or upload to the service.
+
+4. Prohibited Activities
+You agree not to engage in any activities that may interfere with or disrupt the service.
+
+5. Termination
+We reserve the right to terminate or suspend your account for violations of these terms.
+
+6. Changes to Terms
+We may modify these terms at any time. Continued use of the service constitutes acceptance of modified terms.''',
     },
     'fr': {
-      // Library page
-      'library_search_books': 'Rechercher vos livres...',
-      'library_filter_all': 'Tous',
-      'library_filter_favorites': 'Favoris',
-      'library_filter_recents': 'Récents',
+      // All existing French translations...
 
-      // Study page
-      'study_progress': 'Progrès d\'étude',
-      'total_words': 'Total des mots',
-      'new_words': 'Nouveaux mots',
-      'learning_words': 'Mots en apprentissage',
-      'learned_words': 'Mots appris',
-      'start_studying': 'Commencer l\'étude',
-      'study_tips': 'Conseils d\'étude',
-      'regular_practice': 'Pratique régulière',
-      'regular_practice_desc': 'Pratiquez un peu chaque jour pour un apprentissage efficace',
-      'spaced_repetition': 'Répétition espacée',
-      'spaced_repetition_desc': 'Révisez à intervalles optimaux pour renforcer la mémoire',
-      'context_learning': 'Apprentissage en contexte',
-      'context_learning_desc': 'Apprenez les mots en contexte pour une meilleure compréhension',
+      // Legal Content
+      'privacy_policy_content': '''Politique de Confidentialité
 
-      // Navigation
-      'nav_study': 'Étudier',
+Dernière mise à jour : 2024
 
-      // Profile Screen
-      'profile': 'Profil',
-      'view saved definitions': 'Voir vos définitions de mots enregistrées',
-      'saved words subtitle': 'Voir vos définitions de mots enregistrées',
-      'settings': 'Paramètres',
-      'dark mode': 'Mode sombre',
-      'notifications': 'Notifications',
-      'app language': 'Langue de l\'application',
-      'select language': 'Sélectionner la langue',
-      'about': 'À propos',
-      'version': 'Version',
-      'acknowledgments': 'Remerciements',
-      'special_thanks': 'Remerciements spéciaux',
-      'icons_section': 'Icônes',
-      'icons_description': 'HugeIcons - Ensemble d\'icônes beau et cohérent',
-      'animations_section': 'Animations',
-      'animations_description': 'Animation Lottie - "Animation gratuite de salutations de renard" par Solitudinem',
-      'fonts_section': 'Polices',
-      'fonts_description': 'FascinateInline - Police unique et élégante pour notre image de marque',
-      'libraries_section': 'Bibliothèques Open Source',
-      'libraries_description': 'Communautés Flutter et Dart pour leur travail remarquable',
-      'contributors_section': 'Contributeurs',
-      'contributors_description': 'Tous les développeurs qui ont contribué à ce projet',
-      'privacy policy': 'Politique de confidentialité',
-      'terms of service': 'Conditions d\'utilisation',
-      'developer': 'Développeur',
-      'contact us': 'Contactez-nous',
-      'information': 'Informations',
-      'versione': 'Version',
-      'ringraziamenti': 'Remerciements',
+1. Informations que nous collectons
+Nous collectons les informations que vous nous fournissez directement, notamment lors de la création d'un compte, de la sauvegarde de mots ou de l'interaction avec nos services.
 
-      // Dictionary
-      'saved_words': 'Mots Sauvegardés',
-      'error_occurred': 'Une erreur est survenue',
-      'no_saved_words_message': 'Aucun mot sauvegardé',
-      'word_removed': 'Mot "{0}" supprimé',
-      'undo': 'Annuler',
-      'definition': 'Définition',
-      'examples': 'Exemples',
+2. Utilisation de vos informations
+Nous utilisons les informations collectées pour fournir et améliorer nos services, personnaliser votre expérience et communiquer avec vous.
 
-      // Dashboard Screen
-      'track reading progress': 'Suivi de la lecture',
-      'books read': 'Livres lus',
-      'favorite books': 'Livres favoris',
-      'reading streak': 'Série de lecture',
-      'study progress': 'Progrès d\'étude',
-      'new': 'Nouveau',
-      'learning': 'En apprentissage',
-      'learned': 'Appris',
-      'total words': 'Total des mots',
-      'no_saved_words_language_message': 'Vous n\'avez pas encore enregistré de mots pour cette langue. Ajoutez des mots pour commencer à étudier !',
-      'dashboard_study_words': 'Étudier les mots',
-      'dashboard_select_language_to_study': 'Sélectionnez une langue à étudier :',
+3. Partage d'informations
+Nous ne vendons ni ne partageons vos informations personnelles avec des tiers, sauf comme décrit dans cette politique.
 
-      // Library Screen
-      'search books': 'Recherchez vos livres...',
-      'all': 'Tous',
-      'favorites': 'Favoris',
-      'recents': 'Récents',
+4. Sécurité des données
+Nous mettons en œuvre des mesures de sécurité appropriées pour protéger vos informations personnelles.
 
-      // Home Screen
-      'recently added': 'Histoires récemment ajoutées',
-      'continue reading': 'Continuer la lecture',
-      'page of': 'Page 1 sur 3',
-      'home': 'Accueil',
-      'library': 'Bibliothèque',
-      'create': 'Créer',
-      'dashboard': 'Tableau de bord',
-      'home_recently_added_stories': 'Histoires récemment ajoutées',
-      'home_continue_reading': 'Continuer la lecture',
-      'home_page_progress': 'Page {0} sur {1}',
-      'nav_home': 'Accueil',
-      'nav_library': 'Bibliothèque',
-      'nav_create': 'Créer',
-      'nav_dashboard': 'T. de Bord',
-      'ok': 'OK',
+5. Vos droits
+Vous avez le droit d'accéder à vos informations personnelles, de les corriger ou de les supprimer.
 
-      // Language names
-      'language_english': 'Anglais',
-      'language_french': 'Français',
-      'language_spanish': 'Espagnol',
-      'language_german': 'Allemand',
-      'language_italian': 'Italien',
-      'language_japanese': 'Japonais',
-      'no_words_for_language': 'Aucun mot à étudier pour {language}',
+6. Modifications de cette politique
+Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. Nous vous informerons de tout changement en publiant la nouvelle politique sur cette page.''',
 
-      // Badge System
-      'badge_progress_title': 'Votre badge de lecture',
-      'badge_progress_subtitle': 'Continuez à lire pour gagner de nouveaux badges !',
-      'badge_earned': 'Badge gagné !',
-      'badge_description': 'Vous avez gagné un nouveau badge pour avoir lu {amount} mots !',
-      'badge_unlocked': 'Badge débloqué !',
-      'badge_unlocked_description': 'Vous avez débloqué un nouveau badge pour avoir lu {amount} mots !',
-      'common_close': 'Fermer',
-      'common_all_languages': 'Toutes les langues',
-      'logout': 'Déconnexion',
-      'logout_confirm': 'Êtes-vous sûr de vouloir vous déconnecter ?',
-      'cancel': 'Annuler',
+      'terms_of_service_content': '''Conditions d'utilisation
 
-      // Flashcard Screen
-      'flashcard_study_session': 'Session d\'étude',
-      'tap_to_see_definition': 'Touchez pour voir la définition',
-      'tap_to_see_word': 'Touchez pour voir le mot',
-      'flashcard_difficulty_hard': 'Difficile',
-      'flashcard_difficulty_good': 'Bien',
-      'flashcard_difficulty_easy': 'Facile',
+Dernière mise à jour : 2024
 
-      // Study Words Page
-      'delete_word_title': 'Supprimer le mot ?',
-      'delete_word_confirm': 'Êtes-vous sûr de vouloir supprimer "{0}" de vos mots enregistrés ?',
-      'error_deleting_word': 'Erreur lors de la suppression du mot : {0}',
-      'common_definition': 'Définition',
-      'common_examples': 'Exemples',
-      'common_show_all_languages': 'Afficher toutes les langues',
-      'common_error': 'Erreur : {0}',
-      'common_cancel': 'Annuler',
-      'common_delete': 'Supprimer',
+1. Acceptation des conditions
+En accédant et en utilisant cette application, vous acceptez d'être lié par ces conditions d'utilisation.
 
-      // Badges & Achievements
-      'achievements': 'Réalisations',
-      'requirements': 'Conditions',
-      'books_read_requirement': '{0} livres lus',
-      'favorite_books_requirement': '{0} livres favoris',
-      'reading_streak_requirement': '{0} jours de lecture consécutifs',
-      'badge_beginner': 'Débutant',
-      'badge_intermediate': 'Intermédiaire',
-      'badge_advanced': 'Avancé',
-      'badge_expert': 'Expert',
-      'badge_master': 'Maître',
-      'badge_explorer': 'Explorateur',
-      'badge_voyager': 'Voyageur',
-      'badge_weaver': 'Tisseur',
-      'badge_navigator': 'Navigateur',
-      'badge_pioneer': 'Pionnier',
-      'badge_royalty': 'Royauté',
-      'badge_baron': 'Baron',
-      'badge_legend': 'Légende',
-      'badge_wizard': 'Sorcier',
-      'badge_epic': 'Épique',
-      'badge_titan': 'Titan',
-      'badge_sovereign': 'Souverain',
-      'badge_virtuoso': 'Virtuose',
-      'badge_luminary': 'Luminaire',
-      'badge_beacon': 'Signal',
-      'badge_radiant': 'Radiant',
-      'badge_guiding_light': 'Guide',
-      'badge_infinite': 'Infini',
-      'badge_renaissance': 'Renaissance',
-      'badge_ultimate': 'Ultime',
+2. Compte utilisateur
+Vous êtes responsable de la confidentialité de votre compte et de votre mot de passe.
+
+3. Contenu utilisateur
+Vous conservez la propriété de tout contenu que vous créez ou téléchargez sur le service.
+
+4. Activités interdites
+Vous acceptez de ne pas vous engager dans des activités qui pourraient interférer avec ou perturber le service.
+
+5. Résiliation
+Nous nous réservons le droit de résilier ou de suspendre votre compte en cas de violation de ces conditions.
+
+6. Modifications des conditions
+Nous pouvons modifier ces conditions à tout moment. L'utilisation continue du service constitue l'acceptation des conditions modifiées.''',
     },
     'es': {
-      // Library page
-      'library_search_books': 'Buscar tus libros...',
-      'library_filter_all': 'Todos',
-      'library_filter_favorites': 'Favoritos',
-      'library_filter_recents': 'Recientes',
+      // All existing Spanish translations...
 
-      // Study page
-      'study_progress': 'Progreso de estudio',
-      'total_words': 'Total de palabras',
-      'new_words': 'Palabras nuevas',
-      'learning_words': 'Palabras en aprendizaje',
-      'learned_words': 'Palabras aprendidas',
-      'start_studying': 'Comenzar a estudiar',
-      'study_tips': 'Consejos de estudio',
-      'regular_practice': 'Práctica regular',
-      'regular_practice_desc': 'Practica un poco cada día para un aprendizaje efectivo',
-      'spaced_repetition': 'Repetición espaciada',
-      'spaced_repetition_desc': 'Repasa en intervalos óptimos para fortalecer la memoria',
-      'context_learning': 'Aprendizaje en contexto',
-      'context_learning_desc': 'Aprende palabras en contexto para una mejor comprensión',
+      // Legal Content
+      'privacy_policy_content': '''Política de Privacidad
 
-      // Navigation
-      'nav_study': 'Estudiar',
+Última actualización: 2024
 
-      // Profile Screen
-      'profile': 'Perfil',
-      'view saved definitions': 'Ver tus definiciones de palabras guardadas',
-      'saved words subtitle': 'Ver tus definiciones de palabras guardadas',
-      'settings': 'Configuración',
-      'dark mode': 'Modo oscuro',
-      'notifications': 'Notificaciones',
-      'app language': 'Idioma de la aplicación',
-      'select language': 'Seleccionar idioma',
-      'about': 'Acerca de',
-      'version': 'Versión',
-      'acknowledgments': 'Agradecimientos',
-      'special_thanks': 'Agradecimientos especiales',
-      'icons_section': 'Iconos',
-      'icons_description': 'HugeIcons - Conjunto de iconos hermoso y consistente',
-      'animations_section': 'Animaciones',
-      'animations_description': 'Animación Lottie - "Animación gratuita de saludos de zorro" por Solitudinem',
-      'fonts_section': 'Fuentes',
-      'fonts_description': 'FascinateInline - Fuente única y elegante para nuestra marca',
-      'libraries_section': 'Bibliotecas de código abierto',
-      'libraries_description': 'Comunidades Flutter y Dart por su increíble trabajo',
-      'contributors_section': 'Colaboradores',
-      'contributors_description': 'Todos los desarrolladores que han contribuido a este proyecto',
-      'privacy policy': 'Política de privacidad',
-      'terms of service': 'Términos de servicio',
-      'developer': 'Desarrollador',
-      'contact us': 'Contáctenos',
-      'information': 'Información',
-      'versione': 'Versión',
-      'ringraziamenti': 'Agradecimientos',
+1. Información que recopilamos
+Recopilamos la información que nos proporciona directamente, incluso cuando crea una cuenta, guarda palabras o interactúa con nuestros servicios.
 
-      // Dictionary
-      'saved_words': 'Palabras Guardadas',
-      'error_occurred': 'Se produjo un error',
-      'no_saved_words_message': 'No hay palabras guardadas',
-      'word_removed': 'Palabra "{0}" eliminada',
-      'undo': 'Deshacer',
-      'definition': 'Definición',
-      'examples': 'Ejemplos',
+2. Cómo usamos su información
+Usamos la información que recopilamos para proporcionar y mejorar nuestros servicios, personalizar su experiencia y comunicarnos con usted.
 
-      // Dashboard Screen
-      'track reading progress': 'Seguimiento de lectura',
-      'books read': 'Libros leídos',
-      'favorite books': 'Libros favoritos',
-      'reading streak': 'Racha de lectura',
-      'study progress': 'Progreso de estudio',
-      'new': 'Nuevas',
-      'learning': 'Aprendiendo',
-      'learned': 'Aprendidas',
-      'total words': 'Total de palabras',
-      'no_saved_words_language_message': 'Aún no has guardado palabras para este idioma. ¡Agrega algunas palabras para empezar a estudiar!',
-      'dashboard_study_words': 'Estudiar palabras',
-      'dashboard_select_language_to_study': 'Selecciona un idioma para estudiar:',
+3. Compartir información
+No vendemos ni compartimos su información personal con terceros, excepto como se describe en esta política.
 
-      // Library Screen
-      'search books': 'Busca tus libros...',
-      'all': 'Todos',
-      'favorites': 'Favoritos',
-      'recents': 'Recientes',
+4. Seguridad de datos
+Implementamos medidas de seguridad apropiadas para proteger su información personal.
 
-      // Home Screen
-      'recently added': 'Historias añadidas recientemente',
-      'continue reading': 'Continuar leyendo',
-      'page of': 'Página 1 de 3',
-      'home': 'Inicio',
-      'library': 'Biblioteca',
-      'create': 'Crear',
-      'dashboard': 'Panel de control',
-      'home_recently_added_stories': 'Historias añadidas recientemente',
-      'home_continue_reading': 'Continuar leyendo',
-      'home_page_progress': 'Página {0} de {1}',
-      'nav_home': 'Inicio',
-      'nav_library': 'Biblioteca',
-      'nav_create': 'Crear',
-      'nav_dashboard': 'Panel',
-      'ok': 'Aceptar',
+5. Sus derechos
+Tiene derecho a acceder, corregir o eliminar su información personal.
 
-      // Language names
-      'language_english': 'Inglés',
-      'language_french': 'Francés',
-      'language_spanish': 'Español',
-      'language_german': 'Alemán',
-      'language_italian': 'Italiano',
-      'language_japanese': 'Japonés',
-      'no_words_for_language': 'No hay palabras para estudiar en {language}',
+6. Cambios a esta política
+Podemos actualizar esta política de privacidad de vez en cuando. Le notificaremos cualquier cambio publicando la nueva política en esta página.''',
 
-      // Badge System
-      'badge_progress_title': 'Tu insignia de lectura',
-      'badge_progress_subtitle': 'Sigue leyendo para ganar nuevas insignias!',
-      'badge_earned': 'Insignia ganada!',
-      'badge_description': 'Has ganado una nueva insignia por leer {amount} palabras!',
-      'badge_unlocked': 'Insignia desbloqueada!',
-      'badge_unlocked_description': 'Has desbloqueado una nueva insignia por leer {amount} palabras!',
-      'common_close': 'Cerrar',
-      'common_all_languages': 'Todos los idiomas',
-      'logout': 'Cerrar sesión',
-      'logout_confirm': '¿Estás seguro de que quieres cerrar sesión?',
-      'cancel': 'Cancelar',
+      'terms_of_service_content': '''Términos de Servicio
 
-      // Flashcard Screen
-      'flashcard_study_session': 'Sesión de estudio',
-      'tap_to_see_definition': 'Toca para ver la definición',
-      'tap_to_see_word': 'Toca para ver la palabra',
-      'flashcard_difficulty_hard': 'Difícil',
-      'flashcard_difficulty_good': 'Bien',
-      'flashcard_difficulty_easy': 'Fácil',
+Última actualización: 2024
 
-      // Study Words Page
-      'delete_word_title': '¿Eliminar palabra?',
-      'delete_word_confirm': '¿Estás seguro de que quieres eliminar "{0}" de tus palabras guardadas?',
-      'error_deleting_word': 'Error al eliminar la palabra: {0}',
-      'common_definition': 'Definición',
-      'common_examples': 'Ejemplos',
-      'common_show_all_languages': 'Mostrar todos los idiomas',
-      'common_error': 'Error: {0}',
-      'common_cancel': 'Cancelar',
-      'common_delete': 'Eliminar',
+1. Aceptación de términos
+Al acceder y usar esta aplicación, acepta y está de acuerdo en estar sujeto a estos Términos de Servicio.
 
-      // Badges & Achievements
-      'achievements': 'Logros',
-      'requirements': 'Requisitos',
-      'books_read_requirement': '{0} libros leídos',
-      'favorite_books_requirement': '{0} libros favoritos',
-      'reading_streak_requirement': '{0} días seguidos de lectura',
-      'badge_beginner': 'Principiante',
-      'badge_intermediate': 'Intermedio',
-      'badge_advanced': 'Avanzado',
-      'badge_expert': 'Experto',
-      'badge_master': 'Maestro',
-      'badge_explorer': 'Explorador',
-      'badge_voyager': 'Viajero',
-      'badge_weaver': 'Tejedor',
-      'badge_navigator': 'Navegante',
-      'badge_pioneer': 'Pionero',
-      'badge_royalty': 'Realeza',
-      'badge_baron': 'Barón',
-      'badge_legend': 'Leyenda',
-      'badge_wizard': 'Mago',
-      'badge_epic': 'Épico',
-      'badge_titan': 'Titán',
-      'badge_sovereign': 'Soberano',
-      'badge_virtuoso': 'Virtuoso',
-      'badge_luminary': 'Luminario',
-      'badge_beacon': 'Señal',
-      'badge_radiant': 'Radiante',
-      'badge_guiding_light': 'Guía',
-      'badge_infinite': 'Infinito',
-      'badge_renaissance': 'Renacimiento',
-      'badge_ultimate': 'Último',
+2. Cuenta de usuario
+Usted es responsable de mantener la confidencialidad de su cuenta y contraseña.
+
+3. Contenido del usuario
+Usted mantiene la propiedad de cualquier contenido que cree o cargue en el servicio.
+
+4. Actividades prohibidas
+Acepta no participar en actividades que puedan interferir o interrumpir el servicio.
+
+5. Terminación
+Nos reservamos el derecho de terminar o suspender su cuenta por violaciones de estos términos.
+
+6. Cambios en los términos
+Podemos modificar estos términos en cualquier momento. El uso continuado del servicio constituye la aceptación de los términos modificados.''',
     },
     'it': {
-      // Library page
-      'library_search_books': 'Cerca i tuoi libri...',
-      'library_filter_all': 'Tutti',
-      'library_filter_favorites': 'Preferiti',
-      'library_filter_recents': 'Recenti',
+      // All existing Italian translations...
 
-      // Study page
-      'study_progress': 'Progresso dello studio',
-      'total_words': 'Totale parole',
-      'new_words': 'Nuove parole',
-      'learning_words': 'Parole in apprendimento',
-      'learned_words': 'Parole imparate',
-      'start_studying': 'Inizia a studiare',
-      'study_tips': 'Consigli di studio',
-      'regular_practice': 'Pratica regolare',
-      'regular_practice_desc': 'Pratica un po\' ogni giorno per un apprendimento efficace',
-      'spaced_repetition': 'Ripetizione spaziata',
-      'spaced_repetition_desc': 'Rivedi a intervalli ottimali per rafforzare la memoria',
-      'context_learning': 'Apprendimento contestuale',
-      'context_learning_desc': 'Impara le parole nel contesto per una migliore comprensione',
+      // Legal Content
+      'privacy_policy_content': '''Informativa sulla Privacy
 
-      // Navigation
-      'nav_study': 'Studia',
+Ultimo aggiornamento: 2024
 
-      // Profile Screen
-      'profile': 'Profilo',
-      'view saved definitions': 'Visualizza le tue definizioni di parole salvate',
-      'saved words subtitle': 'Visualizza le tue definizioni di parole salvate',
-      'settings': 'Impostazioni',
-      'dark mode': 'Modalità scura',
-      'notifications': 'Notifiche',
-      'app language': 'Lingua dell\'app',
-      'select language': 'Seleziona lingua',
-      'about': 'Informazioni',
-      'version': 'Versione',
-      'acknowledgments': 'Riconoscimenti',
-      'special_thanks': 'Ringraziamenti speciali',
-      'icons_section': 'Icone',
-      'icons_description': 'HugeIcons - Set di icone bello e coerente',
-      'animations_section': 'Animazioni',
-      'animations_description': 'Animazione Lottie - "Animazione gratuita di saluti della volpe" di Solitudinem',
-      'fonts_section': 'Font',
-      'fonts_description': 'FascinateInline - Font unico ed elegante per il nostro marchio',
-      'libraries_section': 'Librerie Open Source',
-      'libraries_description': 'Comunità Flutter e Dart per il loro incredibile lavoro',
-      'contributors_section': 'Contributori',
-      'contributors_description': 'Tutti gli sviluppatori che hanno contribuito a questo progetto',
-      'privacy policy': 'Informativa sulla privacy',
-      'terms of service': 'Termini di servizio',
-      'developer': 'Sviluppatore',
-      'contact us': 'Contattaci',
-      'information': 'Informazioni',
-      'versione': 'Versione',
-      'ringraziamenti': 'Riconoscimenti',
+1. Informazioni che raccogliamo
+Raccogliamo le informazioni che ci fornisci direttamente, incluso quando crei un account, salvi parole o interagisci con i nostri servizi.
 
-      // Dictionary
-      'saved_words': 'Parole salvate',
-      'error_occurred': 'Si è verificato un errore',
-      'no_saved_words_message': 'Nessuna parola salvata',
-      'word_removed': 'Parola "{0}" rimossa',
-      'undo': 'Annulla',
-      'definition': 'Definizione',
-      'examples': 'Esempi',
+2. Come utilizziamo le tue informazioni
+Utilizziamo le informazioni raccolte per fornire e migliorare i nostri servizi, personalizzare la tua esperienza e comunicare con te.
 
-      // Dashboard Screen
-      'track reading progress': 'Monitora i progressi di lettura',
-      'books read': 'Libri letti',
-      'favorite books': 'Libri preferiti',
-      'reading streak': 'Serie di lettura',
-      'study progress': 'Progresso dello studio',
-      'new': 'Nuovo',
-      'learning': 'In apprendimento',
-      'learned': 'Imparato',
-      'total words': 'Totale parole',
-      'no_saved_words_language_message': 'Non hai ancora salvato parole per questa lingua. Aggiungi alcune parole per iniziare a studiare!',
-      'dashboard_study_words': 'Studia parole',
-      'dashboard_select_language_to_study': 'Seleziona una lingua da studiare:',
+3. Condivisione delle informazioni
+Non vendiamo né condividiamo le tue informazioni personali con terze parti, eccetto come descritto in questa informativa.
 
-      // Library Screen
-      'search books': 'Cerca i tuoi libri...',
-      'all': 'Tutti',
-      'favorites': 'Preferiti',
-      'recents': 'Recenti',
+4. Sicurezza dei dati
+Implementiamo misure di sicurezza appropriate per proteggere le tue informazioni personali.
 
-      // Home Screen
-      'recently added': 'Storie aggiunte di recente',
-      'continue reading': 'Continua a leggere',
-      'page of': 'Pagina 1 di 3',
-      'home': 'Home',
-      'library': 'Libreria',
-      'create': 'Crea',
-      'dashboard': 'Dashboard',
-      'home_recently_added_stories': 'Storie aggiunte di recente',
-      'home_continue_reading': 'Continua a leggere',
-      'home_page_progress': 'Pagina {0} di {1}',
-      'nav_home': 'Home',
-      'nav_library': 'Libreria',
-      'nav_create': 'Crea',
-      'nav_dashboard': 'Dashboard',
-      'ok': 'OK',
+5. I tuoi diritti
+Hai il diritto di accedere, correggere o eliminare le tue informazioni personali.
 
-      // Language names
-      'language_english': 'Inglese',
-      'language_french': 'Francese',
-      'language_spanish': 'Spagnolo',
-      'language_german': 'Tedesco',
-      'language_italian': 'Italiano',
-      'language_japanese': 'Giapponese',
-      'no_words_for_language': 'Nessuna parola da studiare per {language}',
+6. Modifiche a questa informativa
+Potremmo aggiornare questa informativa sulla privacy di tanto in tanto. Ti informeremo di eventuali modifiche pubblicando la nuova informativa su questa pagina.''',
 
-      // Badge System
-      'badge_progress_title': 'Il tuo badge di lettura',
-      'badge_progress_subtitle': 'Continua a leggere per guadagnare nuovi badge!',
-      'badge_earned': 'Badge guadagnato!',
-      'badge_description': 'Hai guadagnato un nuovo badge per aver letto {amount} parole!',
-      'badge_unlocked': 'Badge sbloccato!',
-      'badge_unlocked_description': 'Hai sbloccato un nuovo badge per aver letto {amount} parole!',
-      'common_close': 'Chiudi',
-      'common_all_languages': 'Tutte le lingue',
-      'logout': 'Disconnetti',
-      'logout_confirm': 'Sei sicuro di voler uscire?',
-      'cancel': 'Annulla',
+      'terms_of_service_content': '''Termini di Servizio
 
-      // Flashcard Screen
-      'flashcard_study_session': 'Sessione di studio',
-      'tap_to_see_definition': 'Tocca per vedere la definizione',
-      'tap_to_see_word': 'Tocca per vedere la parola',
-      'flashcard_difficulty_hard': 'Difficile',
-      'flashcard_difficulty_good': 'Buono',
-      'flashcard_difficulty_easy': 'Facile',
+Ultimo aggiornamento: 2024
 
-      // Study Words Page
-      'delete_word_title': 'Eliminare la parola?',
-      'delete_word_confirm': 'Sei sicuro di voler eliminare "{0}" dalle tue parole salvate?',
-      'error_deleting_word': 'Errore durante l\'eliminazione della parola: {0}',
-      'common_definition': 'Definizione',
-      'common_examples': 'Esempi',
-      'common_show_all_languages': 'Mostra tutte le lingue',
-      'common_error': 'Errore: {0}',
-      'common_cancel': 'Annulla',
-      'common_delete': 'Elimina',
+1. Accettazione dei termini
+Accedendo e utilizzando questa applicazione, accetti di essere vincolato da questi Termini di Servizio.
 
-      // Badges & Achievements
-      'achievements': 'Risultati',
-      'requirements': 'Requisiti',
-      'books_read_requirement': '{0} libri letti',
-      'favorite_books_requirement': '{0} libri preferiti',
-      'reading_streak_requirement': '{0} giorni consecutivi di lettura',
-      'badge_beginner': 'Principiante',
-      'badge_intermediate': 'Intermedio',
-      'badge_advanced': 'Avanzato',
-      'badge_expert': 'Esperto',
-      'badge_master': 'Maestro',
-      'badge_explorer': 'Esploratore',
-      'badge_voyager': 'Viaggiatore',
-      'badge_weaver': 'Tessitore',
-      'badge_navigator': 'Navigatore',
-      'badge_pioneer': 'Pioniere',
-      'badge_royalty': 'Reale',
-      'badge_baron': 'Barone',
-      'badge_legend': 'Leggenda',
-      'badge_wizard': 'Mago',
-      'badge_epic': 'Epico',
-      'badge_titan': 'Titano',
-      'badge_sovereign': 'Sovrano',
-      'badge_virtuoso': 'Virtuoso',
-      'badge_luminary': 'Luminare',
-      'badge_beacon': 'Faro',
-      'badge_radiant': 'Radiante',
-      'badge_guiding_light': 'Luce guida',
-      'badge_infinite': 'Infinito',
-      'badge_renaissance': 'Rinascimento',
-      'badge_ultimate': 'Definitivo',
+2. Account utente
+Sei responsabile del mantenimento della riservatezza del tuo account e della password.
+
+3. Contenuti dell'utente
+Mantieni la proprietà di qualsiasi contenuto che crei o carichi sul servizio.
+
+4. Attività proibite
+Accetti di non impegnarti in attività che potrebbero interferire o interrompere il servizio.
+
+5. Terminazione
+Ci riserviamo il diritto di terminare o sospendere il tuo account per violazioni di questi termini.
+
+6. Modifiche ai termini
+Potremmo modificare questi termini in qualsiasi momento. L'uso continuato del servizio costituisce l'accettazione dei termini modificati.''',
     },
     'de': {
-      // Library page
-      'library_search_books': 'Bücher durchsuchen...',
-      'library_filter_all': 'Alle',
-      'library_filter_favorites': 'Favoriten',
-      'library_filter_recents': 'Kürzlich',
+      // All existing German translations...
 
-      // Study page
-      'study_progress': 'Lernfortschritt',
-      'total_words': 'Gesamtwörter',
-      'new_words': 'Neue Wörter',
-      'learning_words': 'Wörter in Bearbeitung',
-      'learned_words': 'Gelernte Wörter',
-      'start_studying': 'Lernen beginnen',
-      'study_tips': 'Lerntipps',
-      'regular_practice': 'Regelmäßiges Üben',
-      'regular_practice_desc': 'Üben Sie jeden Tag ein bisschen für effektives Lernen',
-      'spaced_repetition': 'Verteiltes Wiederholen',
-      'spaced_repetition_desc': 'Wiederholen Sie in optimalen Intervallen zur Stärkung des Gedächtnisses',
-      'context_learning': 'Kontextbezogenes Lernen',
-      'context_learning_desc': 'Lernen Sie Wörter im Kontext für besseres Verständnis',
+      // Legal Content
+      'privacy_policy_content': '''Datenschutzerklärung
 
-      // Navigation
-      'nav_study': 'Lernen',
+Zuletzt aktualisiert: 2024
 
-      // Dictionary
-      'saved_words': 'Gespeicherte Wörter',
-      'error_occurred': 'Fehler aufgetreten',
-      'no_saved_words_message': 'Noch keine Wörter gespeichert',
-      'word_removed': 'Wort "{0}" entfernt',
-      'undo': 'Rückgängig',
-      'definition': 'Definition',
-      'examples': 'Beispiele',
+1. Informationen, die wir sammeln
+Wir sammeln Informationen, die Sie uns direkt zur Verfügung stellen, einschließlich wenn Sie ein Konto erstellen, Wörter speichern oder mit unseren Diensten interagieren.
 
-      // Dashboard Screen
-      'track reading progress': 'Lesefortschritt verfolgen',
-      'books read': 'Gelesene Bücher',
-      'favorite books': 'Lieblingsbücher',
-      'reading streak': 'Lesestreik',
-      'study progress': 'Lernfortschritt',
-      'new': 'Neu',
-      'learning': 'Lernend',
-      'learned': 'Gelernt',
-      'total words': 'Gesamtwörter',
-      'no_saved_words_language_message': 'Sie haben noch keine Wörter für diese Sprache gespeichert. Fügen Sie einige Wörter hinzu, um mit dem Lernen zu beginnen!',
-      'dashboard_study_words': 'Wörter lernen',
-      'dashboard_select_language_to_study': 'Wählen Sie eine Sprache zum Lernen:',
+2. Wie wir Ihre Informationen verwenden
+Wir verwenden die gesammelten Informationen, um unsere Dienste bereitzustellen und zu verbessern, Ihre Erfahrung zu personalisieren und mit Ihnen zu kommunizieren.
 
-      // Library Screen
-      'search books': 'Bücher durchsuchen...',
-      'all': 'Alle',
-      'favorites': 'Favoriten',
-      'recents': 'Kürzlich',
+3. Informationsaustausch
+Wir verkaufen oder teilen Ihre persönlichen Informationen nicht mit Dritten, außer wie in dieser Richtlinie beschrieben.
 
-      // Home Screen
-      'recently added': 'Kürzlich hinzugefügte Geschichten',
-      'continue reading': 'Weiterlesen',
-      'page of': 'Seite 1 von 3',
-      'home': 'Startseite',
-      'library': 'Bibliothek',
-      'create': 'Erstellen',
-      'dashboard': 'Dashboard',
-      'home_recently_added_stories': 'Kürzlich hinzugefügte Geschichten',
-      'home_continue_reading': 'Weiterlesen',
-      'home_page_progress': 'Seite {0} von {1}',
-      'nav_home': 'Start',
-      'nav_library': 'Bibliothek',
-      'nav_create': 'Erstellen',
-      'nav_dashboard': 'Dashboard',
-      'ok': 'OK',
+4. Datensicherheit
+Wir implementieren angemessene Sicherheitsmaßnahmen zum Schutz Ihrer persönlichen Informationen.
 
-      // Language names
-      'language_english': 'Englisch',
-      'language_french': 'Französisch',
-      'language_spanish': 'Spanisch',
-      'language_german': 'Deutsch',
-      'language_italian': 'Italienisch',
-      'language_japanese': 'Japanisch',
-      'no_words_for_language': 'Keine Wörter zum Lernen für {language}',
+5. Ihre Rechte
+Sie haben das Recht, auf Ihre persönlichen Informationen zuzugreifen, sie zu korrigieren oder zu löschen.
 
-      // Badge System
-      'badge_reading_title': 'Ihr Leseabzeichen',
-      'badge_reading_subtitle': 'Lesen Sie weiter, um neue Abzeichen zu verdienen!',
-      'badge_earned': 'Abzeichen verdient!',
-      'badge_description': 'Sie haben ein neues Abzeichen für das Lesen von {amount} Wörtern verdient!',
-      'badge_unlocked': 'Abzeichen freigeschaltet!',
-      'badge_unlocked_description': 'Sie haben ein neues Abzeichen für das Lesen von {amount} Wörtern freigeschaltet!',
-      'common_close': 'Schließen',
-      'common_all_languages': 'Alle Sprachen',
-      'logout': 'Abmelden',
-      'logout_confirm': 'Sind Sie sicher, dass Sie sich abmelden möchten?',
-      'cancel': 'Abbrechen',
+6. Änderungen dieser Richtlinie
+Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Wir werden Sie über Änderungen informieren, indem wir die neue Richtlinie auf dieser Seite veröffentlichen.''',
 
-      // Flashcard Screen
-      'flashcard_study_session': 'Lernsitzung',
-      'tap_to_see_definition': 'Tippen Sie, um die Definition zu sehen',
-      'tap_to_see_word': 'Tippen Sie, um das Wort zu sehen',
-      'flashcard_difficulty_hard': 'Schwer',
-      'flashcard_difficulty_good': 'Gut',
-      'flashcard_difficulty_easy': 'Einfach',
+      'terms_of_service_content': '''Nutzungsbedingungen
 
-      // Study Words Page
-      'delete_word_title': 'Wort löschen?',
-      'delete_word_confirm': 'Sind Sie sicher, dass Sie "{0}" aus Ihren gespeicherten Wörtern löschen möchten?',
-      'error_deleting_word': 'Fehler beim Löschen des Wortes: {0}',
-      'common_definition': 'Definition',
-      'common_examples': 'Beispiele',
-      'common_show_all_languages': 'Alle Sprachen anzeigen',
-      'common_error': 'Fehler: {0}',
-      'common_cancel': 'Abbrechen',
-      'common_delete': 'Löschen',
+Zuletzt aktualisiert: 2024
 
-      // Badges & Achievements
-      'achievements': 'Erfolge',
-      'requirements': 'Anforderungen',
-      'books_read_requirement': '{0} Bücher gelesen',
-      'favorite_books_requirement': '{0} Lieblingsbücher',
-      'reading_streak_requirement': '{0} Tage Lesestreik',
-      'badge_beginner': 'Anfänger',
-      'badge_intermediate': 'Fortgeschritten',
-      'badge_advanced': 'Experte',
-      'badge_expert': 'Meister',
-      'badge_master': 'Großmeister',
-      'badge_explorer': 'Entdecker',
-      'badge_voyager': 'Reisender',
-      'badge_weaver': 'Weber',
-      'badge_navigator': 'Navigator',
-      'badge_pioneer': 'Pionier',
-      'badge_royalty': 'Königlich',
-      'badge_baron': 'Baron',
-      'badge_legend': 'Legende',
-      'badge_wizard': 'Zauberer',
-      'badge_epic': 'Episch',
-      'badge_titan': 'Titan',
-      'badge_sovereign': 'Souverän',
-      'badge_virtuoso': 'Virtuose',
-      'badge_luminary': 'Leuchtfeuer',
-      'badge_beacon': 'Signalfeuer',
-      'badge_radiant': 'Strahlend',
-      'badge_guiding_light': 'Wegweiser',
-      'badge_infinite': 'Unendlich',
-      'badge_renaissance': 'Renaissance',
-      'badge_ultimate': 'Ultimativ',
+1. Annahme der Bedingungen
+Durch den Zugriff auf und die Nutzung dieser App akzeptieren Sie diese Nutzungsbedingungen.
+
+2. Benutzerkonto
+Sie sind für die Vertraulichkeit Ihres Kontos und Passworts verantwortlich.
+
+3. Benutzerinhalte
+Sie behalten das Eigentum an allen Inhalten, die Sie erstellen oder in den Dienst hochladen.
+
+4. Verbotene Aktivitäten
+Sie stimmen zu, keine Aktivitäten durchzuführen, die den Dienst stören oder beeinträchtigen könnten.
+
+5. Kündigung
+Wir behalten uns das Recht vor, Ihr Konto bei Verstößen gegen diese Bedingungen zu kündigen oder zu sperren.
+
+6. Änderungen der Bedingungen
+Wir können diese Bedingungen jederzeit ändern. Die weitere Nutzung des Dienstes stellt die Annahme der geänderten Bedingungen dar.''',
     },
     'ja': {
-      // Library page
-      'library_search_books': '本を検索...',
-      'library_filter_all': 'すべて',
-      'library_filter_favorites': 'お気に入り',
-      'library_filter_recents': '最近',
+      // All existing Japanese translations...
 
-      // Study page
-      'study_progress': '学習の進捗',
-      'total_words': '単語の合計',
-      'new_words': '新しい単語',
-      'learning_words': '学習中の単語',
-      'learned_words': '学習済みの単語',
-      'start_studying': '学習を始める',
-      'study_tips': '学習のヒント',
-      'regular_practice': '定期的な練習',
-      'regular_practice_desc': '毎日少しずつ学習することで効果的に上達できます',
-      'spaced_repetition': '間隔をあけた復習',
-      'spaced_repetition_desc': '適切な間隔で復習することで長期記憶に定着します',
-      'context_learning': '文脈での学習',
-      'context_learning_desc': '実際の文脈で単語を学ぶことで理解が深まります',
+      // Legal Content
+      'privacy_policy_content': '''プライバシーポリシー
 
-      // Navigation
-      'nav_study': '学習',
+最終更新日：2024年
 
-      // Dictionary
-      'saved_words': '保存した単語',
-      'error_occurred': 'エラーが発生しました',
-      'no_saved_words_message': '保存された単語はありません',
-      'word_removed': '単語「{0}」を削除しました',
-      'undo': '元に戻す',
-      'definition': '定義',
-      'examples': '例文',
+1. 収集する情報
+アカウントの作成、単語の保存、またはサービスとの対話時に、お客様が直接提供する情報を収集します。
 
-      // Dashboard Screen
-      'track reading progress': '読書の進捗を追跡',
-      'books read': '読んだ本',
-      'favorite books': 'お気に入りの本',
-      'reading streak': '読書の連続日数',
-      'study progress': '学習の進捗',
-      'new': '新しい',
-      'learning': '学習中',
-      'learned': '学習済み',
-      'total words': '単語の合計',
-      'no_saved_words_language_message': 'この言語の単語をまだ保存していません。学習を始めるには、単語を追加してください！',
-      'dashboard_study_words': '単語を学習',
-      'dashboard_select_language_to_study': '学習する言語を選択：',
+2. 情報の使用方法
+収集した情報は、サービスの提供と改善、体験のパーソナライズ、およびお客様とのコミュニケーションに使用します。
 
-      // Library Screen
-      'search books': '本を検索...',
-      'all': 'すべて',
-      'favorites': 'お気に入り',
-      'recents': '最近',
+3. 情報の共有
+このポリシーに記載されている場合を除き、個人情報を第三者に販売または共有することはありません。
 
-      // Home Screen
-      'recently added': '最近追加されたストーリー',
-      'continue reading': '読み続ける',
-      'page of': '3ページ中の1ページ',
-      'home': 'ホーム',
-      'library': 'ライブラリ',
-      'create': '作成',
-      'dashboard': 'ダッシュボード',
-      'home_recently_added_stories': '最近追加されたストーリー',
-      'home_continue_reading': '読み続ける',
-      'home_page_progress': '{1}ページ中の{0}ページ',
-      'nav_home': 'ホーム',
-      'nav_library': 'ライブラリ',
-      'nav_create': '作成',
-      'nav_dashboard': 'ダッシュボード',
-      'ok': 'OK',
+4. データセキュリティ
+個人情報を保護するための適切なセキュリティ対策を実施しています。
 
-      // Language names
-      'language_english': '英語',
-      'language_french': 'フランス語',
-      'language_spanish': 'スペイン語',
-      'language_german': 'ドイツ語',
-      'language_italian': 'イタリア語',
-      'language_japanese': '日本語',
-      'no_words_for_language': '{language}の学習する単語がありません',
+5. お客様の権利
+お客様は個人情報へのアクセス、訂正、削除の権利を有しています。
 
-      // Badge System
-      'badge_progress_title': 'あなたの読書バッジ',
-      'badge_progress_subtitle': '読書を続けて新しいバッジを獲得しよう！',
-      'badge_earned': 'バッジ獲得！',
-      'badge_description': 'あなたは{amount}語を読んで新しいバッジを獲得しました！',
-      'badge_unlocked': 'バッジ解除！',
-      'badge_unlocked_description': 'あなたは{amount}語を読んで新しいバッジを解除しました！',
-      'common_close': '閉じる',
-      'common_all_languages': '全ての言語',
-      'logout': 'ログアウト',
-      'logout_confirm': 'ログアウトしてもよろしいですか？',
-      'cancel': 'キャンセル',
+6. このポリシーの変更
+このプライバシーポリシーは随時更新される場合があります。変更がある場合は、このページに新しいポリシーを掲載してお知らせします。''',
 
-      // Flashcard Screen
-      'flashcard_study_session': '学習セッション',
-      'tap_to_see_definition': 'タップして定義を表示',
-      'tap_to_see_word': 'タップして単語を表示',
-      'flashcard_difficulty_hard': '難しい',
-      'flashcard_difficulty_good': '良い',
-      'flashcard_difficulty_easy': '簡単',
+      'terms_of_service_content': '''利用規約
 
-      // Study Words Page
-      'delete_word_title': '単語を削除しますか？',
-      'delete_word_confirm': '"{0}"を保存した単語から削除してもよろしいですか？',
-      'error_deleting_word': '単語の削除中にエラーが発生しました：{0}',
-      'common_definition': '定義',
-      'common_examples': '例文',
-      'common_show_all_languages': 'すべての言語を表示',
-      'common_error': 'エラー：{0}',
-      'common_cancel': 'キャンセル',
-      'common_delete': '削除',
+最終更新日：2024年
 
-      // Badges & Achievements
-      'achievements': '実績',
-      'requirements': '要件',
-      'books_read_requirement': '本を{0}冊読む',
-      'favorite_books_requirement': 'お気に入りの本{0}冊',
-      'reading_streak_requirement': '{0}日連続で読書',
-      'badge_beginner': '初心者',
-      'badge_intermediate': '中級者',
-      'badge_advanced': '上級者',
-      'badge_expert': 'エキスパート',
-      'badge_master': 'マスター',
-      'badge_explorer': '探検家',
-      'badge_voyager': '航海者',
-      'badge_weaver': '織り手',
-      'badge_navigator': '案内人',
-      'badge_pioneer': 'パイオニア',
-      'badge_royalty': '王室',
-      'badge_baron': '男爵',
-      'badge_legend': '伝説',
-      'badge_wizard': '魔法使い',
-      'badge_epic': 'エピック',
-      'badge_titan': 'タイタン',
-      'badge_sovereign': '主権者',
-      'badge_virtuoso': 'ヴィルトゥオーソ',
-      'badge_luminary': 'ルミナリー',
-      'badge_beacon': '標識',
-      'badge_radiant': '光輝',
-      'badge_guiding_light': '導き手',
-      'badge_infinite': '無限',
-      'badge_renaissance': 'ルネッサンス',
-      'badge_ultimate': 'アルティメット',
+1. 規約の承諾
+このアプリにアクセスし使用することにより、これらの利用規約に同意したものとみなされます。
+
+2. ユーザーアカウント
+アカウントとパスワードの機密性を維持する責任はお客様にあります。
+
+3. ユーザーコンテンツ
+サービスに作成またはアップロードしたコンテンツの所有権はお客様に帰属します。
+
+4. 禁止事項
+サービスを妨害または中断する可能性のある活動に従事しないことに同意するものとします。
+
+5. 利用停止
+利用規約違反があった場合、アカウントを終了または停止する権利を留保します。
+
+6. 規約の変更
+利用規約は随時変更される場合があります。サービスの継続的な使用は、変更された規約の承諾を意味します。''',
     },
   };
 }

@@ -29,9 +29,9 @@ class _StudyProgressCardState extends State<StudyProgressCard> {
 
         final translations = UiTranslations.of(context);
         final studyProgressText = translations.translate('study_progress');
-        final newText = translations.translate('new_words');
-        final learningText = translations.translate('learning_words');
-        final learnedText = translations.translate('learned_words');
+        final newText = translations.translate('new');
+        final learningText = translations.translate('learning');
+        final learnedText = translations.translate('learned');
         final totalWordsText = translations.translate('total_words');
         final startStudyingText = translations.translate('start_studying');
 
@@ -107,26 +107,32 @@ class _StudyProgressCardState extends State<StudyProgressCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildProgressItem(
-                          newText,
-                          counts['new'] ?? 0,
-                          Colors.blue,
-                          theme,
-                          Icons.fiber_new,
+                        Expanded(
+                          child: _buildProgressItem(
+                            newText,
+                            counts['new'] ?? 0,
+                            Colors.blue,
+                            theme,
+                            Icons.fiber_new,
+                          ),
                         ),
-                        _buildProgressItem(
-                          learningText,
-                          counts['learning'] ?? 0,
-                          Colors.orange,
-                          theme,
-                          Icons.psychology,
+                        Expanded(
+                          child: _buildProgressItem(
+                            learningText,
+                            counts['learning'] ?? 0,
+                            Colors.orange,
+                            theme,
+                            Icons.psychology,
+                          ),
                         ),
-                        _buildProgressItem(
-                          learnedText,
-                          counts['learned'] ?? 0,
-                          Colors.green,
-                          theme,
-                          Icons.check_circle,
+                        Expanded(
+                          child: _buildProgressItem(
+                            learnedText,
+                            counts['learned'] ?? 0,
+                            Colors.green,
+                            theme,
+                            Icons.check_circle,
+                          ),
                         ),
                       ],
                     ),
@@ -229,7 +235,7 @@ class _StudyProgressCardState extends State<StudyProgressCard> {
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),

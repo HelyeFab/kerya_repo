@@ -173,7 +173,7 @@ class ProfilePage extends StatelessWidget {
                           color: iconColor,
                           size: 24.0,
                         ),
-                        title: Text(UiTranslations.of(context).translate('dark_mode')),
+                        title: Text(UiTranslations.of(context).translate('dark mode')),
                         trailing: BlocBuilder<ThemeBloc, ThemeState>(
                           builder: (context, state) {
                             return Switch(
@@ -201,7 +201,7 @@ class ProfilePage extends StatelessWidget {
                           color: iconColor,
                           size: 24.0,
                         ),
-                        title: Text(UiTranslations.of(context).translate('app_language')),
+                        title: Text(UiTranslations.of(context).translate('app language')),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _showLanguageDialog(context),
                       ),
@@ -262,7 +262,7 @@ class ProfilePage extends StatelessWidget {
                           color: iconColor,
                           size: 24.0,
                         ),
-                        title: Text(UiTranslations.of(context).translate('privacy_policy')),
+                        title: Text(UiTranslations.of(context).translate('privacy policy')),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           Navigator.push(
@@ -279,7 +279,7 @@ class ProfilePage extends StatelessWidget {
                           color: iconColor,
                           size: 24.0,
                         ),
-                        title: Text(UiTranslations.of(context).translate('terms_of_service')),
+                        title: Text(UiTranslations.of(context).translate('terms of service')),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           Navigator.push(
@@ -305,7 +305,7 @@ class ProfilePage extends StatelessWidget {
                           color: iconColor,
                           size: 24.0,
                         ),
-                        title: Text(UiTranslations.of(context).translate('contact_us')),
+                        title: Text(UiTranslations.of(context).translate('contact us')),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () async {
                           final Uri emailLaunchUri = Uri(

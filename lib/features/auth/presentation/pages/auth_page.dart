@@ -88,7 +88,7 @@ class _AuthPageState extends State<AuthPage> {
                         ),
                         const SizedBox(height: 24),
                         // Tab Bar
-                        TabBar(
+                        const TabBar(
                           tabs: [
                             Tab(text: 'Login'),
                             Tab(text: 'Register'),
@@ -98,7 +98,7 @@ class _AuthPageState extends State<AuthPage> {
                           indicatorColor: Colors.black,
                         ),
                         // Tab Bar View
-                        Expanded(
+                        const Expanded(
                           child: TabBarView(
                             children: [
                               SingleChildScrollView(

@@ -26,7 +26,7 @@ class SavedWordsPage extends StatelessWidget {
             if (snapshot.hasError) {
               return Center(
                 child: Text(
-                  UiTranslations.of(context).translate('error_occurred') + ': ${snapshot.error}',
+                  '${UiTranslations.of(context).translate('error_occurred')}: ${snapshot.error}',
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               );
