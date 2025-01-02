@@ -296,38 +296,36 @@ class _LibraryPageState extends State<LibraryPage> {
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, languageState) {
         return SafeArea(
-          child: KeyraGradientBackground(
-            gradientColor: AppColors.controlPurple,
-            child: Scaffold(
+          child: Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.background,
+            endDrawer: const AppDrawer(),
+            appBar: AppBar(
               backgroundColor: Colors.transparent,
-              endDrawer: const AppDrawer(),
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                centerTitle: false,
-                automaticallyImplyLeading: false,
-                leading: Padding(
-                  padding: const EdgeInsets.only(left: 16.0),
-                  child: BlocBuilder<BadgeBloc, BadgeState>(
-                    builder: (context, state) {
-                      return state.map(
-                        initial: (_) => const SizedBox.shrink(),
-                        loaded: (loaded) => BadgeDisplay(
-                          level: loaded.progress.currentLevel,
-                        ),
-                        levelingUp: (levelingUp) => BadgeDisplay(
-                          level: levelingUp.progress.currentLevel,
-                        ),
-                      );
-                    },
-                  ),
+              elevation: 0,
+              centerTitle: false,
+              automaticallyImplyLeading: false,
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: BlocBuilder<BadgeBloc, BadgeState>(
+                  builder: (context, state) {
+                    return state.map(
+                      initial: (_) => const SizedBox.shrink(),
+                      loaded: (loaded) => BadgeDisplay(
+                        level: loaded.progress.currentLevel,
+                      ),
+                      levelingUp: (levelingUp) => BadgeDisplay(
+                        level: levelingUp.progress.currentLevel,
+                      ),
+                    );
+                  },
                 ),
-                actions: const [
-                  MenuButton(),
-                  SizedBox(width: 16),
-                ],
               ),
-              body: Column(
+              actions: const [
+                MenuButton(),
+                SizedBox(width: 16),
+              ],
+            ),
+            body: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
@@ -431,7 +429,6 @@ class _LibraryPageState extends State<LibraryPage> {
                   ),
                 ),
               ],
-              ),
             ),
           ),
         );

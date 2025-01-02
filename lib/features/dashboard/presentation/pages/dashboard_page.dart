@@ -109,63 +109,59 @@ class _DashboardPageState extends State<DashboardPage>
     }
 
     return SafeArea(
-      child: KeyraGradientBackground(
-        gradientColor: AppColors.controlPurple,
-        child: Scaffold(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
+        key: _scaffoldKey,
+        endDrawer: const AppDrawer(),
+        appBar: AppBar(
+          centerTitle: false,
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
-          key: _scaffoldKey,
-          endDrawer: const AppDrawer(),
-          appBar: AppBar(
-            centerTitle: false,
-            automaticallyImplyLeading: false,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: BlocBuilder<BadgeBloc, BadgeState>(
-                builder: (context, state) {
-                  return state.map(
-                    initial: (_) => const SizedBox.shrink(),
-                    loaded: (loaded) => BadgeDisplay(
-                      level: loaded.progress.currentLevel,
-                    ),
-                    levelingUp: (levelingUp) => BadgeDisplay(
-                      level: levelingUp.progress.currentLevel,
-                    ),
-                  );
-                },
-              ),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: BlocBuilder<BadgeBloc, BadgeState>(
+              builder: (context, state) {
+                return state.map(
+                  initial: (_) => const SizedBox.shrink(),
+                  loaded: (loaded) => BadgeDisplay(
+                    level: loaded.progress.currentLevel,
+                  ),
+                  levelingUp: (levelingUp) => BadgeDisplay(
+                    level: levelingUp.progress.currentLevel,
+                  ),
+                );
+              },
             ),
-            actions: const [
-              MenuButton(),
-              SizedBox(width: 16),
-            ],
           ),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<DashboardBloc>().loadDashboardStats();
-                  },
-                  child: BlocConsumer<DashboardBloc, DashboardState>(
-                    listener: _dashboardStateListener,
-                    builder: (context, state) {
-                      return state.when(
+          actions: const [
+            MenuButton(),
+            SizedBox(width: 16),
+          ],
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  context.read<DashboardBloc>().loadDashboardStats();
+                },
+                child: BlocConsumer<DashboardBloc, DashboardState>(
+                  listener: _dashboardStateListener,
+                  builder: (context, state) {
+                    return state.when(
                       initial: () => const Center(child: SizedBox()),
                       loading: () => const Center(child: SizedBox()),
-                      loaded: (booksRead, favoriteBooks, readingStreak,
-                          savedWords) {
+                      loaded: (booksRead, favoriteBooks, readingStreak, savedWords) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Padding(
                               padding: EdgeInsets.all(16.0),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   SizedBox(),
                                   Row(
@@ -183,22 +179,19 @@ class _DashboardPageState extends State<DashboardPage>
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Stats Content
                                       Column(
                                         children: [
-                                          // First Row: Books Read and Favorite Books
                                           Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                             children: [
                                               Expanded(
                                                 child: CircularStatsCard(
-                                                  title: UiTranslationService
-                                                      .translate(context,
-                                                          'books_read'),
+                                                  title: UiTranslationService.translate(
+                                                    context,
+                                                    'books_read',
+                                                  ),
                                                   value: booksRead,
                                                   maxValue: 50,
                                                   icon: Icons.book,
@@ -207,9 +200,10 @@ class _DashboardPageState extends State<DashboardPage>
                                               ),
                                               Expanded(
                                                 child: CircularStatsCard(
-                                                  title: UiTranslationService
-                                                      .translate(context,
-                                                          'favorite_books'),
+                                                  title: UiTranslationService.translate(
+                                                    context,
+                                                    'favorite_books',
+                                                  ),
                                                   value: favoriteBooks,
                                                   maxValue: 20,
                                                   icon: Icons.favorite,
@@ -219,124 +213,88 @@ class _DashboardPageState extends State<DashboardPage>
                                             ],
                                           ),
                                           const SizedBox(height: 24),
-
-                                          // Second Row: Reading Streak and Saved Words
                                           Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                             children: [
-                                              // Reading Streak Circle
                                               Expanded(
                                                 child: CircularStatsCard(
-                                                  title: UiTranslationService
-                                                      .translate(context,
-                                                          'reading_streak'),
+                                                  title: UiTranslationService.translate(
+                                                    context,
+                                                    'reading_streak',
+                                                  ),
                                                   value: readingStreak,
                                                   maxValue: 30,
-                                                  icon: Icons
-                                                      .local_fire_department,
+                                                  icon: Icons.local_fire_department,
                                                   color: Colors.orange,
                                                 ),
                                               ),
-                                              // Compact Saved Words Card
                                               Expanded(
                                                 child: Card(
                                                   elevation: 4,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .surfaceContainerLowest,
+                                                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
+                                                    borderRadius: BorderRadius.circular(16),
                                                   ),
                                                   child: InkWell(
                                                     onTap: () {
                                                       Navigator.of(context)
                                                           .push(
-                                                        MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              const StudyWordsPage(),
-                                                        ),
-                                                      )
+                                                            MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  const StudyWordsPage(),
+                                                            ),
+                                                          )
                                                           .then((_) {
-                                                        // Reload stats when returning from SavedWordsPage
                                                         if (mounted) {
                                                           context
-                                                              .read<
-                                                                  DashboardBloc>()
+                                                              .read<DashboardBloc>()
                                                               .loadDashboardStats();
                                                         }
                                                       });
                                                     },
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
+                                                    borderRadius: BorderRadius.circular(16),
                                                     child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              16.0),
+                                                      padding: const EdgeInsets.all(16.0),
                                                       child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
+                                                        mainAxisSize: MainAxisSize.min,
                                                         children: [
                                                           Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            mainAxisSize: MainAxisSize.min,
                                                             children: [
                                                               const Icon(
                                                                 Icons.bookmark,
                                                                 size: 20,
-                                                                color: Colors
-                                                                    .purple,
+                                                                color: Colors.purple,
                                                               ),
-                                                              const SizedBox(
-                                                                  width: 8),
+                                                              const SizedBox(width: 8),
                                                               Flexible(
                                                                 child: Text(
-                                                                  UiTranslationService
-                                                                      .translate(
-                                                                          context,
-                                                                          'saved_words'),
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        16,
-                                                                    color: Colors
-                                                                            .grey[
-                                                                        700],
+                                                                  UiTranslationService.translate(
+                                                                    context,
+                                                                    'saved_words',
                                                                   ),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
+                                                                  style: TextStyle(
+                                                                    fontSize: 16,
+                                                                    color: Colors.grey[700],
+                                                                  ),
+                                                                  overflow: TextOverflow.ellipsis,
                                                                 ),
                                                               ),
-                                                              const SizedBox(
-                                                                  width: 4),
+                                                              const SizedBox(width: 4),
                                                               Icon(
-                                                                Icons
-                                                                    .chevron_right,
+                                                                Icons.chevron_right,
                                                                 size: 20,
-                                                                color: Colors
-                                                                    .grey[400],
+                                                                color: Colors.grey[400],
                                                               ),
                                                             ],
                                                           ),
-                                                          const SizedBox(
-                                                              height: 8),
+                                                          const SizedBox(height: 8),
                                                           Text(
-                                                            savedWords
-                                                                .toString(),
-                                                            style:
-                                                                const TextStyle(
+                                                            savedWords.toString(),
+                                                            style: const TextStyle(
                                                               fontSize: 32,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                              fontWeight: FontWeight.bold,
                                                             ),
                                                           ),
                                                         ],
@@ -348,8 +306,6 @@ class _DashboardPageState extends State<DashboardPage>
                                             ],
                                           ),
                                           const SizedBox(height: 32),
-
-                                          // Study Progress Section
                                           const Column(
                                             children: [
                                               BadgesOverviewCard(),
@@ -387,25 +343,21 @@ class _DashboardPageState extends State<DashboardPage>
                               const SizedBox(height: 16),
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  context
-                                      .read<DashboardBloc>()
-                                      .loadDashboardStats();
+                                  context.read<DashboardBloc>().loadDashboardStats();
                                 },
                                 icon: const Icon(Icons.refresh),
-                                label: Text(UiTranslationService.translate(
-                                    context, 'ok')),
+                                label: Text(UiTranslationService.translate(context, 'ok')),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      );
-                    },
-                  ),
+                    );
+                  },
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

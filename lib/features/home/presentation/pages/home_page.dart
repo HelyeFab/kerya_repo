@@ -209,10 +209,8 @@ class _HomePageState extends State<HomePage> {
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, languageState) {
         return SafeArea(
-          child: KeyraGradientBackground(
-            gradientColor: AppColors.controlPurple,
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
+          child: Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.background,
             appBar: AppBar(
               centerTitle: false,
               automaticallyImplyLeading: false,
@@ -264,24 +262,24 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                    ),
+                ),
                 Expanded(
                   child: ListView(
                     children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: AppSpacing.lg),
-                            child: Text(
+                      Padding(
+                        padding: const EdgeInsets.only(left: AppSpacing.lg),
+                        child: Text(
                           UiTranslations.of(context).translate('home_recently_added_stories'),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.sectionTitle,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          SizedBox(
-                            height: 280,
-                            child: _isLoadingAll
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      SizedBox(
+                        height: 280,
+                        child: _isLoadingAll
                             ? const Center(
                                 child: LoadingIndicator(size: 100),
                               )
@@ -306,20 +304,20 @@ class _HomePageState extends State<HomePage> {
                                   );
                                 },
                               ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                            child: Text(
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                        child: Text(
                           UiTranslations.of(context).translate('home_continue_reading'),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.sectionTitle,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          _isLoadingInProgress
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _isLoadingInProgress
                           ? const Center(
                               child: LoadingIndicator(size: 100),
                             )
@@ -409,8 +407,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-              endDrawer: const AppDrawer(),
-            ),
+            endDrawer: const AppDrawer(),
           ),
         );
       },
