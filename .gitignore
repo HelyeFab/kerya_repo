@@ -54,7 +54,12 @@ book_uploader/serviceAccountKey.json
 # Google Cloud credentials
 assets/config/google_tts_credentials.json
 
-
+# API Keys and Sensitive Configurations
+lib/firebase_options.dart
+lib/core/config/api_keys.dart
+lib/config/api_keys.dart
+lib/config/google-services.json
+android/app/google-services.json
 
 # Keystore files
 *.keystore
