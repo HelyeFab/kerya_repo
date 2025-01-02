@@ -13,7 +13,7 @@ class TermsOfServicePage extends StatelessWidget {
       builder: (context, uiLanguageState) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(UiTranslations.of(context).translate('terms of service')),
+            title: Text(UiTranslations.of(context).translate('terms_of_service')),
             centerTitle: true,
             leading: IconButton(
               icon: HugeIcon(

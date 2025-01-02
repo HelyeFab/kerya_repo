@@ -6,6 +6,7 @@ import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart'
 import 'package:Keyra/features/books/domain/models/book_language.dart';
 import 'package:Keyra/features/dictionary/data/repositories/saved_words_repository.dart';
 import 'package:Keyra/features/dictionary/domain/models/saved_word.dart';
+import 'package:Keyra/core/ui_language/translations/ui_translations.dart';
 import 'package:Keyra/core/config/app_strings.dart';
 import 'package:Keyra/core/widgets/loading_animation.dart';
 
@@ -442,7 +443,7 @@ class _JapaneseWordDefinitionModalState extends State<JapaneseWordDefinitionModa
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppStrings.meanings,
+            UiTranslations.of(context).translate('meanings'),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.onSurfaceVariant,

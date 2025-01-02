@@ -19,7 +19,8 @@ class UiLanguageSelectorModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UiLanguageBloc, UiLanguageState>(
       builder: (context, state) {
-        String currentLanguage = state.languageCode;
+        final translations = UiTranslations.of(context);
+        final currentLanguage = state.languageCode;
 
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -32,7 +33,7 @@ class UiLanguageSelectorModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      UiTranslations.of(context).translate('select_language'),
+                      translations.translate('select_language'),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     IconButton(

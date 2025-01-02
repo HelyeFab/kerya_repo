@@ -13,7 +13,7 @@ class PrivacyPolicyPage extends StatelessWidget {
       builder: (context, uiLanguageState) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(UiTranslations.of(context).translate('privacy policy')),
+            title: Text(UiTranslations.of(context).translate('privacy_policy')),
             centerTitle: true,
             leading: IconButton(
               icon: HugeIcon(

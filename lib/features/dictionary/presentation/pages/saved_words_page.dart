@@ -14,7 +14,7 @@ class SavedWordsPage extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(UiTranslations.of(context).translate('saved_words')),
+          title: Text(UiTranslations.of(context).translate('saved_words_title')),
         ),
         body: StreamBuilder<List<SavedWord>>(
           stream: _repository.getSavedWords(),

@@ -14,7 +14,7 @@ class FirebaseAuthRepository {
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _googleSignIn = googleSignIn ?? GoogleSignIn(
           signInOption: SignInOption.standard,
-          clientId: '683024343520-5frvus96mrnucr0lt4bn55epuanv1l52.apps.googleusercontent.com',
+          clientId: '683024343520-n2q59bm55nes70atb4bvhu719qci94d5.apps.googleusercontent.com',
         ),
         _userStatsRepository = userStatsRepository ?? UserStatsRepository();
 

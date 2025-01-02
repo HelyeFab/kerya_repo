@@ -20,7 +20,7 @@ class _StudyWordsPageState extends State<StudyWordsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(UiTranslationService.translate(context, 'saved words')),
+        title: Text(UiTranslationService.translate(context, 'saved_words_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.language),

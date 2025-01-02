@@ -6,7 +6,7 @@ import '../../../../../features/dictionary/domain/models/saved_word.dart';
 import '../../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../../../../../features/dictionary/domain/services/spaced_repetition_service.dart';
 import '../../../../../core/ui_language/bloc/ui_language_bloc.dart';
-import '../../../../../core/ui_language/service/ui_translation_service.dart';
+import '../../../../../core/ui_language/translations/ui_translations.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../widgets/flashcard/flashcard.dart';
 
@@ -83,7 +83,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(UiTranslationService.translate(context, 'flashcard_error_update')),
+            content: Text(UiTranslations.of(context).translate('flashcard_error_update')),
           ),
         );
       }
@@ -94,7 +94,9 @@ class _StudySessionPageState extends State<StudySessionPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<UiLanguageBloc, UiLanguageState>(
       builder: (context, uiLanguageState) {
+        final translations = UiTranslations.of(context);
         final languageCode = uiLanguageState.languageCode;
+        
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
@@ -106,7 +108,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
               ),
             ),
             title: Text(
-              '${UiTranslationService.translate(context, 'flashcard_study_session')} (${_currentIndex + 1}/${widget.words.length})',
+              '${translations.translate('flashcard_study_session')} (${_currentIndex + 1}/${widget.words.length})',
             ),
             actions: [
               IconButton(
@@ -173,7 +175,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
                             ? Colors.white.withOpacity(0.87)
                             : Colors.white,
                       ),
-                      child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_hard')),
+                      child: Text(translations.translate('flashcard_difficulty_hard')),
                     ),
                     ElevatedButton(
                       onPressed: () => _markWord(1),
@@ -185,7 +187,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
                             ? Colors.white.withOpacity(0.87)
                             : Colors.white,
                       ),
-                      child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_good')),
+                      child: Text(translations.translate('flashcard_difficulty_good')),
                     ),
                     ElevatedButton(
                       onPressed: () => _markWord(2),
@@ -197,7 +199,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
                             ? Colors.white.withOpacity(0.87)
                             : Colors.white,
                       ),
-                      child: Text(UiTranslationService.translate(context, 'flashcard_difficulty_easy')),
+                      child: Text(translations.translate('flashcard_difficulty_easy')),
                     ),
                   ],
                 ),

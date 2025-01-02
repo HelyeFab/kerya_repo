@@ -105,7 +105,7 @@ class _StudyProgressCardState extends State<StudyProgressCard> {
                     ),
                     const SizedBox(height: 32),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
                           child: _buildProgressItem(
@@ -116,6 +116,7 @@ class _StudyProgressCardState extends State<StudyProgressCard> {
                             Icons.fiber_new,
                           ),
                         ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: _buildProgressItem(
                             learningText,
@@ -125,6 +126,7 @@ class _StudyProgressCardState extends State<StudyProgressCard> {
                             Icons.psychology,
                           ),
                         ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: _buildProgressItem(
                             learnedText,
@@ -235,7 +237,7 @@ class _StudyProgressCardState extends State<StudyProgressCard> {
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
