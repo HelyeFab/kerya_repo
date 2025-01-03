@@ -41,7 +41,7 @@ class AcknowledgmentsPage extends StatelessWidget {
                 _buildAcknowledgmentSection(
                   context,
                   UiTranslations.translations[languageCode]?['icons_section'] ?? 'Icons',
-                  UiTranslations.translations[languageCode]?['icons_description'] ?? 'HugeIcons - Beautiful and consistent icon set',
+                  UiTranslations.translations[languageCode]?['icons_description'] ?? 'HugeIcons - Beautiful and consistent icon set\nFlatIcon - High quality icons and graphics',
                 ),
                 _buildAcknowledgmentSection(
                   context,

@@ -9,22 +9,34 @@ import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../../dashboard/data/repositories/user_stats_repository.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../library/presentation/pages/library_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../badges/presentation/bloc/badge_bloc.dart';
+import '../../../badges/data/repositories/badge_repository_impl.dart';
+import '../../../dictionary/data/repositories/saved_words_repository.dart';
 
 class NavigationPage extends StatefulWidget {
-  const NavigationPage({super.key});
+  final int? initialIndex;
+  const NavigationPage({super.key, this.initialIndex});
 
   @override
   State<NavigationPage> createState() => _NavigationPageState();
 }
 
 class _NavigationPageState extends State<NavigationPage> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex ?? 0;
+  }
 
   final List<Widget> _pages = const [
     HomePage(),
     LibraryPage(),
     StudyPage(),
     DashboardPage(),
+    ProfilePage(),
   ];
 
   void _onNavigationChanged(int index) {
@@ -35,27 +47,34 @@ class _NavigationPageState extends State<NavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<DashboardBloc>(
-          create: (context) => DashboardBloc(
-            userStatsRepository: UserStatsRepository(),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        state.maybeWhen(
+          unauthenticated: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const AuthPage(),
+              ),
+            );
+          },
+          orElse: () {},
+        );
+      },
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<DashboardBloc>(
+            create: (context) => DashboardBloc(
+              userStatsRepository: UserStatsRepository(),
+            ),
           ),
-        ),
-      ],
-      child: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          state.maybeWhen(
-            unauthenticated: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const AuthPage(),
-                ),
-              );
-            },
-            orElse: () {},
-          );
-        },
+          BlocProvider<BadgeBloc>(
+            create: (context) => BadgeBloc(
+              badgeRepository: BadgeRepositoryImpl(),
+              savedWordsRepository: SavedWordsRepository(),
+              userStatsRepository: UserStatsRepository(),
+            ),
+          ),
+        ],
         child: KeyraScaffold(
           currentIndex: _currentIndex,
           onNavigationChanged: _onNavigationChanged,

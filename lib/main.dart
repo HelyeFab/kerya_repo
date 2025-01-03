@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:Keyra/features/books/domain/models/book.dart';
-import 'package:Keyra/features/books/domain/models/book_language.dart';
-import 'package:Keyra/features/books/domain/models/book_page.dart';
-import 'package:Keyra/features/books/data/services/book_cache_service.dart';
-import 'package:Keyra/features/books/data/services/book_cover_cache_manager.dart';
+import 'features/books/domain/models/book.dart';
+import 'features/books/domain/models/book_language.dart';
+import 'features/books/domain/models/book_page.dart';
+import 'features/books/data/services/book_cache_service.dart';
+import 'features/books/data/services/book_cover_cache_manager.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/badges/domain/repositories/badge_repository.dart';
 import 'features/badges/data/repositories/badge_repository_impl.dart';
@@ -14,27 +14,28 @@ import 'features/home/presentation/pages/home_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:Keyra/features/dashboard/data/repositories/user_stats_repository.dart';
-import 'package:Keyra/core/services/preferences_service.dart';
-import 'package:Keyra/core/presentation/bloc/language_bloc.dart';
-import 'package:Keyra/core/ui_language/bloc/ui_language_bloc.dart';
-import 'package:Keyra/core/ui_language/translations/ui_translations.dart';
-import 'package:Keyra/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:Keyra/features/auth/data/repositories/firebase_auth_repository.dart';
-import 'package:Keyra/core/theme/app_theme.dart';
-import 'package:Keyra/core/theme/bloc/theme_bloc.dart';
-import 'package:Keyra/features/books/data/repositories/firestore_populator.dart';
-import 'package:Keyra/features/library/presentation/pages/library_page.dart';
-import 'package:Keyra/features/study/presentation/pages/study_page.dart';
-import 'package:Keyra/features/dashboard/presentation/pages/dashboard_page.dart';
-import 'package:Keyra/features/profile/presentation/pages/profile_page.dart';
+import 'features/dashboard/data/repositories/user_stats_repository.dart';
+import 'features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'core/services/preferences_service.dart';
+import 'core/presentation/bloc/language_bloc.dart';
+import 'core/ui_language/bloc/ui_language_bloc.dart';
+import 'core/ui_language/translations/ui_translations.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/data/repositories/firebase_auth_repository.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/bloc/theme_bloc.dart';
+import 'features/books/data/repositories/firestore_populator.dart';
+import 'features/library/presentation/pages/library_page.dart';
+import 'features/study/presentation/pages/study_page.dart';
+import 'features/dashboard/presentation/pages/dashboard_page.dart';
+import 'features/profile/presentation/pages/profile_page.dart';
 import 'firebase_options.dart';
-import 'package:Keyra/features/dictionary/data/services/dictionary_service.dart';
+import 'features/dictionary/data/services/dictionary_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'splash_screen.dart';
 import 'dart:async';
-import 'package:Keyra/features/onboarding/presentation/pages/onboarding_page.dart';
-import 'package:Keyra/features/navigation/presentation/pages/navigation_page.dart';
+import 'features/onboarding/presentation/pages/onboarding_page.dart';
+import 'features/navigation/presentation/pages/navigation_page.dart';
 import 'package:rxdart/rxdart.dart';
 
 // Create stream controllers for initialization status
@@ -254,8 +255,20 @@ void main() async {
                           value: context.read<AuthBloc>(),
                           child: const HomePage(),
                         ),
-                        '/library': (context) => BlocProvider.value(
-                          value: context.read<AuthBloc>(),
+                        '/library': (context) => MultiBlocProvider(
+                          providers: [
+                            BlocProvider.value(
+                              value: context.read<AuthBloc>(),
+                            ),
+                            BlocProvider(
+                              create: (context) => DashboardBloc(
+                                userStatsRepository: context.read<UserStatsRepository>(),
+                              ),
+                            ),
+                            BlocProvider.value(
+                              value: context.read<BadgeBloc>(),
+                            ),
+                          ],
                           child: const LibraryPage(),
                         ),
                         '/study': (context) => BlocProvider.value(

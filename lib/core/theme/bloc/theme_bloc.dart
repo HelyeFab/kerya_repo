@@ -9,27 +9,42 @@ part 'theme_state.dart';
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   static const String _themePreferenceKey = 'theme_mode';
+  static const String _gradientThemePreferenceKey = 'use_gradient_theme';
   final SharedPreferences _prefs;
 
-  ThemeBloc(this._prefs) : super(const ThemeState(themeMode: ThemeMode.system)) {
+  ThemeBloc(this._prefs) : super(const ThemeState(themeMode: ThemeMode.system, useGradientTheme: false)) {
     on<ThemeEvent>((event, emit) {
       event.when(
         toggleTheme: () {
-          final newMode = state.themeMode == ThemeMode.light
-              ? ThemeMode.dark
-              : ThemeMode.light;
-          _saveThemeMode(newMode);
-          emit(state.copyWith(themeMode: newMode));
+          if (!state.useGradientTheme) {
+            final newMode = state.themeMode == ThemeMode.light
+                ? ThemeMode.dark
+                : ThemeMode.light;
+            _saveThemeMode(newMode);
+            emit(state.copyWith(themeMode: newMode));
+          }
         },
         setTheme: (ThemeMode mode) {
-          _saveThemeMode(mode);
-          emit(state.copyWith(themeMode: mode));
+          if (!state.useGradientTheme) {
+            _saveThemeMode(mode);
+            emit(state.copyWith(themeMode: mode));
+          }
+        },
+        toggleGradientTheme: () {
+          final newGradientState = !state.useGradientTheme;
+          _saveGradientTheme(newGradientState);
+          emit(state.copyWith(useGradientTheme: newGradientState));
+        },
+        setGradientTheme: (bool useGradient) {
+          _saveGradientTheme(useGradient);
+          emit(state.copyWith(useGradientTheme: useGradient));
         },
       );
     });
     
     // Load saved theme immediately
     _loadSavedTheme();
+    _loadSavedGradientTheme();
   }
 
   static Future<ThemeBloc> create() async {
@@ -49,11 +64,28 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     }
   }
 
+  void _loadSavedGradientTheme() {
+    try {
+      final useGradient = _prefs.getBool(_gradientThemePreferenceKey) ?? false;
+      add(ThemeEvent.setGradientTheme(useGradient));
+    } catch (e) {
+      debugPrint('Error loading gradient theme: $e');
+    }
+  }
+
   void _saveThemeMode(ThemeMode mode) {
     try {
       _prefs.setString(_themePreferenceKey, mode == ThemeMode.dark ? 'dark' : 'light');
     } catch (e) {
       debugPrint('Error saving theme: $e');
+    }
+  }
+
+  void _saveGradientTheme(bool useGradient) {
+    try {
+      _prefs.setBool(_gradientThemePreferenceKey, useGradient);
+    } catch (e) {
+      debugPrint('Error saving gradient theme: $e');
     }
   }
 }

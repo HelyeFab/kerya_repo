@@ -55,7 +55,7 @@ class AppColors {
   // Gradient colors for pages
   static const homeGradient = [Color(0xFFEB2D7E), Color(0xFFEC0593), Color(0xFFE600AD), Color(0xFFD800CB), Color(0xFFBD12EB)];
   static const libraryGradient = [Color(0xFFF98D5A), Color(0xFFFFB74F), Color(0xFFFDCE4E), Color(0xFFF5E555)];
-  static const studyGradient = [Color(0xFF903DDE), Color(0xFF0083FF), Color(0xFF00B0FF), Color(0xFF00D4FF), Color(0xFF55F1F5)];
+  static const studyGradient = [Color(0xFF6BD192), Color(0xFF5CC07E), Color(0xFF4DAE6B), Color(0xFF3E9E59), Color(0xFF2E8D46), Color(0xFF29904E), Color(0xFF239455), Color(0xFF1B975D), Color(0xFF22B081), Color(0xFF31C9A6), Color(0xFF45E2CC), Color(0xFF5FFBF1)];
   static const dashboardGradient = [Color(0xFF3D6EDE), Color(0xFF0094F5), Color(0xFF00B6FD), Color(0xFF00D5FA), Color(0xFF55F1F5)];
   static const profileGradient = [Color(0xFF5ECAA4), Color(0xFF63D4B7), Color(0xFF6BDDC9), Color(0xFF76E7DA), Color(0xFF82F0EB)];
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../domain/models/badge_level.dart';
 import 'animated_badge_tooltip.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/ui_language/translations/ui_translations.dart';
 
 class BadgeDisplay extends StatefulWidget {
   final BadgeLevel level;
@@ -55,43 +56,40 @@ class _BadgeDisplayState extends State<BadgeDisplay> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBadgeTooltip(
-      tooltip: widget.displayName ?? '',
+      tooltip: UiTranslations.of(context).translate(widget.level.displayName),
       isVisible: _showTooltip,
       badgeSize: BadgeDisplay.badgeSize,
       child: GestureDetector(
         onTap: _showTooltipTemporarily,
-        child: Padding(
-          padding: const EdgeInsets.only(top: AppSpacing.xs),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                child: Image.asset(
-                  widget.level.assetPath,
-                  width: BadgeDisplay.badgeSize,
-                  height: BadgeDisplay.badgeSize,
-                  fit: BoxFit.contain,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
                 ),
               ),
-              if (widget.showName) ...[
-                const SizedBox(width: 8),
-                Text(
-                  widget.displayName ?? '',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 12,
-                  ),
+              child: Image.asset(
+                widget.level.assetPath,
+                width: BadgeDisplay.badgeSize,
+                height: BadgeDisplay.badgeSize,
+                fit: BoxFit.contain,
+              ),
+            ),
+            if (widget.showName) ...[
+              const SizedBox(width: 8),
+              Text(
+                widget.displayName ?? '',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 12,
                 ),
-              ],
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

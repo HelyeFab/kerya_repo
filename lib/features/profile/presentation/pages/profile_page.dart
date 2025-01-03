@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/keyra_scaffold.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../navigation/presentation/pages/navigation_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -74,33 +76,17 @@ class ProfilePage extends StatelessWidget {
     final theme = Theme.of(context);
     final iconColor = _getIconColor(context);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: iconColor,
-            size: 24.0,
+    return KeyraScaffold(
+      currentIndex: 4, // Profile page index
+      onNavigationChanged: (index) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => NavigationPage(initialIndex: index),
           ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedLogout05,
-              color: iconColor,
-              size: 24.0,
-            ),
-            onPressed: () => _showLogoutConfirmation(context),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: SingleChildScrollView(
+          (route) => false,
+        );
+      },
+      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -120,7 +106,7 @@ class ProfilePage extends StatelessWidget {
                           ? Text(
                               user.email?.substring(0, 1).toUpperCase() ?? 'U',
                               style: theme.textTheme.headlineMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onBackground,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             )
                           : null,
@@ -129,7 +115,7 @@ class ProfilePage extends StatelessWidget {
                     Text(
                       user.displayName ?? user.email ?? 'User',
                       style: theme.textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onBackground,
+                          color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     if (user.email != null) ...[
@@ -137,7 +123,7 @@ class ProfilePage extends StatelessWidget {
                       Text(
                         user.email!,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
                       ),
                     ],
@@ -164,23 +150,55 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    ListTile(
-                      leading: HugeIcon(
-                        icon: HugeIcons.strokeRoundedMoon,
-                        color: iconColor,
-                        size: 24.0,
-                      ),
-                      title: Text(UiTranslations.of(context).translate('dark_mode')),
-                      trailing: BlocBuilder<ThemeBloc, ThemeState>(
-                        builder: (context, state) {
-                          return Switch(
-                            value: state.themeMode == ThemeMode.dark,
-                            onChanged: (bool value) {
-                              context.read<ThemeBloc>().add(const ThemeEvent.toggleTheme());
-                            },
-                          );
-                        },
-                      ),
+                    BlocBuilder<ThemeBloc, ThemeState>(
+                      builder: (context, themeState) {
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: HugeIcon(
+                                icon: HugeIcons.strokeRoundedPaintBrush04,
+                                color: iconColor,
+                                size: 24.0,
+                              ),
+                              title: Text(UiTranslations.of(context).translate('app_colors')),
+                              subtitle: themeState.useGradientTheme 
+                                ? Text(UiTranslations.of(context).translate('gradient_theme_enabled'))
+                                : null,
+                              trailing: Switch(
+                                value: themeState.useGradientTheme,
+                                onChanged: (bool value) {
+                                  context.read<ThemeBloc>().add(const ThemeEvent.toggleGradientTheme());
+                                },
+                              ),
+                            ),
+                            ListTile(
+                              leading: HugeIcon(
+                                icon: HugeIcons.strokeRoundedMoon,
+                                color: themeState.useGradientTheme ? iconColor.withOpacity(0.5) : iconColor,
+                                size: 24.0,
+                              ),
+                              title: Text(
+                                UiTranslations.of(context).translate('dark_mode'),
+                                style: themeState.useGradientTheme 
+                                  ? TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))
+                                  : null,
+                              ),
+                              subtitle: themeState.useGradientTheme 
+                                ? Text(
+                                    UiTranslations.of(context).translate('dark_mode_disabled'),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                                  )
+                                : null,
+                              trailing: Switch(
+                                value: themeState.themeMode == ThemeMode.dark,
+                                onChanged: themeState.useGradientTheme ? null : (bool value) {
+                                  context.read<ThemeBloc>().add(const ThemeEvent.toggleTheme());
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     ListTile(
                       leading: HugeIcon(

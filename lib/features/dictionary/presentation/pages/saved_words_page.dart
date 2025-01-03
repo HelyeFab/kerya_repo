@@ -94,7 +94,7 @@ class SavedWordsPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '${UiTranslations.of(context).translate('definition')}: ${word.definition.startsWith('common_definition:') ? word.definition.substring('common_definition:'.length).trim() : word.definition}',
+                            '${UiTranslations.of(context).translate('definition')}: ${word.definition.startsWith('common_definition:') ? UiTranslations.of(context).translate('common_definition') : word.definition}',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           if (word.examples.isNotEmpty ?? false) ...[

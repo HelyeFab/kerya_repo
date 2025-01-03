@@ -74,52 +74,49 @@ class _AnimatedBadgeTooltipState extends State<AnimatedBadgeTooltip>
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Positioned(
-          left: 18,
-          top: -AppSpacing.xs,
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Opacity(
-                opacity: _fadeAnimation.value,
-                child: Transform.translate(
-                  offset: Offset(_slideAnimation.value, 0),
-                  child: Container(
-                    height: widget.badgeSize,
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                      right: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          AppColors.tooltipBackgroundTransparent,
-                          AppColors.tooltipBackground.withOpacity(0.9),
-                          AppColors.tooltipBackground.withOpacity(0.9),
-                        ],
-                        stops: const [0.0, 0.3, 1.0],
-                      ),
-                      borderRadius: BorderRadius.circular(widget.badgeSize / 2),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.tooltip,
-                        style: const TextStyle(
-                          color: AppColors.controlText,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
+        widget.child,
+        if (widget.isVisible)
+          Positioned(
+            left: widget.badgeSize + 4,
+            top: (widget.badgeSize - 28) / 2,
+            child: IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Transform.translate(
+                      offset: Offset(_slideAnimation.value, 0),
+                      child: Container(
+                        height: 28,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                        ),
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: AppColors.tooltipBackground.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.tooltip,
+                            style: const TextStyle(
+                              color: AppColors.controlText,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
-        ),
-        widget.child,
       ],
     );
   }

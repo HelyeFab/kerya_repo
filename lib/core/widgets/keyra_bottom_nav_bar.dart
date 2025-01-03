@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import '../ui_language/service/ui_translation_service.dart';
 import '../theme/color_schemes.dart';
 
@@ -113,95 +112,75 @@ class KeyraBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = Theme.of(context).colorScheme.onSurface;
-
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 8,
-        right: 8,
-        bottom: 16,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: const BoxDecoration(
+        color: Colors.white,
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(0.2)
-                  : Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          AnimatedNavItem(
+            icon: Image.asset(
+              'assets/images/navbar/house.png',
+              width: 24.0,
+              height: 24.0,
             ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            AnimatedNavItem(
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedHome13,
-                size: 24.0,
-                color: iconColor,
-              ),
-              activeIcon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedHome13,
-                size: 24.0,
-                color: AppColors.sectionTitle,
-              ),
-              label: UiTranslationService.translate(context, 'nav_home'),
-              isSelected: currentIndex == 0,
-              onTap: () => onTap(0),
+            activeIcon: Image.asset(
+              'assets/images/navbar/house.png',
+              width: 24.0,
+              height: 24.0,
             ),
-            AnimatedNavItem(
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedBook02,
-                size: 24.0,
-                color: iconColor,
-              ),
-              activeIcon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedBook02,
-                size: 24.0,
-                color: AppColors.sectionTitle,
-              ),
-              label: UiTranslationService.translate(context, 'nav_library'),
-              isSelected: currentIndex == 1,
-              onTap: () => onTap(1),
+            label: UiTranslationService.translate(context, 'nav_home'),
+            isSelected: currentIndex == 0,
+            onTap: () => onTap(0),
+          ),
+          AnimatedNavItem(
+            icon: Image.asset(
+              'assets/images/navbar/bookshelf.png',
+              width: 24.0,
+              height: 24.0,
             ),
-            AnimatedNavItem(
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedIdea01,
-                size: 24.0,
-                color: iconColor,
-              ),
-              activeIcon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedIdea01,
-                size: 24.0,
-                color: AppColors.sectionTitle,
-              ),
-              label: UiTranslationService.translate(context, 'nav_study'),
-              isSelected: currentIndex == 2,
-              onTap: () => onTap(2),
+            activeIcon: Image.asset(
+              'assets/images/navbar/bookshelf.png',
+              width: 24.0,
+              height: 24.0,
             ),
-            AnimatedNavItem(
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedDashboardBrowsing,
-                size: 24.0,
-                color: iconColor,
-              ),
-              activeIcon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedDashboardBrowsing,
-                size: 24.0,
-                color: AppColors.sectionTitle,
-              ),
-              label: UiTranslationService.translate(context, 'nav_dashboard'),
-              isSelected: currentIndex == 3,
-              onTap: () => onTap(3),
+            label: UiTranslationService.translate(context, 'nav_library'),
+            isSelected: currentIndex == 1,
+            onTap: () => onTap(1),
+          ),
+          AnimatedNavItem(
+            icon: Image.asset(
+              'assets/images/navbar/studying.png',
+              width: 24.0,
+              height: 24.0,
             ),
-          ],
-        ),
+            activeIcon: Image.asset(
+              'assets/images/navbar/studying.png',
+              width: 24.0,
+              height: 24.0,
+            ),
+            label: UiTranslationService.translate(context, 'nav_study'),
+            isSelected: currentIndex == 2,
+            onTap: () => onTap(2),
+          ),
+          AnimatedNavItem(
+            icon: Image.asset(
+              'assets/images/navbar/data.png',
+              width: 24.0,
+              height: 24.0,
+            ),
+            activeIcon: Image.asset(
+              'assets/images/navbar/data.png',
+              width: 24.0,
+              height: 24.0,
+            ),
+            label: UiTranslationService.translate(context, 'nav_dashboard'),
+            isSelected: currentIndex == 3,
+            onTap: () => onTap(3),
+          ),
+        ],
       ),
     );
   }

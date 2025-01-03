@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:Keyra/features/dashboard/presentation/bloc/dashboard_bloc.dart';
-import 'package:Keyra/core/ui_language/translations/ui_translations.dart';
+import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../ui_language/translations/ui_translations.dart';
 
 class MiniStatsDisplay extends StatefulWidget {
   const MiniStatsDisplay({super.key});
@@ -16,7 +16,11 @@ class _MiniStatsDisplayState extends State<MiniStatsDisplay> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     print('[MiniStatsDisplay] Initializing and loading stats');
-    context.read<DashboardBloc>().loadDashboardStats();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<DashboardBloc>().loadDashboardStats();
+      }
+    });
   }
 
   @override

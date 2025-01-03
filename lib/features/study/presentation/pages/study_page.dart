@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/ui_language/translations/ui_translations.dart';
+import '../../../../core/widgets/gradient_background.dart';
 import '../../../../core/widgets/menu_button.dart';
 import '../../../../core/theme/color_schemes.dart';
+import '../../../../core/theme/bloc/theme_bloc.dart';
 import '../../../../features/books/domain/models/book_language.dart';
 import '../../../../features/badges/presentation/widgets/badge_display.dart';
 import '../../../../features/badges/presentation/bloc/badge_bloc.dart';
 import '../../../../features/badges/presentation/bloc/badge_state.dart';
-import '../../../../features/navigation/presentation/widgets/app_drawer.dart';
 import 'session/study_session_page.dart';
 import '../../../../features/dictionary/data/repositories/saved_words_repository.dart';
 import '../widgets/study_progress_card.dart';
@@ -99,84 +100,92 @@ class _StudyPageState extends State<StudyPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      endDrawer: const AppDrawer(),
-      appBar: AppBar(
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: BlocBuilder<BadgeBloc, BadgeState>(
-            builder: (context, state) {
-              return state.map(
-                initial: (_) => const SizedBox.shrink(),
-                loaded: (loaded) => BadgeDisplay(
-                  level: loaded.progress.currentLevel,
-                ),
-                levelingUp: (levelingUp) => BadgeDisplay(
-                  level: levelingUp.progress.currentLevel,
-                ),
-              );
-            },
+    return Material(
+      type: MaterialType.transparency,
+      child: GradientBackground(
+        pageIndex: 2,
+        child: Column(
+      children: [
+        AppBar(
+          backgroundColor: Colors.transparent,
+          centerTitle: false,
+          automaticallyImplyLeading: false,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: BlocBuilder<BadgeBloc, BadgeState>(
+              builder: (context, state) {
+                return state.map(
+                  initial: (_) => const SizedBox.shrink(),
+                  loaded: (loaded) => BadgeDisplay(
+                    level: loaded.progress.currentLevel,
+                  ),
+                  levelingUp: (levelingUp) => BadgeDisplay(
+                    level: levelingUp.progress.currentLevel,
+                  ),
+                );
+              },
+            ),
           ),
+          actions: const [
+            MenuButton(),
+            SizedBox(width: 16),
+          ],
         ),
-        actions: const [
-          MenuButton(),
-          SizedBox(width: 16),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    StudyProgressCard(
-                      onLanguageSelected: (language) => _startStudySession(context, language),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      UiTranslations.of(context).translate('study_tips'),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: AppColors.sectionTitle,
-                        fontWeight: FontWeight.w600,
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      StudyProgressCard(
+                        onLanguageSelected: (language) => _startStudySession(context, language),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTipCard(
-                      context,
-                      Icons.timer,
-                      UiTranslations.of(context).translate('regular_practice'),
-                      UiTranslations.of(context).translate('regular_practice_desc'),
-                      Colors.blue,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTipCard(
-                      context,
-                      Icons.psychology,
-                      UiTranslations.of(context).translate('spaced_repetition'),
-                      UiTranslations.of(context).translate('spaced_repetition_desc'),
-                      Colors.blue,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTipCard(
-                      context,
-                      Icons.auto_stories,
-                      UiTranslations.of(context).translate('context_learning'),
-                      UiTranslations.of(context).translate('context_learning_desc'),
-                      Colors.blue,
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      Text(
+                        UiTranslations.of(context).translate('study_tips'),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: context.read<ThemeBloc>().state.useGradientTheme 
+                            ? Colors.white 
+                            : AppColors.sectionTitle,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTipCard(
+                        context,
+                        Icons.timer,
+                        UiTranslations.of(context).translate('regular_practice'),
+                        UiTranslations.of(context).translate('regular_practice_desc'),
+                        Colors.blue,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTipCard(
+                        context,
+                        Icons.psychology,
+                        UiTranslations.of(context).translate('spaced_repetition'),
+                        UiTranslations.of(context).translate('spaced_repetition_desc'),
+                        Colors.blue,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTipCard(
+                        context,
+                        Icons.auto_stories,
+                        UiTranslations.of(context).translate('context_learning'),
+                        UiTranslations.of(context).translate('context_learning_desc'),
+                        Colors.blue,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      ],
+    )));
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../../../../core/theme/bloc/theme_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CircularStatsCard extends StatelessWidget {
   final String title;
@@ -37,7 +39,10 @@ class CircularStatsCard extends StatelessWidget {
               child: Text(
                 title,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
+                  color: context.read<ThemeBloc>().state.useGradientTheme 
+                    ? Colors.white 
+                    : theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
