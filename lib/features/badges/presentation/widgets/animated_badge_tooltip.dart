@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/color_schemes.dart';
-import '../../../../core/theme/app_spacing.dart';
 
 class AnimatedBadgeTooltip extends StatefulWidget {
   final Widget child;

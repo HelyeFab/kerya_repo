@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../domain/models/badge_level.dart';
 import 'animated_badge_tooltip.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/ui_language/translations/ui_translations.dart';
 
 class BadgeDisplay extends StatefulWidget {
