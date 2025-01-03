@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../dashboard/data/repositories/user_stats_repository.dart';
+import 'package:flutter/services.dart';
 
 class FirebaseAuthRepository {
   final FirebaseAuth _firebaseAuth;
@@ -12,10 +13,7 @@ class FirebaseAuthRepository {
     GoogleSignIn? googleSignIn,
     UserStatsRepository? userStatsRepository,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn(
-          signInOption: SignInOption.standard,
-          clientId: '683024343520-n2q59bm55nes70atb4bvhu719qci94d5.apps.googleusercontent.com',
-        ),
+        _googleSignIn = googleSignIn ?? GoogleSignIn(),
         _userStatsRepository = userStatsRepository ?? UserStatsRepository();
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -74,6 +72,12 @@ class FirebaseAuthRepository {
     } catch (e, stackTrace) {
       print('Error during Google Sign In: $e');
       print('Stack trace: $stackTrace');
+      print('Detailed error info: ${e.runtimeType}');
+      if (e is PlatformException) {
+        print('Error code: ${e.code}');
+        print('Error message: ${e.message}');
+        print('Error details: ${e.details}');
+      }
       throw Exception('Failed to sign in with Google: ${e.toString()}');
     }
   }
